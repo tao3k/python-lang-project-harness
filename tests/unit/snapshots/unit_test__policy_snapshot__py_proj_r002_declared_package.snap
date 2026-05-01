@@ -2,11 +2,6 @@
 source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
-[lint:warning] $TEMP python
-Source: $TEMP
-Files: 0 Parsed: 0
-Issues: 1
-
 [PY-PROJ-R002] Warning: Declared wheel package root is not importable
    ,-[ $TEMP/pyproject.toml:1:1 ]
  1 | [project]

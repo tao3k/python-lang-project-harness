@@ -30,12 +30,7 @@ def test_modern_design_rule_pack_reports_numbered_rules_in_compact_snapshot(
 
     assert (
         output
-        == """[lint:warning] $TMP/module.py python
-Source: $TMP/module.py
-Files: 1 Parsed: 1
-Issues: 3
-
-[PY-MOD-R001] Warning: Wildcard import hides the dependency surface
+        == """[PY-MOD-R001] Warning: Wildcard import hides the dependency surface
    ,-[ $TMP/module.py:1:1 ]
  1 | from tools import *
    | `- replace wildcard import with explicit imported names

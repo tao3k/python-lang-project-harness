@@ -119,6 +119,11 @@ surface is compact text:
 4. short pointer label
 5. one precise `Required:` contract line
 
+Non-clean compact output is finding-first: it does not prepend a file-count or
+issue-count header before the first blocking finding. Clean output still keeps
+a short `[ok]` summary, and default advisory output keeps an `[advice]` marker
+so non-blocking guidance stays visually separate from hard findings.
+
 `render_python_lang_harness()` includes advice by default. A report with only
 `Info` findings is still clean, but its advice remains visible. Use
 `render_python_lang_harness_advice()` when a caller wants only non-blocking

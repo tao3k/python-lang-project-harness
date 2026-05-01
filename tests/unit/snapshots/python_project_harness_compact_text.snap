@@ -1,8 +1,3 @@
-[lint:warning] $TEMP/src, $TEMP/tests python
-Source: $TEMP/src, $TEMP/tests
-Files: 1 Parsed: 1
-Issues: 1
-
 [PY-MOD-R002] Warning: Library module uses bare print
    ,-[ $TEMP/src/service.py:5:5 ]
  5 |     print("debug")

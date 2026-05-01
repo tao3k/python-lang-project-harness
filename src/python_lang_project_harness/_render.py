@@ -30,10 +30,11 @@ def render_python_lang_harness(
     """Render a compact diagnostic report for humans and repair workflows."""
 
     blocking_findings = report.blocking_findings(severities=severities)
-    rendered = _render_header(report, blocking_findings=blocking_findings)
-
-    for finding in blocking_findings:
-        rendered += "\n" + _render_finding(finding)
+    rendered = (
+        _render_findings(blocking_findings)
+        if blocking_findings
+        else _render_ok_header(report)
+    )
     if include_advice:
         advice_findings = _deduplicate_advice_findings(
             report.advisory_findings(),
@@ -117,25 +118,20 @@ def render_python_reasoning_tree(
     return "\n".join(lines) + "\n"
 
 
-def _render_header(
-    report: PythonHarnessReport,
-    *,
-    blocking_findings: tuple[PythonHarnessFinding, ...],
-) -> str:
+def _render_ok_header(report: PythonHarnessReport) -> str:
     target = ", ".join(report.root_paths)
-    if not blocking_findings:
-        return (
-            f"[ok] {target} python\n"
-            f"Source: {target}\n"
-            f"Files: {report.file_count} Parsed: {report.parsed_count}\n"
-            "No blocking issues found.\n"
-        )
-    status = _render_findings_status(blocking_findings)
     return (
-        f"[lint:{status}] {target} python\n"
+        f"[ok] {target} python\n"
         f"Source: {target}\n"
         f"Files: {report.file_count} Parsed: {report.parsed_count}\n"
-        f"Issues: {len(blocking_findings)}\n"
+        "No blocking issues found.\n"
+    )
+
+
+def _render_findings(findings: tuple[PythonHarnessFinding, ...]) -> str:
+    return (
+        "\n\n".join(_render_finding(finding).rstrip("\n") for finding in findings)
+        + "\n"
     )
 
 
@@ -265,16 +261,6 @@ def _render_reasoning_tree_import_edge(edge: PythonReasoningTreeImportEdge) -> s
     scope = "module" if edge.scope == "" else edge.scope
     relation = "relative" if edge.is_relative else "absolute"
     return f"- {importer} -> {imported} ({relation}; {scope}; as {edge.bound_name})"
-
-
-def _render_findings_status(findings: tuple[PythonHarnessFinding, ...]) -> str:
-    if any(finding.severity == PythonDiagnosticSeverity.ERROR for finding in findings):
-        return "error"
-    if any(
-        finding.severity == PythonDiagnosticSeverity.WARNING for finding in findings
-    ):
-        return "warning"
-    return "info"
 
 
 def _deduplicate_advice_findings(

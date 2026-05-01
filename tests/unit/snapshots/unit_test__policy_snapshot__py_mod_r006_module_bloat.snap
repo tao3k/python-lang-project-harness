@@ -2,11 +2,6 @@
 source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
-[lint:warning] $TEMP python
-Source: $TEMP
-Files: 1 Parsed: 1
-Issues: 1
-
 [PY-MOD-R006] Warning: Python module appears too large for one ownership seam
    ,-[ $TEMP/src/feature.py:1:1 ]
  1 | """Large feature module."""

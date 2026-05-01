@@ -2,11 +2,6 @@
 source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
-[lint:warning] $TEMP python
-Source: $TEMP
-Files: 2 Parsed: 2
-Issues: 1
-
 [PY-PROJ-R004] Warning: Typed package public callable lacks annotations
    ,-[ $TEMP/src/pkg/service.py:4:1 ]
  4 | def build(value):

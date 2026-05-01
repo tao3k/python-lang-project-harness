@@ -25,7 +25,7 @@ def test_render_python_lang_harness_uses_compact_source_diagnostic(
 
     output = render_python_lang_harness(run_python_lang_harness([bad]))
 
-    assert output.startswith("[lint:error]")
+    assert output.startswith("[python.syntax.invalid] Error")
     assert "[python.syntax.invalid] Error: Python source did not parse" in output
     assert "def broken(:" in output
     assert "Required: Python modules must parse with CPython native syntax" in output
@@ -67,7 +67,7 @@ def test_assert_python_lang_harness_clean_blocks_for_pytest(tmp_path: Path) -> N
     else:
         raise AssertionError("harness should block invalid Python source")
 
-    assert "[lint:error]" in message
+    assert "[python.syntax.invalid] Error" in message
     assert "python.syntax.invalid" in message
 
 
@@ -121,7 +121,6 @@ def test_assert_python_lang_harness_clean_blocks_warning_findings(
     else:
         raise AssertionError("harness should block warning findings")
 
-    assert "[lint:warning]" in message
     assert "[python.project.warning] Warning: Project warning" in message
 
 
@@ -164,7 +163,6 @@ def test_assert_python_lang_harness_clean_honors_severities_override(
     else:
         raise AssertionError("severity override should still block warnings")
 
-    assert "[lint:warning]" in message
     assert "[python.project.warning] Warning: Project warning" in message
 
 

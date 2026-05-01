@@ -68,8 +68,8 @@ def test_cli_exits_nonzero_for_blocking_findings(tmp_path: Path) -> None:
     exit_code = run_cli([str(tmp_path)], stdout=stdout)
 
     assert exit_code == 1
-    assert "[lint:warning]" in stdout.getvalue()
     assert "PY-MOD-R002" in stdout.getvalue()
+    assert stdout.getvalue().startswith("[PY-MOD-R002] Warning")
 
 
 def test_cli_can_disable_policy_rule_ids(tmp_path: Path) -> None:
@@ -124,8 +124,8 @@ def test_cli_can_promote_policy_rule_ids(tmp_path: Path) -> None:
     exit_code = run_cli(["--block-rule", "PY-AGENT-R001", str(tmp_path)], stdout=stdout)
 
     assert exit_code == 1
-    assert "[lint:info]" in stdout.getvalue()
     assert "PY-AGENT-R001" in stdout.getvalue()
+    assert stdout.getvalue().startswith("[PY-AGENT-R001] Info")
 
 
 def test_cli_help_and_argument_errors_are_stable(tmp_path: Path) -> None:

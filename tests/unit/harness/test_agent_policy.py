@@ -29,12 +29,7 @@ def test_agent_policy_reports_compact_repairable_snapshot(tmp_path: Path) -> Non
     assert "[advice]" in render_python_lang_harness(report)
     assert (
         output
-        == """[lint:info] $TMP/service.py python
-Source: $TMP/service.py
-Files: 1 Parsed: 1
-Issues: 2
-
-[PY-AGENT-R001] Info: Library module lacks a module intent docstring
+        == """[PY-AGENT-R001] Info: Library module lacks a module intent docstring
    ,-[ $TMP/service.py:1:1 ]
  1 | def build(value):
    | `- add a concise module responsibility docstring
