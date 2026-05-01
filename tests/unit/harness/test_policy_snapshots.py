@@ -212,6 +212,31 @@ build-backend = "hatchling.build"
     _assert_project_snapshot(tmp_path, "PY-PROJ-R008", "py_proj_r008_import_names")
 
 
+def test_py_proj_r009_entry_point_target_snapshot(tmp_path: Path) -> None:
+    _src(tmp_path)
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "snapshot-package"
+requires-python = ">=3.12"
+
+[project.scripts]
+snapshot-cli = "missing_pkg.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    _assert_project_snapshot(
+        tmp_path,
+        "PY-PROJ-R009",
+        "py_proj_r009_entry_point_target",
+    )
+
+
 def test_py_test_r001_root_pytest_snapshot(tmp_path: Path) -> None:
     tests = tmp_path / "tests"
     tests.mkdir()

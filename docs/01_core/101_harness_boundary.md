@@ -76,7 +76,7 @@ the agent sees public API names without re-reading source text. The
 harness turns those facts into `PY-MOD-R007` and `PY-AGENT-R007` findings; it
 does not re-parse Python source to infer tree shape or dependency direction.
 Project policy uses the same parser metadata to keep declared import names
-aligned with parser-visible project owners.
+and entry point targets aligned with parser-visible project owners.
 
 The same parser facts back `render_python_reasoning_tree()`, a compact
 agent-facing tree snapshot. That render is intentionally separate from JSON:

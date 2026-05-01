@@ -49,6 +49,8 @@ The other default packs are blocking through `Warning` or `Error` findings.
 - `PY-PROJ-R007`: `[build-system]` tables should declare build requirements.
 - `PY-PROJ-R008`: `[project].import-names` and `import-namespaces` should
   resolve to parser-visible project module owners.
+- `PY-PROJ-R009`: console script, GUI script, and entry point targets should
+  resolve to parser-visible project modules.
 - `PY-MOD-R001`: wildcard imports must become explicit imports.
 - `PY-MOD-R002`: library modules should not use bare `print`.
 - `PY-MOD-R003`: package facades with re-exports should declare `__all__`.
@@ -101,9 +103,10 @@ subtree before editing.
 `render_python_reasoning_tree()` exposes the same tree as compact text for LLM
 repair loops. It includes an `[imports]` section for parser-resolved
 project-internal edges, a compact `[project]` section for declared package
-metadata, and compact `exports=` flags on public nodes, making it the preferred
-first read when an agent needs to understand where a change belongs, what
-public API it touches, and what it may affect before touching code.
+metadata and entry targets, and compact `exports=` flags on public nodes,
+making it the preferred first read when an agent needs to understand where a
+change belongs, what public API it touches, and what it may affect before
+touching code.
 
 ## Rendered Diagnostic Policy
 

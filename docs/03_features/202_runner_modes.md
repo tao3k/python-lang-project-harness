@@ -48,7 +48,8 @@ runner uses the config.
 By default, every Python file under the project root is parser scope, except
 ignored environment/cache/build directories. Standard `pyproject.toml`
 metadata, including `[project].import-names`, is parsed into project facts by
-`python_lang_parser`. `source_dir_names` and
+`python_lang_parser`; script and entry point targets are split into parser facts
+for module-resolution policy. `source_dir_names` and
 `test_dir_names` classify roots for project and pytest-layout policy; they do
 not narrow parser coverage. `extra_path_names` can add an external project path
 or a single Python file outside the root. Extra paths are relative to the

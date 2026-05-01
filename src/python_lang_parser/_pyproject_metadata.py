@@ -138,7 +138,17 @@ def _project_scripts(value: object, *, kind: str) -> tuple[PythonProjectScript, 
     for name, target in sorted(table.items()):
         if not isinstance(name, str) or not isinstance(target, str):
             continue
-        scripts.append(PythonProjectScript(name=name, target=target, kind=kind))
+        target_facts = _target_facts(target)
+        scripts.append(
+            PythonProjectScript(
+                name=name,
+                target=target,
+                kind=kind,
+                target_module=target_facts[0],
+                target_namespace=target_facts[1],
+                target_object=target_facts[2],
+            )
+        )
     return tuple(scripts)
 
 
@@ -152,10 +162,29 @@ def _project_entry_points(value: object) -> tuple[PythonProjectEntryPoint, ...]:
                 continue
             if not isinstance(target, str):
                 continue
+            target_facts = _target_facts(target)
             entry_points.append(
-                PythonProjectEntryPoint(group=group, name=name, target=target)
+                PythonProjectEntryPoint(
+                    group=group,
+                    name=name,
+                    target=target,
+                    target_module=target_facts[0],
+                    target_namespace=target_facts[1],
+                    target_object=target_facts[2],
+                )
             )
     return tuple(entry_points)
+
+
+def _target_facts(target: str) -> tuple[str, tuple[str, ...], tuple[str, ...]]:
+    target_without_extras = target.split("[", 1)[0].strip()
+    module_part, _, object_part = target_without_extras.partition(":")
+    module = module_part.strip()
+    return (
+        module,
+        tuple(part for part in module.split(".") if part),
+        tuple(part for part in object_part.strip().split(".") if part),
+    )
 
 
 def _table(value: object) -> dict[str, Any]:

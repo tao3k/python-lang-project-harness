@@ -74,6 +74,9 @@ packages = ["src/example_pkg"]
             "name": "example",
             "target": "example_pkg.cli:main",
             "kind": "console",
+            "target_module": "example_pkg.cli",
+            "target_namespace": ["example_pkg", "cli"],
+            "target_object": ["main"],
         }
     ]
     assert [item.to_dict() for item in metadata.entry_points] == [
@@ -81,8 +84,34 @@ packages = ["src/example_pkg"]
             "group": "pytest11",
             "name": "example_pkg",
             "target": "example_pkg.pytest_plugin",
+            "target_module": "example_pkg.pytest_plugin",
+            "target_namespace": ["example_pkg", "pytest_plugin"],
+            "target_object": [],
         }
     ]
+
+
+def test_parse_python_project_metadata_strips_entry_point_extras(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "example-pkg"
+requires-python = ">=3.12"
+
+[project.scripts]
+example = "example_pkg.cli:main [rich]"
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    metadata = parse_python_project_metadata(tmp_path)
+
+    assert metadata is not None
+    assert metadata.scripts[0].target_module == "example_pkg.cli"
+    assert metadata.scripts[0].target_namespace == ("example_pkg", "cli")
+    assert metadata.scripts[0].target_object == ("main",)
 
 
 def test_parse_python_project_metadata_derives_package_roots_from_import_names(

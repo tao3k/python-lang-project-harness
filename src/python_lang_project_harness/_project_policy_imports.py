@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from python_lang_parser import python_reasoning_tree_facts
 
 from ._model import PythonHarnessFinding
-from ._project_policy_catalog import PY_PROJ_R008, project_policy_rule
+from ._project_policy_catalog import PY_PROJ_R008, PY_PROJ_R009, project_policy_rule
 from ._source import path_location, source_line
 
 if TYPE_CHECKING:
@@ -38,6 +38,13 @@ def project_import_name_findings(
     known_namespaces = {node.namespace for node in facts.nodes if node.namespace}
     findings: list[PythonHarnessFinding] = []
     findings.extend(_ambiguous_import_name_findings(metadata, pack_id))
+    findings.extend(
+        _unresolved_entry_point_target_findings(
+            metadata,
+            known_namespaces=known_namespaces,
+            pack_id=pack_id,
+        )
+    )
     for import_name in metadata.import_names:
         if import_name.name == "" or import_name.namespace in known_namespaces:
             continue
@@ -60,6 +67,63 @@ def project_import_name_findings(
             )
         )
     return tuple(findings)
+
+
+def _unresolved_entry_point_target_findings(
+    metadata: PythonProjectMetadata,
+    *,
+    known_namespaces: set[tuple[str, ...]],
+    pack_id: str,
+) -> tuple[PythonHarnessFinding, ...]:
+    rule = project_policy_rule(PY_PROJ_R009)
+    findings: list[PythonHarnessFinding] = []
+    for kind, name, target, target_namespace in _entry_point_targets(metadata):
+        if not target_namespace or target_namespace in known_namespaces:
+            continue
+        findings.append(
+            PythonHarnessFinding(
+                rule_id=rule.rule_id,
+                pack_id=pack_id,
+                severity=rule.severity,
+                title=rule.title,
+                summary=(
+                    f"{metadata.pyproject_path.name} declares {kind} "
+                    f"{name!r} pointing at {target!r}, but "
+                    "the parser did not find that target module."
+                ),
+                location=path_location(metadata.pyproject_path),
+                requirement=rule.requirement,
+                source_line=source_line(str(metadata.pyproject_path), 1),
+                label="point this entry target at a parser-visible module",
+                labels=dict(rule.labels),
+            )
+        )
+    return tuple(findings)
+
+
+def _entry_point_targets(
+    metadata: PythonProjectMetadata,
+) -> tuple[tuple[str, str, str, tuple[str, ...]], ...]:
+    targets: list[tuple[str, str, str, tuple[str, ...]]] = []
+    targets.extend(
+        (
+            script.kind + " script",
+            script.name,
+            script.target,
+            script.target_namespace,
+        )
+        for script in (*metadata.scripts, *metadata.gui_scripts)
+    )
+    targets.extend(
+        (
+            f"{entry_point.group} entry point",
+            entry_point.name,
+            entry_point.target,
+            entry_point.target_namespace,
+        )
+        for entry_point in metadata.entry_points
+    )
+    return tuple(targets)
 
 
 def _ambiguous_import_name_findings(

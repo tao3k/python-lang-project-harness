@@ -33,6 +33,9 @@ class PythonProjectScript:
     name: str
     target: str
     kind: str
+    target_module: str = ""
+    target_namespace: tuple[str, ...] = ()
+    target_object: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-compatible representation."""
@@ -41,6 +44,9 @@ class PythonProjectScript:
             "name": self.name,
             "target": self.target,
             "kind": self.kind,
+            "target_module": self.target_module,
+            "target_namespace": list(self.target_namespace),
+            "target_object": list(self.target_object),
         }
 
 
@@ -51,6 +57,9 @@ class PythonProjectEntryPoint:
     group: str
     name: str
     target: str
+    target_module: str = ""
+    target_namespace: tuple[str, ...] = ()
+    target_object: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-compatible representation."""
@@ -59,6 +68,9 @@ class PythonProjectEntryPoint:
             "group": self.group,
             "name": self.name,
             "target": self.target,
+            "target_module": self.target_module,
+            "target_namespace": list(self.target_namespace),
+            "target_object": list(self.target_object),
         }
 
 
