@@ -183,7 +183,8 @@ def test_assert_python_project_harness_clean_blocks_for_pytest(tmp_path: Path) -
         raise AssertionError("project harness should block package warnings")
 
     assert "[PY-MOD-R002] Warning: Library module uses bare print" in message
-    assert str(source) in message
+    assert "src/library.py" in message
+    assert str(source) not in message
 
 
 def test_project_harness_blocks_root_pytest_files(tmp_path: Path) -> None:
@@ -203,7 +204,8 @@ def test_project_harness_blocks_root_pytest_files(tmp_path: Path) -> None:
 
     assert "[PY-TEST-R001] Warning: Pytest file is scattered in tests root" in message
     assert "tests/unit/" in message
-    assert str(source) in message
+    assert "tests/test_scattered.py" in message
+    assert str(source) not in message
 
 
 def test_project_harness_blocks_unexpected_tests_root_entries(tmp_path: Path) -> None:

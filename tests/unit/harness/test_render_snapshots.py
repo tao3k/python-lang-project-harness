@@ -90,6 +90,41 @@ def test_reasoning_tree_render_uses_project_relative_paths(tmp_path: Path) -> No
     assert "src/pkg/__init__.py" in rendered
 
 
+def test_compact_text_render_uses_project_relative_finding_paths(
+    tmp_path: Path,
+) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    report = PythonHarnessReport(
+        modules=(),
+        findings=(
+            PythonHarnessFinding(
+                rule_id="PY-MOD-R002",
+                pack_id="python.modern_design",
+                severity=PythonDiagnosticSeverity.WARNING,
+                title="Library module uses bare print",
+                summary="library.py calls bare print().",
+                location=SourceLocation(str(src / "library.py"), 3, 4),
+                requirement="Use a logger instead of bare `print`.",
+                source_line='    print("debug")',
+                label="replace bare print with a project-owned reporting surface",
+            ),
+        ),
+        root_paths=(str(tmp_path),),
+        project_scope=PythonProjectHarnessScope(
+            project_root=tmp_path,
+            project_paths=(tmp_path,),
+            source_paths=(src,),
+            test_paths=(),
+        ),
+    )
+
+    rendered = render_python_lang_harness(report)
+
+    assert str(tmp_path) not in rendered
+    assert "src/library.py:3:5" in rendered
+
+
 def _snapshot_report() -> PythonHarnessReport:
     source_path = "$TEMP/src/service.py"
     return PythonHarnessReport(

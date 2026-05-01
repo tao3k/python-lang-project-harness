@@ -4,7 +4,7 @@ expression: rendered
 ---
 [advice]
 [PY-AGENT-R005] Info: Public type name conflicts across namespaces
-   ,-[ $TEMP/src/pkg/beta.py:4:1 ]
+   ,-[ src/pkg/beta.py:4:1 ]
  4 | class Service:
    | `- rename or namespace this public type boundary
    |Required: Give project-level public classes unambiguous type names or move them behind a clear domain namespace so agents can resolve intent without guessing.

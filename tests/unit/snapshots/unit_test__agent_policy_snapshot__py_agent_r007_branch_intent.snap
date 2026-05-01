@@ -4,6 +4,6 @@ expression: rendered
 ---
 [advice]
 [PY-AGENT-R007] Info: Branch package lacks reasoning-tree intent docstring
-   ,-[ $TEMP/src/pkg/domain/__init__.py:1:1 ]
+   ,-[ src/pkg/domain/__init__.py:1:1 ]
    | add a package intent docstring to this branch
    |Required: Add a concise package docstring to branch `__init__.py` files so agents can choose the right owner subtree before editing.

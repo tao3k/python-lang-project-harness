@@ -30,6 +30,7 @@ def render_python_lang_harness(
 ) -> str:
     """Render a compact diagnostic report for humans and repair workflows."""
 
+    project_root = _report_project_root(report)
     blocking_findings = report.blocking_findings(severities=severities)
     advice_findings = (
         _deduplicate_advice_findings(
@@ -40,12 +41,18 @@ def render_python_lang_harness(
         else ()
     )
     if blocking_findings:
-        rendered = _render_findings(blocking_findings)
+        rendered = _render_findings(blocking_findings, project_root=project_root)
         if advice_findings:
-            rendered += "\n[advice]\n" + _render_findings(advice_findings)
+            rendered += "\n[advice]\n" + _render_findings(
+                advice_findings,
+                project_root=project_root,
+            )
         return rendered
     if advice_findings:
-        return "[advice]\n" + _render_findings(advice_findings)
+        return "[advice]\n" + _render_findings(
+            advice_findings,
+            project_root=project_root,
+        )
     return _render_ok_header(report)
 
 
@@ -64,7 +71,10 @@ def render_python_lang_harness_advice(report: PythonHarnessReport) -> str:
     )
     if not advice_findings:
         return ""
-    return _render_findings(advice_findings)
+    return _render_findings(
+        advice_findings,
+        project_root=_report_project_root(report),
+    )
 
 
 def render_python_reasoning_tree(
@@ -127,22 +137,40 @@ def render_python_reasoning_tree(
 
 
 def _render_ok_header(report: PythonHarnessReport) -> str:
-    target = ", ".join(report.root_paths)
+    project_root = _report_project_root(report)
+    target = ", ".join(
+        _render_display_path(path, project_root=project_root)
+        for path in report.root_paths
+    )
     return (
         f"[ok] {target} python\n"
         f"Files: {report.file_count} Parsed: {report.parsed_count}\n"
     )
 
 
-def _render_findings(findings: tuple[PythonHarnessFinding, ...]) -> str:
+def _render_findings(
+    findings: tuple[PythonHarnessFinding, ...],
+    *,
+    project_root: Path | None,
+) -> str:
     return (
-        "\n\n".join(_render_finding(finding).rstrip("\n") for finding in findings)
+        "\n\n".join(
+            _render_finding(finding, project_root=project_root).rstrip("\n")
+            for finding in findings
+        )
         + "\n"
     )
 
 
-def _render_finding(finding: PythonHarnessFinding) -> str:
-    path = finding.location.path or "<memory>"
+def _render_finding(
+    finding: PythonHarnessFinding,
+    *,
+    project_root: Path | None,
+) -> str:
+    path = _render_display_path(
+        finding.location.path or "<memory>",
+        project_root=project_root,
+    )
     line = finding.location.line
     column = finding.location.column
     severity = finding.severity.value.title()

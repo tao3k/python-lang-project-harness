@@ -4,7 +4,7 @@ expression: rendered
 ---
 [advice]
 [PY-AGENT-R004] Info: Module namespace repeats a path segment
-   ,-[ $TEMP/src/domain/domain/service.py:1:1 ]
+   ,-[ src/domain/domain/service.py:1:1 ]
  1 | """Domain service."""
    | `- rename one repeated namespace segment
    |Required: Keep Python module namespaces branch-unique; rename repeated path segments so agents see one clear ownership path.

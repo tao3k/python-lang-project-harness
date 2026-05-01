@@ -3,7 +3,7 @@ source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
 [PY-PROJ-R005] Warning: Project metadata should declare package name
-   ,-[ $TEMP/pyproject.toml:1:1 ]
+   ,-[ pyproject.toml:1:1 ]
  1 | [project]
    | `- declare [project].name
    |Required: Declare `[project].name` in `pyproject.toml` so package identity is explicit for build tools, agents, and release metadata.

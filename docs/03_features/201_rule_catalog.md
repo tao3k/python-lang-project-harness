@@ -124,7 +124,9 @@ Non-clean compact output is finding-first: it does not prepend a file-count or
 issue-count header before the first blocking finding. Advice-only output starts
 with `[advice]` and then concrete findings; it does not prepend an `[ok]`
 summary or issue-count line. Clean output keeps only a short `[ok]` line plus
-the file/parsed count needed for CI confidence.
+the file/parsed count needed for CI confidence. In project-scoped reports,
+compact text renders paths relative to the project root; JSON keeps the
+structured original paths for tooling.
 
 `render_python_lang_harness()` includes advice by default. A report with only
 `Info` findings is still clean, but its advice remains visible without

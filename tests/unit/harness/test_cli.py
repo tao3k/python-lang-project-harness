@@ -22,8 +22,9 @@ def test_cli_renders_compact_text_by_default(tmp_path: Path) -> None:
 
     assert exit_code == 0
     assert stderr.getvalue() == ""
-    assert stdout.getvalue().startswith("[ok]")
+    assert stdout.getvalue().startswith("[ok] . python")
     assert "Files: 1 Parsed: 1" in stdout.getvalue()
+    assert str(tmp_path) not in stdout.getvalue()
 
 
 def test_cli_json_flag_renders_structured_report(tmp_path: Path) -> None:
@@ -70,6 +71,8 @@ def test_cli_exits_nonzero_for_blocking_findings(tmp_path: Path) -> None:
     assert exit_code == 1
     assert "PY-MOD-R002" in stdout.getvalue()
     assert stdout.getvalue().startswith("[PY-MOD-R002] Warning")
+    assert "src/service.py" in stdout.getvalue()
+    assert str(tmp_path) not in stdout.getvalue()
 
 
 def test_cli_can_disable_policy_rule_ids(tmp_path: Path) -> None:
@@ -165,8 +168,7 @@ def test_cli_scope_flags_customize_project_paths(tmp_path: Path) -> None:
 
     assert exit_code == 0
     assert "Files: 2 Parsed: 2" in stdout.getvalue()
-    assert str(lib) in stdout.getvalue()
-    assert str(tools) in stdout.getvalue()
+    assert "[ok] lib, tools python" in stdout.getvalue()
 
 
 def test_cli_no_tests_skips_test_parser_discovery(tmp_path: Path) -> None:
@@ -201,4 +203,5 @@ def test_cli_defaults_to_current_working_directory(tmp_path: Path) -> None:
     exit_code = run_cli((), stdout=stdout, cwd=tmp_path)
 
     assert exit_code == 0
-    assert str(tmp_path) in stdout.getvalue()
+    assert stdout.getvalue().startswith("[ok] . python")
+    assert str(tmp_path) not in stdout.getvalue()
