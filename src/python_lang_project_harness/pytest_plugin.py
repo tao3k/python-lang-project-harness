@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -10,6 +11,7 @@ import pytest
 from python_lang_parser import PythonDiagnosticSeverity
 
 from ._model import PythonHarnessConfig
+from ._project_config import read_python_project_harness_config
 from ._runner import assert_python_project_harness_clean
 
 if TYPE_CHECKING:
@@ -165,10 +167,26 @@ def _blocking_severities(
     return None
 
 
-def _harness_config(config: pytest.Config) -> PythonHarnessConfig:
-    return PythonHarnessConfig(
-        disabled_rule_ids=frozenset(config.getoption(_DISABLE_RULE_OPTION)),
-        blocking_rule_ids=frozenset(config.getoption(_BLOCK_RULE_OPTION)),
+def _harness_config(config: pytest.Config) -> PythonHarnessConfig | None:
+    disabled_rule_values = config.getoption(_DISABLE_RULE_OPTION)
+    blocking_rule_values = config.getoption(_BLOCK_RULE_OPTION)
+    if not disabled_rule_values and not blocking_rule_values:
+        return None
+
+    base_config = read_python_project_harness_config(_project_root(config))
+    selected_config = base_config if base_config is not None else PythonHarnessConfig()
+    return replace(
+        selected_config,
+        disabled_rule_ids=(
+            frozenset(disabled_rule_values)
+            if disabled_rule_values
+            else selected_config.disabled_rule_ids
+        ),
+        blocking_rule_ids=(
+            frozenset(blocking_rule_values)
+            if blocking_rule_values
+            else selected_config.blocking_rule_ids
+        ),
     )
 
 

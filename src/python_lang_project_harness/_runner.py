@@ -18,6 +18,7 @@ from ._model import (
 from ._project_evaluation import compact_project_findings, evaluate_project_rule_packs
 from ._rule_packs import (
     resolve_harness_config,
+    resolve_project_harness_config,
     selected_rule_packs,
 )
 
@@ -37,11 +38,15 @@ def run_python_project_harness(
 ) -> PythonHarnessReport:
     """Run the harness over conventional Python project paths."""
 
-    selected_config = resolve_harness_config(config, rule_packs=rule_packs)
-    selected_packs = selected_rule_packs(selected_config)
     root = Path(project_root)
     if not root.exists():
         raise ValueError(f"project root does not exist: {root}")
+    selected_config = resolve_project_harness_config(
+        root,
+        config,
+        rule_packs=rule_packs,
+    )
+    selected_packs = selected_rule_packs(selected_config)
     scope = python_project_harness_scope(
         root,
         include_tests=(
@@ -96,7 +101,11 @@ def assert_python_project_harness_clean(
 ) -> PythonHarnessReport:
     """Run the project harness and raise when configured-blocking findings exist."""
 
-    selected_config = resolve_harness_config(config, rule_packs=rule_packs)
+    selected_config = resolve_project_harness_config(
+        Path(project_root),
+        config,
+        rule_packs=rule_packs,
+    )
     report = run_python_project_harness(
         project_root,
         config=selected_config,

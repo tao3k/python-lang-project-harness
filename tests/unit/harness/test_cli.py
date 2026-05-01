@@ -90,6 +90,28 @@ def test_cli_can_disable_policy_rule_ids(tmp_path: Path) -> None:
     assert "PY-MOD-R002" not in stdout.getvalue()
 
 
+def test_cli_loads_project_policy_config_from_pyproject(tmp_path: Path) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[tool.python-lang-project-harness]
+disabled_rule_ids = ["PY-MOD-R002"]
+""".lstrip(),
+        encoding="utf-8",
+    )
+    (src / "service.py").write_text(
+        'def run() -> None:\n    print("debug")\n',
+        encoding="utf-8",
+    )
+    stdout = io.StringIO()
+
+    exit_code = run_cli([str(tmp_path)], stdout=stdout)
+
+    assert exit_code == 0
+    assert "PY-MOD-R002" not in stdout.getvalue()
+
+
 def test_cli_can_promote_policy_rule_ids(tmp_path: Path) -> None:
     src = tmp_path / "src"
     src.mkdir()

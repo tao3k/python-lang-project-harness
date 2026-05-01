@@ -143,6 +143,50 @@ def test_project_runner_can_disable_policy_rules_from_config(tmp_path: Path) -> 
     assert report.disabled_rule_ids == frozenset({"PY-MOD-R002"})
 
 
+def test_project_runner_loads_policy_config_from_pyproject(tmp_path: Path) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[tool.python-lang-project-harness]
+disabled_rule_ids = ["PY-MOD-R002"]
+""".lstrip(),
+        encoding="utf-8",
+    )
+    (src / "service.py").write_text(
+        'def run() -> None:\n    print("debug")\n',
+        encoding="utf-8",
+    )
+
+    report = run_python_project_harness(tmp_path)
+
+    assert report.is_clean
+    assert report.disabled_rule_ids == frozenset({"PY-MOD-R002"})
+
+
+def test_explicit_project_config_overrides_pyproject_policy_config(
+    tmp_path: Path,
+) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[tool.python-lang-project-harness]
+disabled_rule_ids = ["PY-MOD-R002"]
+""".lstrip(),
+        encoding="utf-8",
+    )
+    (src / "service.py").write_text(
+        'def run() -> None:\n    print("debug")\n',
+        encoding="utf-8",
+    )
+
+    report = run_python_project_harness(tmp_path, config=PythonHarnessConfig())
+
+    assert not report.is_clean
+    assert report.disabled_rule_ids == frozenset()
+
+
 def test_project_runner_can_promote_policy_rules_from_config(tmp_path: Path) -> None:
     src = tmp_path / "src"
     src.mkdir()

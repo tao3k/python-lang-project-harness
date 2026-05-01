@@ -50,6 +50,9 @@ checks.
 Use `PythonHarnessConfig` to change source-root classification, test-root
 classification, extra external project paths, test inclusion, or blocking
 severities without hardcoding project-specific policy into the library.
+Project runners also read `[tool.python-lang-project-harness]` from
+`pyproject.toml` when no explicit `PythonHarnessConfig` is passed, including
+`disabled_rule_ids` and `blocking_rule_ids` for stable rule-id policy.
 When `include_tests=False`, test files are not parsed, but tests-root layout
 policy still runs. Explained local exceptions can live in
 `tests/python-project-harness-rules.toml`.

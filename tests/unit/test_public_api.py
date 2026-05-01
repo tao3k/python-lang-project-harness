@@ -126,6 +126,10 @@ def test_root_package_reexports_embedding_harness_surface() -> None:
         is harness_facade.render_python_reasoning_tree
     )
     assert (
+        harness_api.read_python_project_harness_config
+        is harness_facade.read_python_project_harness_config
+    )
+    assert (
         harness_api.python_rule_pack_descriptors
         is harness_facade.python_rule_pack_descriptors
     )
@@ -135,5 +139,6 @@ def test_root_package_reexports_embedding_harness_surface() -> None:
     assert "render_python_lang_harness_advice" in harness_api.__all__
     assert "render_python_lang_harness_json" in harness_api.__all__
     assert "render_python_reasoning_tree" in harness_api.__all__
+    assert "read_python_project_harness_config" in harness_api.__all__
     assert "run_cli_from_env" in harness_api.__all__
     assert "python_syntax_rules" in harness_api.__all__

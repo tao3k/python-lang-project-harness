@@ -22,6 +22,7 @@ from ._model import (
 from ._modern_design import PythonModernDesignRulePack
 from ._modern_design_catalog import python_modern_design_rules
 from ._modularity import PythonModularityRulePack, python_modularity_rules
+from ._project_config import read_python_project_harness_config
 from ._project_policy import PythonProjectPolicyRulePack
 from ._project_policy_catalog import python_project_policy_rules
 from ._pytest import python_project_harness_test
@@ -73,6 +74,7 @@ __all__ = [
     "python_project_harness_scope",
     "python_project_harness_test",
     "python_project_policy_rules",
+    "read_python_project_harness_config",
     "python_rule_pack_descriptors",
     "python_syntax_rules",
     "python_test_layout_rules",

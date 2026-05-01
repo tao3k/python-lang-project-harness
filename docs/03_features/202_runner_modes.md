@@ -93,6 +93,22 @@ evaluation. `blocking_rule_ids` promotes selected findings to assertion
 blockers without changing their catalog severity, which keeps advisory rules
 visible as advice while allowing a project to enforce chosen agent policy.
 
+Project runners also read the same policy from `pyproject.toml` when no
+explicit `PythonHarnessConfig` is passed:
+
+```toml
+[tool.python-lang-project-harness]
+disabled_rule_ids = ["PY-MOD-R002"]
+blocking_rule_ids = ["PY-AGENT-R007"]
+source_dir_names = ["lib"]
+test_dir_names = ["checks"]
+include_tests = false
+```
+
+Explicit function parameters still win for one-call source/test/extra path
+classification. Passing an explicit `PythonHarnessConfig` from Python code
+opts out of project-local config loading for that call.
+
 ## Explicit-Path Runner
 
 Use `run_python_lang_harness()` or `assert_python_lang_harness_clean()` for

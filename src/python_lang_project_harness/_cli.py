@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TextIO
 
 from ._model import PythonHarnessConfig
+from ._project_config import read_python_project_harness_config
 from ._render import render_python_lang_harness, render_python_lang_harness_json
 from ._runner import run_python_project_harness
 
@@ -39,7 +40,7 @@ def run_cli(
             raise ValueError(f"project root does not exist: {project_root}")
         report = run_python_project_harness(
             project_root,
-            config=options.harness_config(),
+            config=options.harness_config(project_root),
             include_tests=options.include_tests,
             source_dir_names=options.source_dir_names,
             test_dir_names=options.test_dir_names,
@@ -152,14 +153,25 @@ class _CliOptions:
             return None
         return tuple(self.extra_path_values)
 
-    def harness_config(self) -> PythonHarnessConfig | None:
+    def harness_config(self, project_root: Path) -> PythonHarnessConfig | None:
         """Return CLI policy config when rule-level options were supplied."""
 
         if not self.disabled_rule_values and not self.blocking_rule_values:
             return None
-        return PythonHarnessConfig(
-            disabled_rule_ids=frozenset(self.disabled_rule_values),
-            blocking_rule_ids=frozenset(self.blocking_rule_values),
+        base_config = read_python_project_harness_config(project_root)
+        config = base_config if base_config is not None else PythonHarnessConfig()
+        return replace(
+            config,
+            disabled_rule_ids=(
+                frozenset(self.disabled_rule_values)
+                if self.disabled_rule_values
+                else config.disabled_rule_ids
+            ),
+            blocking_rule_ids=(
+                frozenset(self.blocking_rule_values)
+                if self.blocking_rule_values
+                else config.blocking_rule_ids
+            ),
         )
 
 

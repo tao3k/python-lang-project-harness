@@ -38,6 +38,14 @@ quiet unless `--python-project-harness` is enabled. This keeps the package safe
 as a normal library dependency while making the policy gate easy to opt into
 from pytest config.
 
+Project-local policy can live beside pytest config in `pyproject.toml`:
+
+```toml
+[tool.python-lang-project-harness]
+disabled_rule_ids = ["PY-MOD-R002"]
+blocking_rule_ids = ["PY-AGENT-R007"]
+```
+
 Supported plugin options:
 
 - `--python-project-harness`: collect and run one harness item.

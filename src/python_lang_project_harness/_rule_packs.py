@@ -9,12 +9,14 @@ from ._agent_policy import PythonAgentPolicyRulePack
 from ._model import PythonHarnessConfig, PythonLangRulePack, PythonRulePackDescriptor
 from ._modern_design import PythonModernDesignRulePack
 from ._modularity import PythonModularityRulePack
+from ._project_config import read_python_project_harness_config
 from ._project_policy import PythonProjectPolicyRulePack
 from ._syntax import PythonSyntaxRulePack
 from ._test_layout import PythonTestLayoutRulePack
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from pathlib import Path
 
 
 def default_python_lang_rule_packs() -> tuple[PythonLangRulePack, ...]:
@@ -55,6 +57,20 @@ def resolve_harness_config(
     if rule_packs is None:
         return selected_config
     return replace(selected_config, rule_packs=tuple(rule_packs))
+
+
+def resolve_project_harness_config(
+    project_root: str | Path,
+    config: PythonHarnessConfig | None,
+    *,
+    rule_packs: Sequence[PythonLangRulePack] | None,
+) -> PythonHarnessConfig:
+    """Resolve config for project-root runs, including pyproject policy."""
+
+    selected_config = (
+        read_python_project_harness_config(project_root) if config is None else config
+    )
+    return resolve_harness_config(selected_config, rule_packs=rule_packs)
 
 
 def selected_rule_packs(
