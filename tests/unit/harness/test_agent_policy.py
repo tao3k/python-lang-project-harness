@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from python_lang_parser import PythonDiagnosticSeverity
@@ -57,6 +58,7 @@ def test_agent_policy_accepts_documented_annotated_public_callable(
     report = run_python_lang_harness([source])
 
     assert report.is_clean
+    assert render_python_lang_harness_advice(report) == ""
 
 
 def test_agent_policy_skips_test_modules(tmp_path: Path) -> None:
@@ -205,6 +207,11 @@ def test_agent_policy_advice_can_be_promoted_to_blocking(
         "PY-AGENT-R001",
         "PY-AGENT-R002",
     ]
+    promoted = replace(report, blocking_rule_ids=frozenset({"PY-AGENT-R001"}))
+    advice = render_python_lang_harness_advice(promoted)
+
+    assert "[PY-AGENT-R001]" not in advice
+    assert advice.startswith("[PY-AGENT-R002]")
 
 
 def test_agent_policy_descriptor_and_catalog_are_stable() -> None:

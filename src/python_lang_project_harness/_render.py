@@ -57,10 +57,13 @@ def render_python_lang_harness_json(report: PythonHarnessReport) -> str:
 def render_python_lang_harness_advice(report: PythonHarnessReport) -> str:
     """Render non-blocking advisory findings for agent-guided repair."""
 
-    return render_python_lang_harness(
-        report,
-        severities=frozenset({PythonDiagnosticSeverity.INFO}),
+    advice_findings = _deduplicate_advice_findings(
+        report.advisory_findings(),
+        blocking_findings=report.blocking_findings(),
     )
+    if not advice_findings:
+        return ""
+    return _render_findings(advice_findings)
 
 
 def render_python_reasoning_tree(

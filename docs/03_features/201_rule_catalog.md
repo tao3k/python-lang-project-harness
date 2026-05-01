@@ -129,7 +129,7 @@ the file/parsed count needed for CI confidence.
 `Info` findings is still clean, but its advice remains visible without
 run-summary noise. Use
 `render_python_lang_harness_advice()` when a caller wants only non-blocking
-repair hints.
+repair hints; it returns an empty string when there is no advice to act on.
 
 Structured consumers should use `render_python_lang_harness_json()` or the
 `PythonHarnessReport.to_dict()` shape instead of parsing compact text.
