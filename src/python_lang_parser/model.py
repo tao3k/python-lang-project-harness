@@ -11,6 +11,12 @@ from ._diagnostic_model import (
     SourceLocation,
 )
 from ._export_model import PythonExportContract, PythonExportContractKind
+from ._project_model import (
+    PythonProjectEntryPoint,
+    PythonProjectImportName,
+    PythonProjectMetadata,
+    PythonProjectScript,
+)
 from ._symbol_model import (
     PythonAssignmentTarget,
     PythonCall,
@@ -108,6 +114,10 @@ __all__ = [
     "PythonModuleReport",
     "PythonModuleShape",
     "PythonNameBinding",
+    "PythonProjectEntryPoint",
+    "PythonProjectImportName",
+    "PythonProjectMetadata",
+    "PythonProjectScript",
     "PythonReference",
     "PythonReferenceKind",
     "PythonScope",

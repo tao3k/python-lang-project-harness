@@ -87,3 +87,7 @@ def test_wheel_package_configuration_lists_current_import_packages() -> None:
         "src/python_lang_parser",
         "src/python_lang_project_harness",
     ]
+    assert pyproject["project"]["import-names"] == [
+        "python_lang_parser",
+        "python_lang_project_harness",
+    ]

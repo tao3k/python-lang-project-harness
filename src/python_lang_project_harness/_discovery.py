@@ -89,6 +89,7 @@ def python_project_harness_scope(
     )
     return PythonProjectHarnessScope(
         project_root=root,
+        project_metadata=metadata,
         project_paths=project_paths,
         source_paths=source_paths,
         test_paths=test_paths,

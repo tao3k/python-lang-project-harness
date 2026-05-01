@@ -1,0 +1,14 @@
+---
+source: tests/unit/harness/test_policy_snapshots.py
+expression: rendered
+---
+[lint:warning] $TEMP python
+Source: $TEMP
+Files: 0 Parsed: 0
+Issues: 1
+
+[PY-PROJ-R008] Warning: Declared import names should resolve to project modules
+   ,-[ $TEMP/pyproject.toml:1:1 ]
+ 1 | [project]
+   | `- align this declared import name with parser-visible code
+   |Required: Keep `[project].import-names` and `[project].import-namespaces` aligned with parser-visible project owners so agents can trust package scope metadata.

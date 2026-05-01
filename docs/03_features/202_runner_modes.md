@@ -46,7 +46,9 @@ classification overrides for a single call. If they are omitted, the project
 runner uses the config.
 
 By default, every Python file under the project root is parser scope, except
-ignored environment/cache/build directories. `source_dir_names` and
+ignored environment/cache/build directories. Standard `pyproject.toml`
+metadata, including `[project].import-names`, is parsed into project facts by
+`python_lang_parser`. `source_dir_names` and
 `test_dir_names` classify roots for project and pytest-layout policy; they do
 not narrow parser coverage. `extra_path_names` can add an external project path
 or a single Python file outside the root. Extra paths are relative to the
@@ -125,8 +127,9 @@ inspect.
 `render_python_reasoning_tree(report)` turns a project report into a compact
 agent navigation snapshot. It uses parser-owned package tree facts, not raw
 path guessing, and summarizes package branches, module leaves, public/internal
-surface, compact export names, child names, internal import edges, and owner
-shadows. Use it before repair-oriented agents choose which subtree to edit.
+surface, compact export names, child names, internal import edges, declared
+project import names, entry points, package roots, and owner shadows. Use it
+before repair-oriented agents choose which subtree to edit.
 
 :RELATIONS:
 :LINKS: [Harness Boundary](../01_core/101_harness_boundary.md), [Rule Catalog](201_rule_catalog.md), [CLI](203_cli.md)

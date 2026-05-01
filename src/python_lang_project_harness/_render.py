@@ -8,9 +8,12 @@ from typing import TYPE_CHECKING
 from python_lang_parser import PythonDiagnosticSeverity, python_reasoning_tree_facts
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from pathlib import Path
 
     from python_lang_parser import (
+        PythonProjectImportName,
+        PythonProjectMetadata,
         PythonReasoningTreeImportEdge,
         PythonReasoningTreeNode,
     )
@@ -72,6 +75,11 @@ def render_python_reasoning_tree(
         project_root=(
             None if report.project_scope is None else report.project_scope.project_root
         ),
+        project_metadata=(
+            None
+            if report.project_scope is None
+            else report.project_scope.project_metadata
+        ),
     )
     target = ", ".join(report.root_paths)
     lines = [
@@ -91,6 +99,8 @@ def render_python_reasoning_tree(
             lines.append(
                 f"- {namespace}: {shadow.module_path} <-> {shadow.package_init_path}"
             )
+    if facts.project_metadata is not None:
+        lines.extend(_render_reasoning_tree_project_metadata(facts.project_metadata))
     lines.append("[nodes]")
     for node in facts.nodes[:max_nodes]:
         lines.append(_render_reasoning_tree_node(node))
@@ -173,6 +183,61 @@ def _render_reasoning_tree_node(node: PythonReasoningTreeNode) -> str:
     if not node.is_valid:
         flags.append("invalid")
     return f"{indent}- {namespace} ({'; '.join(flags)}) {node.path}"
+
+
+def _render_reasoning_tree_project_metadata(
+    project_metadata: PythonProjectMetadata,
+) -> list[str]:
+    import_names = project_metadata.import_names
+    import_namespaces = project_metadata.import_namespaces
+    package_roots = project_metadata.package_roots
+    scripts = project_metadata.scripts
+    entry_points = project_metadata.entry_points
+    lines = ["[project]"]
+    name = project_metadata.project_name or "<unnamed>"
+    requires_python = project_metadata.requires_python or "<any>"
+    lines.append(f"- name={name} requires-python={requires_python}")
+    if import_names:
+        lines.append("- import-names=" + _render_project_import_names(import_names))
+    if import_namespaces:
+        lines.append(
+            "- import-namespaces=" + _render_project_import_names(import_namespaces)
+        )
+    if package_roots:
+        lines.append(
+            "- package-roots="
+            + _render_compact_name_list(
+                tuple(str(path) for path in package_roots),
+                max_names=4,
+            )
+        )
+    if scripts:
+        lines.append(
+            "- scripts="
+            + _render_compact_name_list(
+                tuple(script.name for script in scripts),
+                max_names=6,
+            )
+        )
+    if entry_points:
+        lines.append(
+            "- entry-points="
+            + _render_compact_name_list(
+                tuple(f"{entry.group}:{entry.name}" for entry in entry_points),
+                max_names=6,
+            )
+        )
+    return lines
+
+
+def _render_project_import_names(
+    import_names: Sequence[PythonProjectImportName],
+) -> str:
+    names = tuple(
+        (import_name.name + (";private" if import_name.is_private else ""))
+        for import_name in import_names
+    )
+    return _render_compact_name_list(names)
 
 
 def _render_reasoning_tree_export_flag(node: PythonReasoningTreeNode) -> str | None:

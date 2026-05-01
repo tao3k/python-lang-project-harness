@@ -34,6 +34,7 @@ def test_read_python_project_metadata_collects_hatch_package_roots(
     assert metadata.build_requires == ("hatchling",)
     assert metadata.wheel_packages == ("src/example_pkg",)
     assert metadata.package_roots == (package,)
+    assert metadata.import_names == ()
 
 
 def test_read_python_project_metadata_returns_none_without_pyproject(

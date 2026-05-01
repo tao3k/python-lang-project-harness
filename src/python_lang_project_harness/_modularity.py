@@ -148,6 +148,7 @@ def _reasoning_tree_findings(
         modules,
         import_roots=_reasoning_tree_import_roots(scope),
         project_root=scope.project_root,
+        project_metadata=scope.project_metadata,
     )
     rule = _rule(PY_MOD_R007)
     modules_by_path = {

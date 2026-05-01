@@ -4,6 +4,10 @@ version = "0.1.0"
 description = "Project-level Python language harness with compact diagnostics for agents"
 readme = "README.md"
 requires-python = ">=3.12"
+import-names = [
+    "python_lang_parser",
+    "python_lang_project_harness",
+]
 dependencies = []
 
 [project.optional-dependencies]

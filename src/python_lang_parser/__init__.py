@@ -12,6 +12,13 @@ from ._module_policy import (
     python_module_has_public_symbol_surface,
 )
 from ._name_policy import python_name_is_public, python_scope_is_public
+from ._project_model import (
+    PythonProjectEntryPoint,
+    PythonProjectImportName,
+    PythonProjectMetadata,
+    PythonProjectScript,
+)
+from ._pyproject_metadata import parse_python_project_metadata
 from ._reasoning_tree import (
     PythonReasoningTreeBranch,
     PythonReasoningTreeFacts,
@@ -64,6 +71,10 @@ __all__ = [
     "PythonModuleReport",
     "PythonModuleShape",
     "PythonNameBinding",
+    "PythonProjectEntryPoint",
+    "PythonProjectImportName",
+    "PythonProjectMetadata",
+    "PythonProjectScript",
     "PythonReference",
     "PythonReferenceKind",
     "PythonReasoningTreeBranch",
@@ -77,6 +88,7 @@ __all__ = [
     "SourceLocation",
     "__version__",
     "parse_python_file",
+    "parse_python_project_metadata",
     "parse_python_source",
     "python_module_is_package_init",
     "python_module_has_public_surface",

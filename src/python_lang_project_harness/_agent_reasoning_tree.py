@@ -30,6 +30,7 @@ def agent_reasoning_tree_findings(
         modules,
         import_roots=_reasoning_tree_import_roots(scope),
         project_root=scope.project_root,
+        project_metadata=scope.project_metadata,
     )
     modules_by_path = {
         module.path: module for module in modules if module.path is not None

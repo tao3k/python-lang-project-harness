@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from python_lang_parser import parse_python_source, python_reasoning_tree_facts
+from python_lang_parser import (
+    parse_python_project_metadata,
+    parse_python_source,
+    python_reasoning_tree_facts,
+)
 
 
 def test_python_reasoning_tree_detects_module_package_owner_shadow() -> None:
@@ -201,3 +205,41 @@ def test_python_reasoning_tree_marks_documented_branch_package() -> None:
     )
 
     assert facts.branches[0].has_intent_doc is True
+
+
+def test_python_reasoning_tree_carries_project_metadata_facts(tmp_path) -> None:
+    package = tmp_path / "src" / "pkg"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text('"""Package."""\n', encoding="utf-8")
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "pkg"
+requires-python = ">=3.12"
+import-names = ["pkg"]
+""".lstrip(),
+        encoding="utf-8",
+    )
+    metadata = parse_python_project_metadata(tmp_path)
+
+    facts = python_reasoning_tree_facts(
+        (
+            parse_python_source(
+                '"""Package."""\n',
+                path=package / "__init__.py",
+            ),
+        ),
+        import_roots=(tmp_path / "src",),
+        project_root=tmp_path,
+        project_metadata=metadata,
+    )
+
+    assert facts.project_metadata is metadata
+    assert facts.to_dict()["project_metadata"]["import_names"] == [
+        {
+            "name": "pkg",
+            "namespace": ["pkg"],
+            "is_private": False,
+            "source_value": "pkg",
+        }
+    ]

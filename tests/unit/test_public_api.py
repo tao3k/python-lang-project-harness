@@ -10,6 +10,10 @@ def test_root_package_reexports_parser_fact_models() -> None:
     assert harness_api.PythonExportContract is parser_api.PythonExportContract
     assert harness_api.PythonExportContractKind is parser_api.PythonExportContractKind
     assert harness_api.PythonModuleShape is parser_api.PythonModuleShape
+    assert harness_api.PythonProjectEntryPoint is parser_api.PythonProjectEntryPoint
+    assert harness_api.PythonProjectImportName is parser_api.PythonProjectImportName
+    assert harness_api.PythonProjectMetadata is parser_api.PythonProjectMetadata
+    assert harness_api.PythonProjectScript is parser_api.PythonProjectScript
     assert harness_api.PythonReasoningTreeFacts is parser_api.PythonReasoningTreeFacts
     assert (
         harness_api.PythonReasoningTreeImportEdge
@@ -19,6 +23,10 @@ def test_root_package_reexports_parser_fact_models() -> None:
     assert (
         harness_api.python_reasoning_tree_facts
         is parser_api.python_reasoning_tree_facts
+    )
+    assert (
+        harness_api.parse_python_project_metadata
+        is parser_api.parse_python_project_metadata
     )
     assert (
         harness_api.python_module_namespace_parts
@@ -73,9 +81,13 @@ def test_root_package_reexports_parser_fact_models() -> None:
     assert "python_module_is_package_init" in harness_api.__all__
     assert "python_name_is_public" in harness_api.__all__
     assert "PythonReasoningTreeFacts" in harness_api.__all__
+    assert "PythonProjectMetadata" in harness_api.__all__
+    assert "parse_python_project_metadata" in harness_api.__all__
     assert "PythonReasoningTreeImportEdge" in harness_api.__all__
     assert "PythonReasoningTreeNode" in harness_api.__all__
+    assert "PythonProjectMetadata" in parser_api.__all__
     assert "PythonReasoningTreeImportEdge" in parser_api.__all__
+    assert "parse_python_project_metadata" in parser_api.__all__
     assert "python_reasoning_tree_facts" in harness_api.__all__
     assert "python_scope_is_public" in harness_api.__all__
     assert "python_assignment_is_public_top_level" in harness_api.__all__

@@ -7,6 +7,10 @@ from snapshot_support import assert_snapshot
 from python_lang_parser import (
     PythonDiagnosticSeverity,
     PythonModuleReport,
+    PythonProjectEntryPoint,
+    PythonProjectImportName,
+    PythonProjectMetadata,
+    PythonProjectScript,
     SourceLocation,
     parse_python_source,
 )
@@ -90,6 +94,39 @@ def _reasoning_tree_snapshot_report() -> PythonHarnessReport:
         root_paths=(str(root),),
         project_scope=PythonProjectHarnessScope(
             project_root=root,
+            project_metadata=PythonProjectMetadata(
+                project_root=root,
+                pyproject_path=root / "pyproject.toml",
+                has_project_table=True,
+                has_build_system_table=True,
+                project_name="snapshot-package",
+                requires_python=">=3.12",
+                build_backend="hatchling.build",
+                build_requires=("hatchling",),
+                wheel_packages=("src/pkg",),
+                package_roots=(src / "pkg",),
+                import_names=(
+                    PythonProjectImportName(
+                        name="pkg",
+                        namespace=("pkg",),
+                        source_value="pkg",
+                    ),
+                ),
+                scripts=(
+                    PythonProjectScript(
+                        name="snapshot-cli",
+                        target="pkg.cli:main",
+                        kind="console",
+                    ),
+                ),
+                entry_points=(
+                    PythonProjectEntryPoint(
+                        group="pytest11",
+                        name="snapshot",
+                        target="pkg.pytest_plugin",
+                    ),
+                ),
+            ),
             project_paths=(root,),
             source_paths=(src,),
             test_paths=(),

@@ -47,6 +47,8 @@ The other default packs are blocking through `Warning` or `Error` findings.
 - `PY-PROJ-R006`: `[project]` metadata should declare supported Python
   versions.
 - `PY-PROJ-R007`: `[build-system]` tables should declare build requirements.
+- `PY-PROJ-R008`: `[project].import-names` and `import-namespaces` should
+  resolve to parser-visible project module owners.
 - `PY-MOD-R001`: wildcard imports must become explicit imports.
 - `PY-MOD-R002`: library modules should not use bare `print`.
 - `PY-MOD-R003`: package facades with re-exports should declare `__all__`.
@@ -86,8 +88,8 @@ the parser-owned public surface. `python_lang_parser` owns the tree facts:
 tree nodes, child names, public/internal surface flags, module/package owner
 shadows, internal import edges, and branch package child counts are derived
 from `PythonModuleReport` paths, parser import records, module shape,
-public-surface helpers, export candidates, `__all__` contract kind, and module
-docstrings.
+public-surface helpers, export candidates, `__all__` contract kind, module
+docstrings, and parser-owned `pyproject.toml` metadata.
 
 `PY-MOD-R007` blocks a collapsed owner tree such as `domain.py` next to
 `domain/__init__.py`, because both spell the same import owner and repair
@@ -98,10 +100,10 @@ subtree before editing.
 
 `render_python_reasoning_tree()` exposes the same tree as compact text for LLM
 repair loops. It includes an `[imports]` section for parser-resolved
-project-internal edges and compact `exports=` flags on public nodes, making it
-the preferred first read when an agent needs to understand where a change
-belongs, what public API it touches, and what it may affect before touching
-code.
+project-internal edges, a compact `[project]` section for declared package
+metadata, and compact `exports=` flags on public nodes, making it the preferred
+first read when an agent needs to understand where a change belongs, what
+public API it touches, and what it may affect before touching code.
 
 ## Rendered Diagnostic Policy
 
@@ -128,14 +130,16 @@ Python semantic policy is parser-first. Rule packs consume
 `PythonModuleReport` facts instead of opening Python files and guessing from raw
 text. `python_lang_parser` owns AST, compile, tokenize, symbol-table, source
 line, module-shape, public-name, public-surface, symbol-role, and import-root
-module identity facts, plus package reasoning-tree facts.
+module identity facts, standard `pyproject.toml` project metadata, and package
+reasoning-tree facts.
 `python_lang_project_harness` owns rule catalogs, project/test layout,
 reporting, and assertion behavior.
 
 Repository tests enforce this boundary by rejecting direct `ast` or `tokenize`
 usage under `src/python_lang_project_harness`. File and metadata checks may
-still read non-Python policy inputs such as `pyproject.toml` and
-`python-project-harness-rules.toml`.
+still read non-Python policy inputs such as
+`python-project-harness-rules.toml`; Python project metadata should flow
+through parser-owned `pyproject.toml` facts.
 
 ## Snapshot Coverage
 

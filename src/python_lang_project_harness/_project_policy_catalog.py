@@ -16,6 +16,7 @@ PY_PROJ_R004 = "PY-PROJ-R004"
 PY_PROJ_R005 = "PY-PROJ-R005"
 PY_PROJ_R006 = "PY-PROJ-R006"
 PY_PROJ_R007 = "PY-PROJ-R007"
+PY_PROJ_R008 = "PY-PROJ-R008"
 
 _RULE_LABELS = {
     "language": "python",
@@ -76,6 +77,14 @@ _RULES = (
         severity=PythonDiagnosticSeverity.WARNING,
         title="Build-system table should declare build requirements",
         requirement="Declare `[build-system].requires` whenever `[build-system]` is present so isolated builds can install backend requirements deterministically.",
+        labels=dict(_RULE_LABELS),
+    ),
+    PythonHarnessRule(
+        rule_id=PY_PROJ_R008,
+        pack_id=PROJECT_POLICY_PACK_ID,
+        severity=PythonDiagnosticSeverity.WARNING,
+        title="Declared import names should resolve to project modules",
+        requirement="Keep `[project].import-names` and `[project].import-namespaces` aligned with parser-visible project owners so agents can trust package scope metadata.",
         labels=dict(_RULE_LABELS),
     ),
 )

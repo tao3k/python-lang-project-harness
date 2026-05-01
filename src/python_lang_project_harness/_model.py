@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from python_lang_parser import (
         PythonDiagnosticSeverity,
         PythonModuleReport,
+        PythonProjectMetadata,
         SourceLocation,
     )
 
@@ -82,6 +83,7 @@ class PythonProjectHarnessScope:
     """Concrete project paths monitored by an embedded Python harness run."""
 
     project_root: Path
+    project_metadata: PythonProjectMetadata | None = None
     project_paths: tuple[Path, ...] = ()
     source_paths: tuple[Path, ...] = ()
     test_paths: tuple[Path, ...] = ()
@@ -110,6 +112,11 @@ class PythonProjectHarnessScope:
 
         return {
             "project_root": str(self.project_root),
+            "project_metadata": (
+                None
+                if self.project_metadata is None
+                else self.project_metadata.to_dict()
+            ),
             "project_paths": [str(path) for path in self.project_paths],
             "source_paths": [str(path) for path in self.source_paths],
             "test_paths": [str(path) for path in self.test_paths],

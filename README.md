@@ -14,8 +14,9 @@ report. Compact text is the default agent repair surface; JSON is available for
 tooling through `render_python_lang_harness_json()`.
 
 `python_lang_parser` is the semantic foundation. Harness policy consumes parser
-reports instead of re-parsing Python source in the rule layer; project metadata
-and tests-root layout stay in the harness.
+reports and parser-owned `pyproject.toml` metadata instead of re-parsing Python
+source or guessing package scope in the rule layer; tests-root layout stays in
+the harness.
 
 ## Quick Use
 
@@ -53,6 +54,9 @@ severities without hardcoding project-specific policy into the library.
 Project runners also read `[tool.python-lang-project-harness]` from
 `pyproject.toml` when no explicit `PythonHarnessConfig` is passed, including
 `disabled_rule_ids` and `blocking_rule_ids` for stable rule-id policy.
+Standard `[project]` metadata such as `name`, `requires-python`,
+`import-names`, scripts, and pytest entry points is parsed by
+`python_lang_parser` and appears in project policy and reasoning-tree facts.
 When `include_tests=False`, test files are not parsed, but tests-root layout
 policy still runs. Explained local exceptions can live in
 `tests/python-project-harness-rules.toml`.
@@ -60,8 +64,8 @@ policy still runs. Explained local exceptions can live in
 For agent repair loops, `render_python_reasoning_tree(report)` emits a compact
 package/module owner tree from parser-owned facts. It shows package branches,
 public/internal leaves, compact export names, child names, internal import
-edges, and owner shadows without forcing an LLM to consume the full JSON report
-first.
+edges, declared project import names, entry points, package roots, and owner
+shadows without forcing an LLM to consume the full JSON report first.
 
 The console script follows the same render contract:
 

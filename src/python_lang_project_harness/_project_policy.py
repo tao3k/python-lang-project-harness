@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from ._model import PythonHarnessFinding, PythonRulePackDescriptor
 from ._project_metadata import read_python_project_metadata
 from ._project_policy_catalog import PROJECT_POLICY_PACK_ID
+from ._project_policy_imports import project_import_name_findings
 from ._project_policy_layout import project_layout_findings
 from ._project_policy_metadata import project_metadata_findings
 from ._project_policy_typed import typed_package_findings
@@ -48,12 +49,17 @@ class PythonProjectPolicyRulePack:
     ) -> Iterable[PythonHarnessFinding]:
         """Evaluate project-shape rules over a parsed project."""
 
-        metadata = read_python_project_metadata(scope.project_root)
+        metadata = scope.project_metadata or read_python_project_metadata(
+            scope.project_root
+        )
         if metadata is None:
             return ()
 
         findings: list[PythonHarnessFinding] = []
         findings.extend(project_metadata_findings(metadata, self.pack_id))
         findings.extend(project_layout_findings(scope, metadata, self.pack_id))
+        findings.extend(
+            project_import_name_findings(scope, metadata, modules, self.pack_id)
+        )
         findings.extend(typed_package_findings(metadata, modules, self.pack_id))
         return tuple(findings)

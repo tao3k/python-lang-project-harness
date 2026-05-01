@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from ._project_model import PythonProjectMetadata
+
 if TYPE_CHECKING:
     from .model import PythonModuleReport
 
@@ -123,6 +125,7 @@ class PythonReasoningTreeBranch:
 class PythonReasoningTreeFacts:
     """Project-level package tree facts derived from parser reports."""
 
+    project_metadata: PythonProjectMetadata | None = None
     nodes: tuple[PythonReasoningTreeNode, ...] = ()
     shadowed_module_sources: tuple[PythonReasoningTreeShadow, ...] = ()
     import_edges: tuple[PythonReasoningTreeImportEdge, ...] = ()
@@ -132,6 +135,11 @@ class PythonReasoningTreeFacts:
         """Return a JSON-compatible representation."""
 
         return {
+            "project_metadata": (
+                None
+                if self.project_metadata is None
+                else self.project_metadata.to_dict()
+            ),
             "nodes": [item.to_dict() for item in self.nodes],
             "shadowed_module_sources": [
                 item.to_dict() for item in self.shadowed_module_sources

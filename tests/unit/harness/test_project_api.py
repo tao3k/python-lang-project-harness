@@ -73,6 +73,7 @@ def test_run_python_project_harness_uses_project_paths(tmp_path: Path) -> None:
     assert report.project_scope is not None
     assert report.to_dict()["project_scope"] == {
         "project_root": str(tmp_path),
+        "project_metadata": None,
         "project_paths": [str(tmp_path)],
         "source_paths": [str(src)],
         "test_paths": [str(tests.parent)],

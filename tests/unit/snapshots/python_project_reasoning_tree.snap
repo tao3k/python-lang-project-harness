@@ -1,6 +1,12 @@
 [tree] $TEMP python
 Files: 3 Parsed: 3
 Nodes: 3 Branches: 1 Imports: 2 Shadows: 0
+[project]
+- name=snapshot-package requires-python=>=3.12
+- import-names=pkg
+- package-roots=$TEMP/src/pkg
+- scripts=snapshot-cli
+- entry-points=pytest11:snapshot
 [nodes]
   - pkg.domain (package; doc; public; children=models,service; exports=build) $TEMP/src/pkg/domain/__init__.py
     - pkg.domain.models (module; doc; public; exports=Model,build) $TEMP/src/pkg/domain/models.py

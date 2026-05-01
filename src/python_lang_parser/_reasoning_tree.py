@@ -23,7 +23,7 @@ from ._reasoning_tree_model import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from .model import PythonModuleReport
+    from .model import PythonModuleReport, PythonProjectMetadata
 
 __all__ = [
     "PythonReasoningTreeBranch",
@@ -40,6 +40,7 @@ def python_reasoning_tree_facts(
     *,
     import_roots: Sequence[str | Path] = (),
     project_root: str | Path | None = None,
+    project_metadata: PythonProjectMetadata | None = None,
 ) -> PythonReasoningTreeFacts:
     """Return package-tree facts that help agents traverse Python projects."""
 
@@ -53,6 +54,7 @@ def python_reasoning_tree_facts(
         if report.path is not None
     )
     return PythonReasoningTreeFacts(
+        project_metadata=project_metadata,
         nodes=_nodes(module_infos),
         shadowed_module_sources=_shadowed_module_sources(module_infos),
         import_edges=python_reasoning_tree_import_edges(module_infos),

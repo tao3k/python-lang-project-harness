@@ -40,6 +40,9 @@ This repository must not own:
 `tokenize`, and `symtable` rather than `tree-sitter`. It emits compact module
 reports with imports, symbols, scopes, bindings, references, calls,
 assignments, export contracts, shape summaries, and diagnostics.
+It also parses standard `pyproject.toml` project metadata such as
+`[project].name`, `requires-python`, `import-names`, scripts, entry points,
+build-system requirements, and declared package roots.
 
 `python_lang_project_harness` consumes those reports. It owns rule
 catalogs, project discovery, report aggregation, rendering, and pytest
@@ -49,16 +52,18 @@ text matching when a structured fact exists.
 Parser-backed policy is the default architectural rule. Python semantic checks
 must not re-parse source inside the harness layer; they should use
 `PythonModuleReport` facts such as imports, calls, symbols, assignments, export
-contracts, source lines, and module shape. Path and metadata checks may inspect
-files like `pyproject.toml` or tests-root policy TOML, but they must not infer
-Python semantics from raw text.
+contracts, source lines, and module shape. Standard Python project metadata
+should flow through parser-owned `pyproject.toml` facts. Harness-owned policy
+inputs such as tests-root policy TOML may still be read in the harness layer,
+but they must not infer Python semantics from raw text.
 
 `PY-TEST-R003` follows the same boundary: unit-test bloat is calculated from
 parser-owned module shape and parser-classified test symbols. The harness owns
 the pytest layout contract, while `python_lang_parser` owns Python syntax,
 tokenization, AST, compile validation, source-line capture, public-name policy,
 module public-surface classification, symbol-role classification, and
-import-root module identity helpers.
+import-root module identity helpers. It also owns `pyproject.toml` metadata
+facts used by project policy and reasoning-tree renderers.
 
 Reasoning-tree policy follows that boundary as well. `python_lang_parser`
 derives package tree facts from parsed module reports: import-owner shadows
@@ -70,12 +75,14 @@ tree nodes carry parser-owned export candidates and `__all__` contract kind, so
 the agent sees public API names without re-reading source text. The
 harness turns those facts into `PY-MOD-R007` and `PY-AGENT-R007` findings; it
 does not re-parse Python source to infer tree shape or dependency direction.
+Project policy uses the same parser metadata to keep declared import names
+aligned with parser-visible project owners.
 
 The same parser facts back `render_python_reasoning_tree()`, a compact
 agent-facing tree snapshot. That render is intentionally separate from JSON:
 agents can inspect package branches, public leaves, child names, and owner
-shadows, plus compact exports and internal imports, before choosing a repair
-surface.
+shadows, plus compact exports, internal imports, and declared project metadata,
+before choosing a repair surface.
 
 ## Runner Modes
 
