@@ -67,7 +67,7 @@ group:
 [dependency-groups]
 test = [
   "pytest>=8",
-  "python-lang-project-harness>=0.1.0",
+  "python-lang-project-harness[pytest]>=0.1.0",
 ]
 
 [tool.pytest.ini_options]

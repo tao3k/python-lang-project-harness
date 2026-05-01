@@ -52,6 +52,16 @@ def test_distribution_exposes_console_script() -> None:
     )
 
 
+def test_distribution_exposes_pytest_optional_dependency() -> None:
+    project = metadata.metadata("python-lang-project-harness")
+
+    assert "pytest" in project.get_all("Provides-Extra", [])
+    assert any(
+        dependency.startswith("pytest>=8.0;") and "extra == 'pytest'" in dependency
+        for dependency in project.get_all("Requires-Dist", [])
+    )
+
+
 def test_distribution_exposes_pytest_plugin_entry_point() -> None:
     plugins = {
         entry_point.name: entry_point.value

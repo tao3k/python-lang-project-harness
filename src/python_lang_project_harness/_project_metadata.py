@@ -38,11 +38,11 @@ def read_python_project_metadata(
 
     project = _table(payload.get("project"))
     build_system = _table(payload.get("build-system"))
-    wheel = _table(
-        _table(_table(_table(payload.get("tool")).get("hatch")).get("build"))
-        .get("targets")
-        .get("wheel")
-    )
+    tool = _table(payload.get("tool"))
+    hatch = _table(tool.get("hatch"))
+    hatch_build = _table(hatch.get("build"))
+    hatch_targets = _table(hatch_build.get("targets"))
+    wheel = _table(hatch_targets.get("wheel"))
     wheel_packages = _string_tuple(wheel.get("packages"))
 
     return PythonProjectMetadata(

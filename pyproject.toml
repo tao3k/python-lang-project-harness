@@ -6,6 +6,11 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
 
+[project.optional-dependencies]
+pytest = [
+    "pytest>=8.0",
+]
+
 [project.scripts]
 python-project-harness = "python_lang_project_harness:run_cli_from_env"
 

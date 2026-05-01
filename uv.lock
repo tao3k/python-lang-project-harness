@@ -68,6 +68,11 @@ name = "python-lang-project-harness"
 version = "0.1.0"
 source = { editable = "." }
 
+[package.optional-dependencies]
+pytest = [
+    { name = "pytest" },
+]
+
 [package.dev-dependencies]
 test = [
     { name = "pytest" },
@@ -75,6 +80,8 @@ test = [
 ]
 
 [package.metadata]
+requires-dist = [{ name = "pytest", marker = "extra == 'pytest'", specifier = ">=8.0" }]
+provides-extras = ["pytest"]
 
 [package.metadata.requires-dev]
 test = [

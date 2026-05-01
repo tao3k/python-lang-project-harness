@@ -157,6 +157,48 @@ def test_pytest_plugin_collects_harness_item_from_dev_dependency(
     assert "2 passed" in result.stdout
 
 
+def test_pytest_plugin_is_quiet_without_enable_option(
+    tmp_path: Path,
+) -> None:
+    _write_clean_project(tmp_path)
+
+    result = _run_pytest_plugin(tmp_path)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "1 passed" in result.stdout
+
+
+def test_pytest_plugin_can_be_enabled_from_pyproject_addopts(
+    tmp_path: Path,
+) -> None:
+    _write_clean_project(tmp_path)
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[tool.pytest.ini_options]
+addopts = ["--python-project-harness"]
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    result = _run_pytest_plugin(tmp_path)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "2 passed" in result.stdout
+
+
+def test_pytest_plugin_runs_without_downstream_test_files(
+    tmp_path: Path,
+) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "library.py").write_text('"""Library docs."""\n', encoding="utf-8")
+
+    result = _run_pytest_plugin(tmp_path, "--python-project-harness")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "1 passed" in result.stdout
+
+
 def test_pytest_plugin_reports_compact_harness_failure(
     tmp_path: Path,
 ) -> None:
