@@ -1,0 +1,17 @@
+/.devenv
+/.direnv
+/.ruff_cache
+/.mypy_cache
+/.pytest_cache
+/.venv
+/build
+/dist
+/*.egg-info
+/htmlcov
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+.vscode
+.pre-commit-config.yaml

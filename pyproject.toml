@@ -1,0 +1,49 @@
+[project]
+name = "python-lang-project-harness"
+version = "0.1.0"
+description = "Project-level Python language harness with compact diagnostics for agents"
+readme = "README.md"
+requires-python = ">=3.12"
+import-names = [
+    "python_lang_parser",
+    "python_lang_project_harness",
+]
+dependencies = []
+
+[project.optional-dependencies]
+pytest = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+python-project-harness = "python_lang_project_harness:run_cli_from_env"
+
+[project.entry-points.pytest11]
+python_lang_project_harness = "python_lang_project_harness.pytest_plugin"
+
+[dependency-groups]
+test = [
+    "pytest>=8.0",
+    "ruff>=0.13",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/python_lang_parser",
+    "src/python_lang_project_harness",
+]
+
+[tool.uv]
+package = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]

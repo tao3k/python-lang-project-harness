@@ -1,0 +1,9 @@
+---
+source: tests/unit/harness/test_policy_snapshots.py
+expression: rendered
+---
+[PY-MOD-R006] Warning: Python module appears too large for one ownership seam
+   ,-[ src/feature.py:1:1 ]
+ 1 | """Large feature module."""
+   | `- split this module into focused ownership seams
+   |Required: Split feature.py into focused modules; current size is 261 effective lines across 60 top-level items.

@@ -1,0 +1,8 @@
+---
+source: tests/unit/harness/test_policy_snapshots.py
+expression: rendered
+---
+[PY-TEST-R003] Warning: Unit test leaf is too large
+   ,-[ tests/unit/test_large_policy.py:1:1 ]
+   | split this large unit test leaf into focused pytest modules
+   |Required: Split test_large_policy.py into a folder-first unit suite; current size is 330 effective lines across 10 tests.

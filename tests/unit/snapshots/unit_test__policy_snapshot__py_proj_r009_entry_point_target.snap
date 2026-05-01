@@ -1,0 +1,9 @@
+---
+source: tests/unit/harness/test_policy_snapshots.py
+expression: rendered
+---
+[PY-PROJ-R009] Warning: Declared entry point targets should resolve to project modules
+   ,-[ pyproject.toml:1:1 ]
+ 1 | [project]
+   | `- point this entry target at a parser-visible module
+   |Required: Keep console scripts, GUI scripts, and entry points pointed at parser-visible project modules so agent entry maps and packaging metadata agree.

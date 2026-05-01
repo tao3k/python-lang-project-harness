@@ -1,0 +1,5 @@
+[PY-MOD-R002] Warning: Library module uses bare print
+   ,-[ $TEMP/src/service.py:5:5 ]
+ 5 |     print("debug")
+   |     `- replace bare print with a project-owned reporting surface
+   |Required: Use a logger, returned value, or explicit test assertion instead of bare `print` in library modules.

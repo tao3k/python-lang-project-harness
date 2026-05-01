@@ -1,0 +1,9 @@
+---
+source: tests/unit/harness/test_policy_snapshots.py
+expression: rendered
+---
+[PY-PROJ-R002] Warning: Declared wheel package root is not importable
+   ,-[ pyproject.toml:1:1 ]
+ 1 | [project]
+   | `- make this declared package root importable
+   |Required: Ensure each declared wheel package root exists and contains `__init__.py` so agents can map project metadata to import namespaces.
