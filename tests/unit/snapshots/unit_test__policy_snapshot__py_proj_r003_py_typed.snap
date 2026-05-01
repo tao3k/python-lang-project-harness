@@ -1,0 +1,13 @@
+---
+source: tests/unit/harness/test_policy_snapshots.py
+expression: rendered
+---
+[lint:warning] $TEMP/src python
+Source: $TEMP/src
+Files: 1 Parsed: 1
+Issues: 1
+
+[PY-PROJ-R003] Warning: Typed public package lacks py.typed marker
+   ,-[ $TEMP/src/pkg:1:1 ]
+   | add py.typed to this package root
+   |Required: Add `py.typed` to declared package roots that expose public parser surface so downstream agents and type checkers can trust inline types.

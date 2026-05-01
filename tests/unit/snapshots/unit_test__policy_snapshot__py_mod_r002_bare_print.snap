@@ -1,0 +1,14 @@
+---
+source: tests/unit/harness/test_policy_snapshots.py
+expression: rendered
+---
+[lint:warning] $TEMP/src python
+Source: $TEMP/src
+Files: 1 Parsed: 1
+Issues: 1
+
+[PY-MOD-R002] Warning: Library module uses bare print
+   ,-[ $TEMP/src/module.py:5:5 ]
+ 5 |     print("debug")
+   |     `- replace bare print with a project-owned reporting surface
+   |Required: Use a logger, returned value, or explicit test assertion instead of bare `print` in library modules.

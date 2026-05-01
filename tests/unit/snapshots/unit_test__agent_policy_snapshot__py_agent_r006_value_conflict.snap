@@ -1,0 +1,17 @@
+---
+source: tests/unit/harness/test_agent_policy_snapshots.py
+expression: rendered
+---
+[ok] $TEMP/src python
+Source: $TEMP/src
+Files: 2 Parsed: 2
+No blocking issues found.
+
+[advice]
+Issues: 1
+
+[PY-AGENT-R006] Info: Public value name conflicts across namespaces
+   ,-[ $TEMP/src/pkg/beta.py:3:1 ]
+ 3 | DEFAULT_LIMIT = 2
+   | `- rename or namespace this public value boundary
+   |Required: Give project-level public values and configuration exports unambiguous names or move them behind a clear domain namespace so agents can resolve intent without guessing.
