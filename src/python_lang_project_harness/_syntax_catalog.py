@@ -46,4 +46,17 @@ def python_syntax_rules() -> tuple[PythonHarnessRule, ...]:
 def syntax_rule(rule_id: str) -> PythonHarnessRule:
     """Return one syntax rule descriptor by stable rule id."""
 
-    return _RULE_BY_ID[rule_id]
+    rule = _RULE_BY_ID.get(rule_id)
+    if rule is not None:
+        return rule
+    return PythonHarnessRule(
+        rule_id=rule_id,
+        pack_id=SYNTAX_PACK_ID,
+        severity=PythonDiagnosticSeverity.ERROR,
+        title="Python parser emitted an error diagnostic",
+        requirement=(
+            "Python modules must be readable, parseable, and compile through "
+            "CPython native validation before project rules run."
+        ),
+        labels=dict(_RULE_LABELS),
+    )

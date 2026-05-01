@@ -35,6 +35,7 @@ def discover_python_files(
             for candidate in path.rglob("*.py"):
                 if is_scannable_python_file(
                     candidate,
+                    scan_root=path,
                     ignored_dir_names=ignored_names,
                 ):
                     _append_unique_path(discovered, seen, candidate)
@@ -123,11 +124,13 @@ def _project_scan_paths(
 def is_scannable_python_file(
     path: Path,
     *,
+    scan_root: Path,
     ignored_dir_names: frozenset[str],
 ) -> bool:
     """Return whether a Python file belongs to the harness-owned scan scope."""
 
-    return not any(part in ignored_dir_names for part in path.parts)
+    relative_parts = _scan_relative_parts(path, scan_root)
+    return not any(part in ignored_dir_names for part in relative_parts)
 
 
 def _append_unique_path(discovered: list[Path], seen: set[Path], path: Path) -> None:
@@ -167,3 +170,10 @@ def _is_relative_to(path: Path, root: Path) -> bool:
     except ValueError:
         return False
     return True
+
+
+def _scan_relative_parts(path: Path, scan_root: Path) -> tuple[str, ...]:
+    try:
+        return path.relative_to(scan_root).parts
+    except ValueError:
+        return path.parts

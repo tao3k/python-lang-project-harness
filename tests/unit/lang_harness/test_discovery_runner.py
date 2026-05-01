@@ -2,10 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from python_lang_parser import PythonDiagnosticSeverity, SourceLocation
+from python_lang_parser import (
+    PythonDiagnostic,
+    PythonDiagnosticSeverity,
+    PythonModuleReport,
+    SourceLocation,
+)
 from python_lang_project_harness import (
     PythonHarnessConfig,
     PythonHarnessFinding,
+    PythonSyntaxRulePack,
     discover_python_files,
     render_python_lang_harness,
     run_python_lang_harness,
@@ -13,8 +19,6 @@ from python_lang_project_harness import (
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-    from python_lang_parser import PythonModuleReport
 
 
 def test_discover_python_files_skips_cache_dirs(tmp_path: Path) -> None:
@@ -41,6 +45,22 @@ def test_discover_python_files_accepts_custom_ignored_dirs(tmp_path: Path) -> No
     ignored.write_text("VALUE = 2\n", encoding="utf-8")
 
     assert discover_python_files([tmp_path], ignored_dir_names={"generated"}) == (good,)
+
+
+def test_discover_python_files_ignores_only_scan_relative_dirs(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "build" / "project"
+    src = project / "src"
+    ignored_dir = src / "build"
+    src.mkdir(parents=True)
+    ignored_dir.mkdir()
+    good = src / "good.py"
+    ignored = ignored_dir / "ignored.py"
+    good.write_text("VALUE = 1\n", encoding="utf-8")
+    ignored.write_text("VALUE = 2\n", encoding="utf-8")
+
+    assert discover_python_files([project]) == (good,)
 
 
 def test_discover_python_files_deduplicates_nested_scan_roots(
@@ -88,6 +108,34 @@ def test_run_python_lang_harness_uses_configured_discovery(tmp_path: Path) -> No
 
     assert report.file_count == 0
     assert report.is_clean
+
+
+def test_syntax_rule_pack_handles_unknown_parser_error_codes() -> None:
+    report = PythonModuleReport(
+        path="/repo/src/unreadable.py",
+        module_docstring=None,
+        diagnostics=(
+            PythonDiagnostic(
+                code="python.file.read_error",
+                severity=PythonDiagnosticSeverity.ERROR,
+                message="permission denied",
+                location=SourceLocation(
+                    path="/repo/src/unreadable.py",
+                    line=1,
+                    column=0,
+                ),
+                label="file could not be read",
+                help="Check file permissions.",
+            ),
+        ),
+    )
+
+    findings = tuple(PythonSyntaxRulePack().evaluate(report))
+
+    assert [(finding.rule_id, finding.title) for finding in findings] == [
+        ("python.file.read_error", "Python parser emitted an error diagnostic"),
+    ]
+    assert findings[0].summary == "permission denied"
 
 
 def test_run_python_lang_harness_uses_configured_blocking_severities(
