@@ -114,6 +114,7 @@ def pytest_collection_modifyitems(
     item = PythonProjectHarnessItem.from_parent(
         session,
         name="python-project-harness",
+        nodeid="python-project-harness",
     )
     items.insert(0, item)
 
@@ -149,7 +150,7 @@ class PythonProjectHarnessItem(pytest.Item):
     def reportinfo(self) -> tuple[Path, int, str]:
         """Return stable report metadata for pytest output."""
 
-        return (_project_root(self.config), 0, "python project harness")
+        return (Path("python-project-harness"), 0, "python project harness")
 
 
 def _project_root(config: pytest.Config) -> Path:
