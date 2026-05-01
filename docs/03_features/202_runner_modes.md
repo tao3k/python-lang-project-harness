@@ -129,8 +129,9 @@ inspect.
 agent navigation snapshot. It uses parser-owned package tree facts, not raw
 path guessing, and summarizes package branches, module leaves, public/internal
 surface, compact export names, child names, internal import edges, declared
-project import names, entry points, package roots, and owner shadows. Use it
-before repair-oriented agents choose which subtree to edit.
+project import names, entry points, package roots, and owner shadows. In
+project-scoped reports, rendered paths are project-relative. Use it before
+repair-oriented agents choose which subtree to edit.
 
 :RELATIONS:
 :LINKS: [Harness Boundary](../01_core/101_harness_boundary.md), [Rule Catalog](201_rule_catalog.md), [CLI](203_cli.md)

@@ -106,7 +106,8 @@ project-internal edges, a compact `[project]` section for declared package
 metadata and entry targets, and compact `exports=` flags on public nodes,
 making it the preferred first read when an agent needs to understand where a
 change belongs, what public API it touches, and what it may affect before
-touching code.
+touching code. In project-scoped reports, paths render relative to the project
+root so the tree does not repeat long absolute prefixes.
 
 ## Rendered Diagnostic Policy
 

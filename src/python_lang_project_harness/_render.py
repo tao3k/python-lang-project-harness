@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import json
+import os
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from python_lang_parser import PythonDiagnosticSeverity, python_reasoning_tree_facts
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-    from pathlib import Path
 
     from python_lang_parser import (
         PythonProjectImportName,
@@ -86,20 +87,32 @@ def render_python_reasoning_tree(
             else report.project_scope.project_metadata
         ),
     )
-    target = ", ".join(report.root_paths)
+    project_root = _report_project_root(report)
+    target = ", ".join(
+        _render_display_path(path, project_root=project_root)
+        for path in report.root_paths
+    )
     lines = [f"[tree] {target} python"]
     if facts.shadowed_module_sources:
         lines.append("[shadows]")
         for shadow in facts.shadowed_module_sources:
             namespace = ".".join(shadow.namespace)
             lines.append(
-                f"- {namespace}: {shadow.module_path} <-> {shadow.package_init_path}"
+                f"- {namespace}: "
+                f"{_render_display_path(shadow.module_path, project_root=project_root)}"
+                " <-> "
+                f"{_render_display_path(shadow.package_init_path, project_root=project_root)}"
             )
     if facts.project_metadata is not None:
-        lines.extend(_render_reasoning_tree_project_metadata(facts.project_metadata))
+        lines.extend(
+            _render_reasoning_tree_project_metadata(
+                facts.project_metadata,
+                project_root=project_root,
+            )
+        )
     lines.append("[nodes]")
     for node in facts.nodes[:max_nodes]:
-        lines.append(_render_reasoning_tree_node(node))
+        lines.append(_render_reasoning_tree_node(node, project_root=project_root))
     omitted = len(facts.nodes) - max_nodes
     if omitted > 0:
         lines.append(f"... {omitted} more nodes")
@@ -155,7 +168,17 @@ def _reasoning_tree_import_roots(report: PythonHarnessReport) -> tuple[Path | st
     return report.project_scope.monitored_paths
 
 
-def _render_reasoning_tree_node(node: PythonReasoningTreeNode) -> str:
+def _report_project_root(report: PythonHarnessReport) -> Path | None:
+    if report.project_scope is None:
+        return None
+    return report.project_scope.project_root
+
+
+def _render_reasoning_tree_node(
+    node: PythonReasoningTreeNode,
+    *,
+    project_root: Path | None,
+) -> str:
     depth = max(len(node.namespace) - 1, 0)
     indent = "  " * depth
     namespace = ".".join(node.namespace) if node.namespace else "<root>"
@@ -171,11 +194,14 @@ def _render_reasoning_tree_node(node: PythonReasoningTreeNode) -> str:
         flags.append(export_flag)
     if not node.is_valid:
         flags.append("invalid")
-    return f"{indent}- {namespace} ({'; '.join(flags)}) {node.path}"
+    path = _render_display_path(node.path, project_root=project_root)
+    return f"{indent}- {namespace} ({'; '.join(flags)}) {path}"
 
 
 def _render_reasoning_tree_project_metadata(
     project_metadata: PythonProjectMetadata,
+    *,
+    project_root: Path | None,
 ) -> list[str]:
     import_names = project_metadata.import_names
     import_namespaces = project_metadata.import_namespaces
@@ -196,7 +222,10 @@ def _render_reasoning_tree_project_metadata(
         lines.append(
             "- package-roots="
             + _render_compact_name_list(
-                tuple(str(path) for path in package_roots),
+                tuple(
+                    _render_display_path(path, project_root=project_root)
+                    for path in package_roots
+                ),
                 max_names=4,
             )
         )
@@ -254,6 +283,26 @@ def _render_reasoning_tree_import_edge(edge: PythonReasoningTreeImportEdge) -> s
     scope = "module" if edge.scope == "" else edge.scope
     relation = "relative" if edge.is_relative else "absolute"
     return f"- {importer} -> {imported} ({relation}; {scope}; as {edge.bound_name})"
+
+
+def _render_display_path(path: Path | str, *, project_root: Path | None) -> str:
+    rendered = str(path)
+    if project_root is None:
+        return rendered
+    path_obj = Path(path)
+    if not path_obj.is_absolute():
+        return rendered
+    try:
+        root = project_root.resolve(strict=False)
+        resolved_path = path_obj.resolve(strict=False)
+        if os.path.commonpath((str(root), str(resolved_path))) != str(root):
+            return rendered
+        relative_path = os.path.relpath(resolved_path, root)
+    except (OSError, ValueError):
+        return rendered
+    if relative_path == ".":
+        return "."
+    return relative_path
 
 
 def _deduplicate_advice_findings(

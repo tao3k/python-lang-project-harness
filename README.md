@@ -65,7 +65,9 @@ For agent repair loops, `render_python_reasoning_tree(report)` emits a compact
 package/module owner tree from parser-owned facts. It shows package branches,
 public/internal leaves, compact export names, child names, internal import
 edges, declared project import names, entry points, package roots, and owner
-shadows without forcing an LLM to consume the full JSON report first.
+shadows without forcing an LLM to consume the full JSON report first. In
+project-scoped runs, tree paths are rendered relative to the project root to
+avoid repeating long absolute prefixes.
 
 The console script follows the same render contract:
 

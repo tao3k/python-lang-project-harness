@@ -42,6 +42,54 @@ def test_reasoning_tree_render_matches_snapshot() -> None:
     assert_snapshot("python_project_reasoning_tree", rendered)
 
 
+def test_reasoning_tree_render_uses_project_relative_paths(tmp_path: Path) -> None:
+    src = tmp_path / "src"
+    package = src / "pkg"
+    package.mkdir(parents=True)
+    report = PythonHarnessReport(
+        modules=(
+            parse_python_source(
+                '"""Package docs."""\n\nVALUE = 1\n',
+                path=package / "__init__.py",
+            ),
+        ),
+        findings=(),
+        root_paths=(str(tmp_path),),
+        project_scope=PythonProjectHarnessScope(
+            project_root=tmp_path,
+            project_metadata=PythonProjectMetadata(
+                project_root=tmp_path,
+                pyproject_path=tmp_path / "pyproject.toml",
+                has_project_table=True,
+                has_build_system_table=True,
+                project_name="relative-package",
+                requires_python=">=3.12",
+                build_backend="hatchling.build",
+                build_requires=("hatchling",),
+                wheel_packages=("src/pkg",),
+                package_roots=(package,),
+                import_names=(
+                    PythonProjectImportName(
+                        name="pkg",
+                        namespace=("pkg",),
+                        source_value="pkg",
+                    ),
+                ),
+            ),
+            project_paths=(tmp_path,),
+            source_paths=(src,),
+            test_paths=(),
+        ),
+    )
+
+    rendered = render_python_reasoning_tree(report)
+
+    assert str(tmp_path) not in rendered
+    assert rendered.startswith("[tree] . python\n")
+    assert "package-roots=src/pkg" in rendered
+    assert "src/pkg/__init__.py" in rendered
+
+
 def _snapshot_report() -> PythonHarnessReport:
     source_path = "$TEMP/src/service.py"
     return PythonHarnessReport(
