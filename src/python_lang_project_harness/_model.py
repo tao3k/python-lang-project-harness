@@ -155,6 +155,8 @@ class PythonHarnessConfig:
     source_dir_names: tuple[str, ...] = ("src",)
     test_dir_names: tuple[str, ...] = ("tests",)
     extra_path_names: tuple[str, ...] = ()
+    disabled_rule_ids: frozenset[str] = frozenset()
+    blocking_rule_ids: frozenset[str] = frozenset()
     rule_packs: tuple[PythonLangRulePack, ...] | None = None
 
 
@@ -169,6 +171,8 @@ class PythonHarnessReport:
         DEFAULT_BLOCKING_SEVERITIES
     )
     project_scope: PythonProjectHarnessScope | None = None
+    disabled_rule_ids: frozenset[str] = frozenset()
+    blocking_rule_ids: frozenset[str] = frozenset()
 
     @property
     def parsed_count(self) -> int:
@@ -202,6 +206,8 @@ class PythonHarnessReport:
             "blocking_severities": [
                 severity.value for severity in sorted(self.blocking_severities)
             ],
+            "disabled_rule_ids": sorted(self.disabled_rule_ids),
+            "blocking_rule_ids": sorted(self.blocking_rule_ids),
             "findings": [finding.to_dict() for finding in self.findings],
             "modules": [module.to_dict() for module in self.modules],
         }
@@ -219,7 +225,8 @@ class PythonHarnessReport:
         return tuple(
             finding
             for finding in self.findings
-            if finding.severity in blocking_severities
+            if finding.rule_id in self.blocking_rule_ids
+            or finding.severity in blocking_severities
         )
 
     def advisory_findings(

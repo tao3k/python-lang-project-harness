@@ -28,6 +28,8 @@ def test_default_python_harness_config_uses_default_rule_packs() -> None:
     assert config.source_dir_names == ("src",)
     assert config.test_dir_names == ("tests",)
     assert config.extra_path_names == ()
+    assert config.disabled_rule_ids == frozenset()
+    assert config.blocking_rule_ids == frozenset()
     assert [rule_pack.pack_id for rule_pack in config.rule_packs or ()] == [
         "python.syntax",
         "python.project_policy",
@@ -64,6 +66,8 @@ def test_rule_pack_descriptors_and_json_renderer_are_stable(tmp_path: Path) -> N
         "advisory",
     ]
     assert payload["file_count"] == 1
+    assert payload["disabled_rule_ids"] == []
+    assert payload["blocking_rule_ids"] == []
     assert payload["modules"][0]["metadata"]["parser"] == "cpython.ast"
 
 

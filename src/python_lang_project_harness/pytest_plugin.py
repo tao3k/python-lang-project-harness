@@ -9,6 +9,7 @@ import pytest
 
 from python_lang_parser import PythonDiagnosticSeverity
 
+from ._model import PythonHarnessConfig
 from ._runner import assert_python_project_harness_clean
 
 if TYPE_CHECKING:
@@ -21,6 +22,8 @@ _NO_TESTS_OPTION = "--python-project-harness-no-tests"
 _SOURCE_DIR_OPTION = "--python-project-harness-source-dir"
 _TEST_DIR_OPTION = "--python-project-harness-test-dir"
 _EXTRA_PATH_OPTION = "--python-project-harness-extra-path"
+_DISABLE_RULE_OPTION = "--python-project-harness-disable-rule"
+_BLOCK_RULE_OPTION = "--python-project-harness-block-rule"
 _ERROR_ONLY_OPTION = "--python-project-harness-error-only"
 _NO_ADVICE_OPTION = "--python-project-harness-no-advice"
 
@@ -70,6 +73,20 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="Extra project path name to scan. Can be provided more than once.",
     )
     group.addoption(
+        _DISABLE_RULE_OPTION,
+        action="append",
+        default=[],
+        metavar="RULE_ID",
+        help="Harness rule id to suppress. Can be provided more than once.",
+    )
+    group.addoption(
+        _BLOCK_RULE_OPTION,
+        action="append",
+        default=[],
+        metavar="RULE_ID",
+        help="Harness rule id to treat as blocking. Can be provided more than once.",
+    )
+    group.addoption(
         _ERROR_ONLY_OPTION,
         action="store_true",
         default=False,
@@ -107,6 +124,7 @@ class PythonProjectHarnessItem(pytest.Item):
 
         assert_python_project_harness_clean(
             _project_root(self.config),
+            config=_harness_config(self.config),
             severities=_blocking_severities(self.config),
             include_tests=not self.config.getoption(_NO_TESTS_OPTION),
             source_dir_names=_optional_tuple(self.config.getoption(_SOURCE_DIR_OPTION)),
@@ -145,6 +163,13 @@ def _blocking_severities(
     if config.getoption(_ERROR_ONLY_OPTION):
         return frozenset({PythonDiagnosticSeverity.ERROR})
     return None
+
+
+def _harness_config(config: pytest.Config) -> PythonHarnessConfig:
+    return PythonHarnessConfig(
+        disabled_rule_ids=frozenset(config.getoption(_DISABLE_RULE_OPTION)),
+        blocking_rule_ids=frozenset(config.getoption(_BLOCK_RULE_OPTION)),
+    )
 
 
 def _optional_tuple(values: Sequence[str]) -> tuple[str, ...] | None:

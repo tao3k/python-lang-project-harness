@@ -72,6 +72,40 @@ def test_cli_exits_nonzero_for_blocking_findings(tmp_path: Path) -> None:
     assert "PY-MOD-R002" in stdout.getvalue()
 
 
+def test_cli_can_disable_policy_rule_ids(tmp_path: Path) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "service.py").write_text(
+        'def run() -> None:\n    print("debug")\n',
+        encoding="utf-8",
+    )
+    stdout = io.StringIO()
+
+    exit_code = run_cli(
+        ["--disable-rule", "PY-MOD-R002", str(tmp_path)],
+        stdout=stdout,
+    )
+
+    assert exit_code == 0
+    assert "PY-MOD-R002" not in stdout.getvalue()
+
+
+def test_cli_can_promote_policy_rule_ids(tmp_path: Path) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "service.py").write_text(
+        "def build(value):\n    return value\n",
+        encoding="utf-8",
+    )
+    stdout = io.StringIO()
+
+    exit_code = run_cli(["--block-rule", "PY-AGENT-R001", str(tmp_path)], stdout=stdout)
+
+    assert exit_code == 1
+    assert "[lint:info]" in stdout.getvalue()
+    assert "PY-AGENT-R001" in stdout.getvalue()
+
+
 def test_cli_help_and_argument_errors_are_stable(tmp_path: Path) -> None:
     help_stdout = io.StringIO()
     error_stderr = io.StringIO()
@@ -133,6 +167,7 @@ def test_cli_scope_flag_values_are_required() -> None:
 
     assert run_cli(["--source-dir"], stderr=stderr) == 2
     assert "missing value for --source-dir" in stderr.getvalue()
+    assert run_cli(["--disable-rule"], stderr=io.StringIO()) == 2
 
 
 def test_cli_defaults_to_current_working_directory(tmp_path: Path) -> None:

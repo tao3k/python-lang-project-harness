@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TextIO
 
+from ._model import PythonHarnessConfig
 from ._render import render_python_lang_harness, render_python_lang_harness_json
 from ._runner import run_python_project_harness
 
@@ -38,6 +39,7 @@ def run_cli(
             raise ValueError(f"project root does not exist: {project_root}")
         report = run_python_project_harness(
             project_root,
+            config=options.harness_config(),
             include_tests=options.include_tests,
             source_dir_names=options.source_dir_names,
             test_dir_names=options.test_dir_names,
@@ -62,6 +64,8 @@ class _CliOptions:
     source_dir_values: list[str] = field(default_factory=list)
     test_dir_values: list[str] = field(default_factory=list)
     extra_path_values: list[str] = field(default_factory=list)
+    disabled_rule_values: list[str] = field(default_factory=list)
+    blocking_rule_values: list[str] = field(default_factory=list)
     paths: list[Path] = field(default_factory=list)
 
     @classmethod
@@ -95,6 +99,16 @@ class _CliOptions:
                 case "--extra-path":
                     options.extra_path_values.append(
                         _option_value(args, index, "--extra-path")
+                    )
+                    index += 1
+                case "--disable-rule":
+                    options.disabled_rule_values.append(
+                        _option_value(args, index, "--disable-rule")
+                    )
+                    index += 1
+                case "--block-rule":
+                    options.blocking_rule_values.append(
+                        _option_value(args, index, "--block-rule")
                     )
                     index += 1
                 case "--help" | "-h":
@@ -138,6 +152,16 @@ class _CliOptions:
             return None
         return tuple(self.extra_path_values)
 
+    def harness_config(self) -> PythonHarnessConfig | None:
+        """Return CLI policy config when rule-level options were supplied."""
+
+        if not self.disabled_rule_values and not self.blocking_rule_values:
+            return None
+        return PythonHarnessConfig(
+            disabled_rule_ids=frozenset(self.disabled_rule_values),
+            blocking_rule_ids=frozenset(self.blocking_rule_values),
+        )
+
 
 def _option_value(
     args: list[str] | tuple[str, ...],
@@ -155,10 +179,12 @@ def _option_value(
 def _help_text() -> str:
     return (
         "python-project-harness [--json] [--no-tests] "
-        "[--source-dir DIR] [--test-dir DIR] [--extra-path PATH] [PROJECT_ROOT]\n\n"
+        "[--source-dir DIR] [--test-dir DIR] [--extra-path PATH] "
+        "[--disable-rule RULE_ID] [--block-rule RULE_ID] [PROJECT_ROOT]\n\n"
         "Runs the default package-level Python harness.\n\n"
         "Compact text is the default output for humans and repair-oriented agents.\n"
         "Use --json to emit the structured PythonHarnessReport JSON shape.\n"
         "Repeat --source-dir or --test-dir to customize policy root classification.\n"
         "Repeat --extra-path to include external project paths.\n"
+        "Repeat --disable-rule or --block-rule to customize policy by rule id.\n"
     )

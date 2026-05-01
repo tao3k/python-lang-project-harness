@@ -77,6 +77,22 @@ Entries without a non-empty `explanation` are ignored, so the normal
 emission. The default blocks `Warning` and `Error`; `Info` findings remain
 visible advice.
 
+Policy can also be configured by stable rule id:
+
+```python
+from python_lang_project_harness import PythonHarnessConfig
+
+config = PythonHarnessConfig(
+    disabled_rule_ids=frozenset({"PY-MOD-R002"}),
+    blocking_rule_ids=frozenset({"PY-AGENT-R007"}),
+)
+```
+
+`disabled_rule_ids` suppresses selected findings after parser-backed rule
+evaluation. `blocking_rule_ids` promotes selected findings to assertion
+blockers without changing their catalog severity, which keeps advisory rules
+visible as advice while allowing a project to enforce chosen agent policy.
+
 ## Explicit-Path Runner
 
 Use `run_python_lang_harness()` or `assert_python_lang_harness_clean()` for

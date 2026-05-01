@@ -51,6 +51,10 @@ Supported plugin options:
   name; can be repeated.
 - `--python-project-harness-extra-path NAME`: add one external project path;
   can be repeated.
+- `--python-project-harness-disable-rule RULE_ID`: suppress one stable rule
+  id; can be repeated.
+- `--python-project-harness-block-rule RULE_ID`: promote one stable rule id to
+  blocking; can be repeated.
 - `--python-project-harness-error-only`: fail only on parser errors.
 - `--python-project-harness-no-advice`: hide non-blocking advice in assertion
   output.
@@ -70,9 +74,14 @@ Callers can pass the same project-scope options used by the library runner:
 
 ```python
 from python_lang_parser import PythonDiagnosticSeverity
+from python_lang_project_harness import PythonHarnessConfig
 from python_lang_project_harness.pytest import python_project_harness_test
 
 test_python_project_harness_policy = python_project_harness_test(
+    config=PythonHarnessConfig(
+        disabled_rule_ids=frozenset({"PY-MOD-R002"}),
+        blocking_rule_ids=frozenset({"PY-AGENT-R007"}),
+    ),
     source_dir_names=("lib",),
     include_tests=False,
     severities=frozenset({PythonDiagnosticSeverity.ERROR}),

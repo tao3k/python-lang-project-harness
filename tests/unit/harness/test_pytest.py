@@ -253,6 +253,31 @@ def test_pytest_plugin_honors_dev_dependency_options(
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+def test_pytest_plugin_honors_policy_rule_options(
+    tmp_path: Path,
+) -> None:
+    src = tmp_path / "src"
+    tests = tmp_path / "tests" / "unit"
+    src.mkdir()
+    tests.mkdir(parents=True)
+    (src / "library.py").write_text(
+        'def run() -> None:\n    print("debug")\n',
+        encoding="utf-8",
+    )
+    (tests / "test_placeholder.py").write_text(
+        "def test_placeholder() -> None:\n    assert True\n",
+        encoding="utf-8",
+    )
+
+    result = _run_pytest_plugin(
+        tmp_path,
+        "--python-project-harness",
+        "--python-project-harness-disable-rule=PY-MOD-R002",
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
 def _write_clean_project(project_root: Path) -> None:
     src = project_root / "src"
     tests = project_root / "tests" / "unit"

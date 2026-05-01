@@ -125,6 +125,44 @@ def test_project_runner_can_exclude_tests_from_config(tmp_path: Path) -> None:
     assert report.project_scope.monitored_paths == (src,)
 
 
+def test_project_runner_can_disable_policy_rules_from_config(tmp_path: Path) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "service.py").write_text(
+        'def run() -> None:\n    print("debug")\n',
+        encoding="utf-8",
+    )
+
+    report = run_python_project_harness(
+        tmp_path,
+        config=PythonHarnessConfig(disabled_rule_ids=frozenset({"PY-MOD-R002"})),
+    )
+
+    assert report.is_clean
+    assert "PY-MOD-R002" not in {finding.rule_id for finding in report.findings}
+    assert report.disabled_rule_ids == frozenset({"PY-MOD-R002"})
+
+
+def test_project_runner_can_promote_policy_rules_from_config(tmp_path: Path) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "service.py").write_text(
+        "def build(value):\n    return value\n",
+        encoding="utf-8",
+    )
+
+    report = run_python_project_harness(
+        tmp_path,
+        config=PythonHarnessConfig(blocking_rule_ids=frozenset({"PY-AGENT-R001"})),
+    )
+
+    assert not report.is_clean
+    assert [finding.rule_id for finding in report.blocking_findings()] == [
+        "PY-AGENT-R001",
+    ]
+    assert report.blocking_rule_ids == frozenset({"PY-AGENT-R001"})
+
+
 def test_runner_rejects_missing_project_root_and_explicit_path(tmp_path: Path) -> None:
     missing = tmp_path / "missing"
 

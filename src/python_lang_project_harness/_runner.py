@@ -11,6 +11,7 @@ from python_lang_parser import PythonDiagnosticSeverity, parse_python_file
 from ._discovery import discover_python_files, python_project_harness_scope
 from ._model import (
     PythonHarnessConfig,
+    PythonHarnessFinding,
     PythonHarnessReport,
     PythonLangRulePack,
 )
@@ -74,7 +75,10 @@ def run_python_project_harness(
     return replace(
         report,
         project_scope=scope,
-        findings=compact_project_findings(report.findings, project_findings),
+        findings=_configured_findings(
+            compact_project_findings(report.findings, project_findings),
+            config=selected_config,
+        ),
     )
 
 
@@ -141,9 +145,11 @@ def run_python_lang_harness(
     )
     return PythonHarnessReport(
         modules=modules,
-        findings=findings,
+        findings=_configured_findings(findings, config=selected_config),
         root_paths=tuple(str(path) for path in root_paths),
         blocking_severities=selected_config.blocking_severities,
+        disabled_rule_ids=selected_config.disabled_rule_ids,
+        blocking_rule_ids=selected_config.blocking_rule_ids,
     )
 
 
@@ -168,3 +174,17 @@ def assert_python_lang_harness_clean(
         include_advice=include_advice,
     )
     return report
+
+
+def _configured_findings(
+    findings: tuple[PythonHarnessFinding, ...],
+    *,
+    config: PythonHarnessConfig,
+) -> tuple[PythonHarnessFinding, ...]:
+    if not config.disabled_rule_ids:
+        return findings
+    return tuple(
+        finding
+        for finding in findings
+        if finding.rule_id not in config.disabled_rule_ids
+    )
