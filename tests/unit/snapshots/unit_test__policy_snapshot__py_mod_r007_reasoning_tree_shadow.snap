@@ -1,0 +1,14 @@
+---
+source: tests/unit/harness/test_policy_snapshots.py
+expression: rendered
+---
+[lint:warning] $TEMP python
+Source: $TEMP
+Files: 2 Parsed: 2
+Issues: 1
+
+[PY-MOD-R007] Warning: Python module shadows a package owner
+   ,-[ $TEMP/src/pkg/domain/__init__.py:1:1 ]
+ 1 | """Domain package owner."""
+   | `- choose one source owner for this package branch
+   |Required: Keep one source owner per import namespace; choose either the module file or the package `__init__.py` owner for this reasoning-tree branch.

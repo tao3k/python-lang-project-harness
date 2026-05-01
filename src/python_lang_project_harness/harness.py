@@ -29,6 +29,7 @@ from ._render import (
     render_python_lang_harness,
     render_python_lang_harness_advice,
     render_python_lang_harness_json,
+    render_python_reasoning_tree,
 )
 from ._rule_packs import (
     default_python_harness_config,
@@ -78,6 +79,7 @@ __all__ = [
     "render_python_lang_harness",
     "render_python_lang_harness_advice",
     "render_python_lang_harness_json",
+    "render_python_reasoning_tree",
     "run_cli",
     "run_cli_from_env",
     "run_python_lang_harness",

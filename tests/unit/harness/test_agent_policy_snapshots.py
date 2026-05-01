@@ -115,6 +115,20 @@ def test_py_agent_r006_value_conflict_snapshot(tmp_path: Path) -> None:
     )
 
 
+def test_py_agent_r007_branch_intent_snapshot(tmp_path: Path) -> None:
+    branch = tmp_path / "src" / "pkg" / "domain"
+    branch.mkdir(parents=True)
+    (branch / "__init__.py").write_text("", encoding="utf-8")
+    (branch / "service.py").write_text('"""Service leaf."""\n', encoding="utf-8")
+    (branch / "models.py").write_text('"""Model leaf."""\n', encoding="utf-8")
+
+    _assert_project_snapshot(
+        tmp_path,
+        "PY-AGENT-R007",
+        "py_agent_r007_branch_intent",
+    )
+
+
 def _assert_lang_snapshot(
     root: Path,
     paths: list[Path],

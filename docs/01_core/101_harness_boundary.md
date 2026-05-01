@@ -60,6 +60,20 @@ tokenization, AST, compile validation, source-line capture, public-name policy,
 module public-surface classification, symbol-role classification, and
 import-root module identity helpers.
 
+Reasoning-tree policy follows that boundary as well. `python_lang_parser`
+derives package tree facts from parsed module reports: import-owner shadows
+such as `domain.py` beside `domain/__init__.py`, and branch packages whose
+immediate child modules need an intent docstring for agent navigation. It also
+resolves project-internal import edges from parser import records and import
+roots, so agents can see which modules depend on a subtree before editing. The
+harness turns those facts into `PY-MOD-R007` and `PY-AGENT-R007` findings; it
+does not re-parse Python source to infer tree shape or dependency direction.
+
+The same parser facts back `render_python_reasoning_tree()`, a compact
+agent-facing tree snapshot. That render is intentionally separate from JSON:
+agents can inspect package branches, public leaves, child names, and owner
+shadows, plus internal imports, before choosing a repair surface.
+
 ## Runner Modes
 
 Use `run_python_project_harness()` or `assert_python_project_harness_clean()`

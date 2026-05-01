@@ -43,12 +43,14 @@ class PythonImport:
     scope: str
     location: SourceLocation
     is_wildcard: bool = False
+    source_names: tuple[str, ...] = field(default_factory=tuple)
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-compatible representation."""
 
         payload = asdict(self)
         payload["names"] = list(self.names)
+        payload["source_names"] = list(self.source_names)
         return payload
 
 

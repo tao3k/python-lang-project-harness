@@ -79,6 +79,26 @@ def test_py_mod_r006_module_bloat_snapshot(tmp_path: Path) -> None:
     _assert_project_snapshot(tmp_path, "PY-MOD-R006", "py_mod_r006_module_bloat")
 
 
+def test_py_mod_r007_reasoning_tree_shadow_snapshot(tmp_path: Path) -> None:
+    package = _src(tmp_path) / "pkg"
+    shadow_package = package / "domain"
+    shadow_package.mkdir(parents=True)
+    (package / "domain.py").write_text(
+        '"""Domain module owner."""\n',
+        encoding="utf-8",
+    )
+    (shadow_package / "__init__.py").write_text(
+        '"""Domain package owner."""\n',
+        encoding="utf-8",
+    )
+
+    _assert_project_snapshot(
+        tmp_path,
+        "PY-MOD-R007",
+        "py_mod_r007_reasoning_tree_shadow",
+    )
+
+
 def test_py_proj_r001_src_layout_snapshot(tmp_path: Path) -> None:
     package = tmp_path / "pkg"
     package.mkdir()

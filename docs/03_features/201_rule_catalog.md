@@ -53,6 +53,8 @@ The other default packs are blocking through `Warning` or `Error` findings.
 - `PY-MOD-R004`: library modules should not contain `breakpoint()`.
 - `PY-MOD-R006`: large multi-responsibility modules should split behind a
   focused package facade.
+- `PY-MOD-R007`: one Python import namespace should have one source owner,
+  avoiding `module.py` plus `module/__init__.py` reasoning-tree shadows.
 - `PY-TEST-R001`: pytest modules should not be scattered in the tests root.
 - `PY-TEST-R002`: tests root entries should be owned suite directories or
   harness configuration files.
@@ -73,6 +75,31 @@ LLMs and are not blocking by default.
 - `PY-AGENT-R004`: module namespace repeats a path segment.
 - `PY-AGENT-R005`: public type name conflicts across namespaces.
 - `PY-AGENT-R006`: public value name conflicts across namespaces.
+- `PY-AGENT-R007`: branch packages with multiple child modules should include
+  a reasoning-tree intent docstring.
+
+## Reasoning Tree Policy
+
+The harness treats a Python project as an agent reasoning tree: import roots
+lead to package branches, package branches lead to modules, and modules expose
+the parser-owned public surface. `python_lang_parser` owns the tree facts:
+tree nodes, child names, public/internal surface flags, module/package owner
+shadows, internal import edges, and branch package child counts are derived
+from `PythonModuleReport` paths, parser import records, module shape,
+public-surface helpers, and module docstrings.
+
+`PY-MOD-R007` blocks a collapsed owner tree such as `domain.py` next to
+`domain/__init__.py`, because both spell the same import owner and repair
+agents cannot know which surface owns the change. `PY-AGENT-R007` stays
+advisory and asks branch package `__init__.py` files with multiple child
+modules to carry a short intent docstring, so agents can choose the right
+subtree before editing.
+
+`render_python_reasoning_tree()` exposes the same tree as compact text for LLM
+repair loops. It includes an `[imports]` section for parser-resolved
+project-internal edges, making it the preferred first read when an agent needs
+to understand where a change belongs and what it may affect before touching
+code.
 
 ## Rendered Diagnostic Policy
 
@@ -99,7 +126,7 @@ Python semantic policy is parser-first. Rule packs consume
 `PythonModuleReport` facts instead of opening Python files and guessing from raw
 text. `python_lang_parser` owns AST, compile, tokenize, symbol-table, source
 line, module-shape, public-name, public-surface, symbol-role, and import-root
-module identity facts.
+module identity facts, plus package reasoning-tree facts.
 `python_lang_project_harness` owns rule catalogs, project/test layout,
 reporting, and assertion behavior.
 

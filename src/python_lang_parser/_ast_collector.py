@@ -60,6 +60,7 @@ class PythonAstCollector(ast.NodeVisitor):
                 scope=self._scope,
                 location=self._location(node),
                 is_wildcard=False,
+                source_names=tuple(alias.name for alias in node.names),
             )
         )
         self.generic_visit(node)
@@ -73,6 +74,7 @@ class PythonAstCollector(ast.NodeVisitor):
                 scope=self._scope,
                 location=self._location(node),
                 is_wildcard=any(alias.name == "*" for alias in node.names),
+                source_names=tuple(alias.name for alias in node.names),
             )
         )
         self.generic_visit(node)

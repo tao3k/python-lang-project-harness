@@ -10,6 +10,16 @@ def test_root_package_reexports_parser_fact_models() -> None:
     assert harness_api.PythonExportContract is parser_api.PythonExportContract
     assert harness_api.PythonExportContractKind is parser_api.PythonExportContractKind
     assert harness_api.PythonModuleShape is parser_api.PythonModuleShape
+    assert harness_api.PythonReasoningTreeFacts is parser_api.PythonReasoningTreeFacts
+    assert (
+        harness_api.PythonReasoningTreeImportEdge
+        is parser_api.PythonReasoningTreeImportEdge
+    )
+    assert harness_api.PythonReasoningTreeNode is parser_api.PythonReasoningTreeNode
+    assert (
+        harness_api.python_reasoning_tree_facts
+        is parser_api.python_reasoning_tree_facts
+    )
     assert (
         harness_api.python_module_namespace_parts
         is parser_api.python_module_namespace_parts
@@ -62,6 +72,11 @@ def test_root_package_reexports_parser_fact_models() -> None:
     assert "python_module_name_from_path" in harness_api.__all__
     assert "python_module_is_package_init" in harness_api.__all__
     assert "python_name_is_public" in harness_api.__all__
+    assert "PythonReasoningTreeFacts" in harness_api.__all__
+    assert "PythonReasoningTreeImportEdge" in harness_api.__all__
+    assert "PythonReasoningTreeNode" in harness_api.__all__
+    assert "PythonReasoningTreeImportEdge" in parser_api.__all__
+    assert "python_reasoning_tree_facts" in harness_api.__all__
     assert "python_scope_is_public" in harness_api.__all__
     assert "python_assignment_is_public_top_level" in harness_api.__all__
     assert "python_module_has_public_surface" in harness_api.__all__
@@ -107,6 +122,10 @@ def test_root_package_reexports_embedding_harness_surface() -> None:
         is harness_facade.render_python_lang_harness_json
     )
     assert (
+        harness_api.render_python_reasoning_tree
+        is harness_facade.render_python_reasoning_tree
+    )
+    assert (
         harness_api.python_rule_pack_descriptors
         is harness_facade.python_rule_pack_descriptors
     )
@@ -115,5 +134,6 @@ def test_root_package_reexports_embedding_harness_surface() -> None:
     assert harness_api.run_cli_from_env is harness_facade.run_cli_from_env
     assert "render_python_lang_harness_advice" in harness_api.__all__
     assert "render_python_lang_harness_json" in harness_api.__all__
+    assert "render_python_reasoning_tree" in harness_api.__all__
     assert "run_cli_from_env" in harness_api.__all__
     assert "python_syntax_rules" in harness_api.__all__

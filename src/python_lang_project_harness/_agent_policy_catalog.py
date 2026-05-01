@@ -15,6 +15,7 @@ PY_AGENT_R003 = "PY-AGENT-R003"
 PY_AGENT_R004 = "PY-AGENT-R004"
 PY_AGENT_R005 = "PY-AGENT-R005"
 PY_AGENT_R006 = "PY-AGENT-R006"
+PY_AGENT_R007 = "PY-AGENT-R007"
 
 _RULE_LABELS = {
     "language": "python",
@@ -67,6 +68,14 @@ _RULES = (
         severity=PythonDiagnosticSeverity.INFO,
         title="Public value name conflicts across namespaces",
         requirement="Give project-level public values and configuration exports unambiguous names or move them behind a clear domain namespace so agents can resolve intent without guessing.",
+        labels=dict(_RULE_LABELS),
+    ),
+    PythonHarnessRule(
+        rule_id=PY_AGENT_R007,
+        pack_id=AGENT_POLICY_PACK_ID,
+        severity=PythonDiagnosticSeverity.INFO,
+        title="Branch package lacks reasoning-tree intent docstring",
+        requirement="Add a concise package docstring to branch `__init__.py` files so agents can choose the right owner subtree before editing.",
         labels=dict(_RULE_LABELS),
     ),
 )

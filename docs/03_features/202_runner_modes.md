@@ -88,6 +88,14 @@ The explicit-path runner is useful for editor integrations, focused parser
 checks, and small repair loops where the caller already knows the files to
 inspect.
 
+## Reasoning Tree Render
+
+`render_python_reasoning_tree(report)` turns a project report into a compact
+agent navigation snapshot. It uses parser-owned package tree facts, not raw
+path guessing, and summarizes package branches, module leaves, public/internal
+surface, child names, internal import edges, and owner shadows. Use it before
+repair-oriented agents choose which subtree to edit.
+
 :RELATIONS:
 :LINKS: [Harness Boundary](../01_core/101_harness_boundary.md), [Rule Catalog](201_rule_catalog.md), [CLI](203_cli.md)
 :END:

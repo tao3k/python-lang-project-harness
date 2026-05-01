@@ -18,6 +18,7 @@ from ._agent_policy_catalog import (
     PY_AGENT_R002,
     agent_policy_rule,
 )
+from ._agent_reasoning_tree import agent_reasoning_tree_findings
 from ._model import PythonHarnessFinding, PythonRulePackDescriptor
 from ._source import path_location
 
@@ -63,7 +64,10 @@ class PythonAgentPolicyRulePack:
     ) -> Iterable[PythonHarnessFinding]:
         """Evaluate agent-oriented namespace rules across a project scope."""
 
-        return agent_namespace_findings(scope, modules, self.pack_id)
+        return (
+            *agent_namespace_findings(scope, modules, self.pack_id),
+            *agent_reasoning_tree_findings(scope, modules, self.pack_id),
+        )
 
 
 def _module_docstring_findings(

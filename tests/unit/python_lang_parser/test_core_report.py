@@ -30,6 +30,11 @@ class Runner:
         ("collections", ("abc",), ""),
         (None, ("json",), "Runner.run"),
     ]
+    assert [item.source_names for item in report.imports] == [
+        ("pathlib",),
+        ("abc",),
+        ("json",),
+    ]
     assert not any(item.is_wildcard for item in report.imports)
     assert [
         (

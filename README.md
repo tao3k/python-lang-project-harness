@@ -26,6 +26,7 @@ from python_lang_project_harness import (
     __version__,
     assert_python_project_harness_clean,
     render_python_lang_harness,
+    render_python_reasoning_tree,
     run_python_project_harness,
 )
 
@@ -37,6 +38,7 @@ def test_python_project_harness_policy() -> None:
 report = run_python_project_harness(Path("."))
 print(__version__)
 print(render_python_lang_harness(report))
+print(render_python_reasoning_tree(report))
 ```
 
 The project runner scans the whole Python project root by default, excluding
@@ -51,6 +53,11 @@ severities without hardcoding project-specific policy into the library.
 When `include_tests=False`, test files are not parsed, but tests-root layout
 policy still runs. Explained local exceptions can live in
 `tests/python-project-harness-rules.toml`.
+
+For agent repair loops, `render_python_reasoning_tree(report)` emits a compact
+package/module owner tree from parser-owned facts. It shows package branches,
+public/internal leaves, child names, internal import edges, and owner shadows
+without forcing an LLM to consume the full JSON report first.
 
 The console script follows the same render contract:
 

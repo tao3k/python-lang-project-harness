@@ -5,9 +5,16 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
-from python_lang_parser import PythonDiagnosticSeverity
+from python_lang_parser import PythonDiagnosticSeverity, python_reasoning_tree_facts
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
+    from python_lang_parser import (
+        PythonReasoningTreeImportEdge,
+        PythonReasoningTreeNode,
+    )
+
     from ._model import PythonHarnessFinding, PythonHarnessReport
 
 
@@ -51,6 +58,55 @@ def render_python_lang_harness_advice(report: PythonHarnessReport) -> str:
     )
 
 
+def render_python_reasoning_tree(
+    report: PythonHarnessReport,
+    *,
+    max_nodes: int = 80,
+    max_edges: int = 80,
+) -> str:
+    """Render a compact project reasoning tree for repair-oriented agents."""
+
+    facts = python_reasoning_tree_facts(
+        report.modules,
+        import_roots=_reasoning_tree_import_roots(report),
+        project_root=(
+            None if report.project_scope is None else report.project_scope.project_root
+        ),
+    )
+    target = ", ".join(report.root_paths)
+    lines = [
+        f"[tree] {target} python",
+        f"Files: {report.file_count} Parsed: {report.parsed_count}",
+        (
+            f"Nodes: {len(facts.nodes)} "
+            f"Branches: {len(facts.branches)} "
+            f"Imports: {len(facts.import_edges)} "
+            f"Shadows: {len(facts.shadowed_module_sources)}"
+        ),
+    ]
+    if facts.shadowed_module_sources:
+        lines.append("[shadows]")
+        for shadow in facts.shadowed_module_sources:
+            namespace = ".".join(shadow.namespace)
+            lines.append(
+                f"- {namespace}: {shadow.module_path} <-> {shadow.package_init_path}"
+            )
+    lines.append("[nodes]")
+    for node in facts.nodes[:max_nodes]:
+        lines.append(_render_reasoning_tree_node(node))
+    omitted = len(facts.nodes) - max_nodes
+    if omitted > 0:
+        lines.append(f"... {omitted} more nodes")
+    if facts.import_edges:
+        lines.append("[imports]")
+        for edge in facts.import_edges[:max_edges]:
+            lines.append(_render_reasoning_tree_import_edge(edge))
+        omitted_edges = len(facts.import_edges) - max_edges
+        if omitted_edges > 0:
+            lines.append(f"... {omitted_edges} more imports")
+    return "\n".join(lines) + "\n"
+
+
 def _render_header(
     report: PythonHarnessReport,
     *,
@@ -90,6 +146,38 @@ def _render_finding(finding: PythonHarnessFinding) -> str:
         rendered += f"   | {finding.label}\n"
     rendered += f"   |Required: {finding.requirement}\n"
     return rendered
+
+
+def _reasoning_tree_import_roots(report: PythonHarnessReport) -> tuple[Path | str, ...]:
+    if report.project_scope is None:
+        return report.root_paths
+    if report.project_scope.source_paths:
+        return report.project_scope.source_paths
+    return report.project_scope.monitored_paths
+
+
+def _render_reasoning_tree_node(node: PythonReasoningTreeNode) -> str:
+    depth = max(len(node.namespace) - 1, 0)
+    indent = "  " * depth
+    namespace = ".".join(node.namespace) if node.namespace else "<root>"
+    flags = [
+        node.kind,
+        "doc" if node.has_intent_doc else "no-doc",
+        "public" if node.has_public_surface else "internal",
+    ]
+    if node.child_names:
+        flags.append("children=" + ",".join(node.child_names))
+    if not node.is_valid:
+        flags.append("invalid")
+    return f"{indent}- {namespace} ({'; '.join(flags)}) {node.path}"
+
+
+def _render_reasoning_tree_import_edge(edge: PythonReasoningTreeImportEdge) -> str:
+    importer = ".".join(edge.importer_namespace)
+    imported = ".".join(edge.imported_namespace)
+    scope = "module" if edge.scope == "" else edge.scope
+    relation = "relative" if edge.is_relative else "absolute"
+    return f"- {importer} -> {imported} ({relation}; {scope}; as {edge.bound_name})"
 
 
 def _render_findings_status(findings: tuple[PythonHarnessFinding, ...]) -> str:

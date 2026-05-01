@@ -12,6 +12,14 @@ from ._module_policy import (
     python_module_has_public_symbol_surface,
 )
 from ._name_policy import python_name_is_public, python_scope_is_public
+from ._reasoning_tree import (
+    PythonReasoningTreeBranch,
+    PythonReasoningTreeFacts,
+    PythonReasoningTreeImportEdge,
+    PythonReasoningTreeNode,
+    PythonReasoningTreeShadow,
+    python_reasoning_tree_facts,
+)
 from ._symbol_policy import (
     python_assignment_is_public_top_level,
     python_symbol_is_callable,
@@ -58,6 +66,11 @@ __all__ = [
     "PythonNameBinding",
     "PythonReference",
     "PythonReferenceKind",
+    "PythonReasoningTreeBranch",
+    "PythonReasoningTreeFacts",
+    "PythonReasoningTreeImportEdge",
+    "PythonReasoningTreeNode",
+    "PythonReasoningTreeShadow",
     "PythonScope",
     "PythonSymbol",
     "PythonSymbolKind",
@@ -72,6 +85,7 @@ __all__ = [
     "python_module_namespace_parts",
     "python_name_is_public",
     "python_scope_is_public",
+    "python_reasoning_tree_facts",
     "python_assignment_is_public_top_level",
     "python_symbol_is_callable",
     "python_symbol_is_class",

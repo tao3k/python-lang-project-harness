@@ -294,7 +294,7 @@ def test_modularity_rule_pack_descriptor_and_catalog_are_stable() -> None:
 
     assert descriptor.id == "python.modularity"
     assert descriptor.to_dict()["domains"] == ["modularity", "architecture", "python"]
-    assert [rule.rule_id for rule in rules] == ["PY-MOD-R006"]
+    assert [rule.rule_id for rule in rules] == ["PY-MOD-R006", "PY-MOD-R007"]
 
 
 def _large_unit_test_source() -> str:
