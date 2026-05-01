@@ -17,7 +17,8 @@ monorepo workspace layout.
 This repository may:
 
 1. parse Python modules through Python-native standard-library surfaces
-2. discover conventional Python project paths
+2. discover whole-project Python files with conventional roots as
+   classification inputs
 3. evaluate deterministic rule packs over parser reports and project scope
 4. render compact diagnostics for humans and repair-oriented agents
 5. expose structured reports and JSON rendering for tooling
@@ -62,10 +63,12 @@ import-root module identity helpers.
 ## Runner Modes
 
 Use `run_python_project_harness()` or `assert_python_project_harness_clean()`
-when a caller has a project root. The project runner discovers `src/` and
-`tests/` by default, attaches a `PythonProjectHarnessScope`, and runs the full
-policy surface. `PythonHarnessConfig` can change the default source roots, test
-roots, extra project paths, and test inclusion behavior.
+when a caller has a project root. The project runner scans all Python files
+under the project root by default, with cache/build/environment directories
+excluded. `src/` and `tests/` remain source/test classification roots for
+project policy; they do not narrow parser coverage. `PythonHarnessConfig` can
+change source-root classification, test-root classification, extra external
+project paths, and test inclusion behavior.
 
 Use `run_python_lang_harness()` or `assert_python_lang_harness_clean()` for
 explicit files or directories. This runner is useful for focused parser checks

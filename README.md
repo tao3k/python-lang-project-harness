@@ -39,12 +39,15 @@ print(__version__)
 print(render_python_lang_harness(report))
 ```
 
-The project runner scans conventional `src/` and `tests/` roots. The explicit
-path runner, `run_python_lang_harness([...])`, is useful for focused parser and
-syntax checks.
-Use `PythonHarnessConfig` to change source roots, test roots, extra project
-paths, test inclusion, or blocking severities without hardcoding
-project-specific policy into the library.
+The project runner scans the whole Python project root by default, excluding
+tool/cache/build directories such as `.venv`, `__pycache__`, `build`, and
+`dist`. Conventional source and test roots still classify project policy, but
+they do not narrow parser coverage. The explicit path runner,
+`run_python_lang_harness([...])`, is useful for focused parser and syntax
+checks.
+Use `PythonHarnessConfig` to change source-root classification, test-root
+classification, extra external project paths, test inclusion, or blocking
+severities without hardcoding project-specific policy into the library.
 When `include_tests=False`, test files are not parsed, but tests-root layout
 policy still runs. Explained local exceptions can live in
 `tests/python-project-harness-rules.toml`.

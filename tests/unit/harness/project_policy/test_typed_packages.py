@@ -189,6 +189,7 @@ name = "{project_name}"
 requires-python = "{requires_python}"
 
 [build-system]
+requires = ["hatchling"]
 build-backend = "{build_backend}"
 
 [tool.hatch.build.targets.wheel]

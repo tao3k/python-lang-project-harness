@@ -17,17 +17,21 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-def test_python_project_harness_paths_use_src_and_tests(tmp_path: Path) -> None:
+def test_python_project_harness_paths_use_project_root_by_default(
+    tmp_path: Path,
+) -> None:
     src = tmp_path / "src"
     tests = tmp_path / "tests"
     src.mkdir()
     tests.mkdir()
 
-    assert python_project_harness_paths(tmp_path) == (src, tests)
+    assert python_project_harness_paths(tmp_path) == (tmp_path,)
     assert python_project_harness_paths(tmp_path, include_tests=False) == (src,)
 
 
-def test_python_project_harness_scope_exposes_src_and_tests(tmp_path: Path) -> None:
+def test_python_project_harness_scope_exposes_project_and_classification_paths(
+    tmp_path: Path,
+) -> None:
     src = tmp_path / "src"
     tests = tmp_path / "tests"
     src.mkdir()
@@ -38,8 +42,9 @@ def test_python_project_harness_scope_exposes_src_and_tests(tmp_path: Path) -> N
     assert scope.source_paths == (src,)
     assert scope.test_paths == (tests,)
     assert scope.extra_paths == ()
-    assert scope.monitored_paths == (src, tests)
-    assert scope.to_dict()["monitored_paths"] == [str(src), str(tests)]
+    assert scope.project_paths == (tmp_path,)
+    assert scope.monitored_paths == (tmp_path,)
+    assert scope.to_dict()["monitored_paths"] == [str(tmp_path)]
 
 
 def test_python_project_harness_paths_fall_back_to_root(tmp_path: Path) -> None:
@@ -64,15 +69,16 @@ def test_run_python_project_harness_uses_project_paths(tmp_path: Path) -> None:
 
     assert report.is_clean
     assert report.file_count == 2
-    assert report.root_paths == (str(src), str(tests.parent))
+    assert report.root_paths == (str(tmp_path),)
     assert report.project_scope is not None
     assert report.to_dict()["project_scope"] == {
         "project_root": str(tmp_path),
+        "project_paths": [str(tmp_path)],
         "source_paths": [str(src)],
         "test_paths": [str(tests.parent)],
         "extra_paths": [],
         "include_tests": True,
-        "monitored_paths": [str(src), str(tests.parent)],
+        "monitored_paths": [str(tmp_path)],
     }
 
 
@@ -138,7 +144,7 @@ def test_run_python_project_harness_does_not_fallback_into_excluded_tests(
     assert report.is_clean
     assert [module.path for module in report.modules] == [str(package / "__init__.py")]
     assert report.project_scope is not None
-    assert report.project_scope.fallback_paths == (package,)
+    assert report.project_scope.project_paths == (package,)
 
 
 def test_include_tests_false_skips_test_parsing_not_layout_policy(

@@ -12,9 +12,9 @@ The harness exposes two runner modes with shared configuration.
 ## Project Runner
 
 Use `run_python_project_harness()` or `assert_python_project_harness_clean()`
-when a caller has a project root. The project runner discovers conventional
-source and test roots, attaches `PythonProjectHarnessScope`, and runs the full
-default rule surface:
+when a caller has a project root. The project runner scans the whole Python
+project root by default, attaches `PythonProjectHarnessScope`, and runs the
+full default rule surface:
 
 1. `python.syntax`
 2. `python.project_policy`
@@ -28,7 +28,7 @@ and produce CLI exit code `2`.
 
 ## Configuration
 
-`PythonHarnessConfig` owns the default project scan shape:
+`PythonHarnessConfig` owns project-scope classification and parser inclusion:
 
 ```python
 from python_lang_project_harness import PythonHarnessConfig
@@ -41,13 +41,17 @@ config = PythonHarnessConfig(
 )
 ```
 
-Function parameters such as `source_dir_names=("src",)` are explicit overrides
-for a single call. If they are omitted, the project runner uses the config.
+Function parameters such as `source_dir_names=("src",)` are explicit
+classification overrides for a single call. If they are omitted, the project
+runner uses the config.
 
-`extra_path_names` extends project-scope parsing beyond source and test roots
-for opt-in paths such as `examples/`, `scripts/`, `tools/`, or a single Python
-file. Extra paths are relative to the project root and are always part of
-`PythonProjectHarnessScope.monitored_paths` when they exist.
+By default, every Python file under the project root is parser scope, except
+ignored environment/cache/build directories. `source_dir_names` and
+`test_dir_names` classify roots for project and pytest-layout policy; they do
+not narrow parser coverage. `extra_path_names` can add an external project path
+or a single Python file outside the root. Extra paths are relative to the
+project root and are part of `PythonProjectHarnessScope.monitored_paths` when
+they exist.
 
 `include_tests=False` removes test roots from parser discovery, while keeping
 tests-root layout policy active. Callers can skip expensive or broken test

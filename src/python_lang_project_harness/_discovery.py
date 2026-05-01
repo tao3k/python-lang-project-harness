@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from ._constants import IGNORED_DIR_NAMES
 from ._model import PythonProjectHarnessScope
+from ._project_metadata import read_python_project_metadata
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
@@ -23,18 +24,20 @@ def discover_python_files(
         IGNORED_DIR_NAMES if ignored_dir_names is None else frozenset(ignored_dir_names)
     )
     discovered: list[Path] = []
+    seen: set[Path] = set()
     for raw_path in paths:
         path = Path(raw_path)
         if path.is_file():
             if path.suffix == ".py":
-                discovered.append(path)
+                _append_unique_path(discovered, seen, path)
             continue
         if path.is_dir():
-            discovered.extend(
-                candidate
-                for candidate in path.rglob("*.py")
-                if is_scannable_python_file(candidate, ignored_dir_names=ignored_names)
-            )
+            for candidate in path.rglob("*.py"):
+                if is_scannable_python_file(
+                    candidate,
+                    ignored_dir_names=ignored_names,
+                ):
+                    _append_unique_path(discovered, seen, candidate)
     return tuple(sorted(discovered, key=lambda item: item.as_posix()))
 
 
@@ -46,7 +49,7 @@ def python_project_harness_paths(
     test_dir_names: Sequence[str] = ("tests",),
     extra_path_names: Sequence[str] = (),
 ) -> tuple[Path, ...]:
-    """Return conventional project paths for embedded pytest harness checks."""
+    """Return project scan paths for embedded pytest harness checks."""
 
     return python_project_harness_scope(
         project_root,
@@ -65,7 +68,7 @@ def python_project_harness_scope(
     test_dir_names: Sequence[str] = ("tests",),
     extra_path_names: Sequence[str] = (),
 ) -> PythonProjectHarnessScope:
-    """Return the default project monitoring scope for `src/**` and `tests/**`."""
+    """Return the default project-wide monitoring scope."""
 
     root = Path(project_root)
     source_paths = tuple(
@@ -73,56 +76,48 @@ def python_project_harness_scope(
     )
     test_paths = tuple(root / name for name in test_dir_names if (root / name).exists())
     extra_paths = tuple(
-        root / name for name in extra_path_names if (root / name).exists()
+        (root / name).resolve() for name in extra_path_names if (root / name).exists()
     )
-    fallback_paths = _fallback_project_paths(
+    metadata = read_python_project_metadata(root)
+    metadata_package_roots = () if metadata is None else metadata.package_roots
+    project_paths = _project_scan_paths(
         root,
-        source_paths=source_paths,
-        monitored_test_paths=test_paths if include_tests else (),
-        extra_paths=extra_paths,
         include_tests=include_tests,
         test_dir_names=test_dir_names,
+        metadata_package_roots=metadata_package_roots,
     )
     return PythonProjectHarnessScope(
         project_root=root,
+        project_paths=project_paths,
         source_paths=source_paths,
         test_paths=test_paths,
         extra_paths=extra_paths,
         include_tests=include_tests,
-        fallback_paths=fallback_paths,
     )
 
 
-def _fallback_project_paths(
+def _project_scan_paths(
     root: Path,
     *,
-    source_paths: tuple[Path, ...],
-    monitored_test_paths: tuple[Path, ...],
-    extra_paths: tuple[Path, ...],
     include_tests: bool,
     test_dir_names: Sequence[str],
+    metadata_package_roots: tuple[Path, ...],
 ) -> tuple[Path, ...]:
-    if source_paths or monitored_test_paths or extra_paths:
-        return ()
+    external_package_roots = _external_package_roots(root, metadata_package_roots)
     if include_tests:
-        return (root,)
+        return _dedupe_paths((root, *external_package_roots))
 
     excluded_test_dir_names = {
         name for name in test_dir_names if (root / name).is_dir()
     }
-    if not excluded_test_dir_names:
-        return (root,)
-
-    candidates = (
+    candidates = [
         child
-        for child in root.iterdir()
+        for child in sorted(root.iterdir(), key=lambda path: path.as_posix())
         if child.name not in excluded_test_dir_names
-        and (
-            child.suffix == ".py"
-            or (child.is_dir() and (child / "__init__.py").is_file())
-        )
-    )
-    return tuple(sorted(candidates, key=lambda path: path.as_posix()))
+        and child.name not in IGNORED_DIR_NAMES
+        and (child.suffix == ".py" or child.is_dir())
+    ]
+    return _dedupe_paths((*candidates, *external_package_roots))
 
 
 def is_scannable_python_file(
@@ -133,3 +128,42 @@ def is_scannable_python_file(
     """Return whether a Python file belongs to the harness-owned scan scope."""
 
     return not any(part in ignored_dir_names for part in path.parts)
+
+
+def _append_unique_path(discovered: list[Path], seen: set[Path], path: Path) -> None:
+    key = path.resolve()
+    if key in seen:
+        return
+    seen.add(key)
+    discovered.append(path)
+
+
+def _external_package_roots(
+    root: Path,
+    package_roots: tuple[Path, ...],
+) -> tuple[Path, ...]:
+    return tuple(
+        package_root
+        for package_root in package_roots
+        if not _is_relative_to(package_root, root)
+    )
+
+
+def _dedupe_paths(paths: Iterable[Path]) -> tuple[Path, ...]:
+    seen: set[Path] = set()
+    deduped: list[Path] = []
+    for path in paths:
+        key = path.resolve()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(path)
+    return tuple(deduped)
+
+
+def _is_relative_to(path: Path, root: Path) -> bool:
+    try:
+        path.resolve().relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True

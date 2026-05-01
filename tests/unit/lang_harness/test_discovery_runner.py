@@ -43,6 +43,17 @@ def test_discover_python_files_accepts_custom_ignored_dirs(tmp_path: Path) -> No
     assert discover_python_files([tmp_path], ignored_dir_names={"generated"}) == (good,)
 
 
+def test_discover_python_files_deduplicates_nested_scan_roots(
+    tmp_path: Path,
+) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    source = src / "good.py"
+    source.write_text("VALUE = 1\n", encoding="utf-8")
+
+    assert discover_python_files([tmp_path, src]) == (source,)
+
+
 def test_run_python_lang_harness_collects_parse_findings(tmp_path: Path) -> None:
     good = tmp_path / "good.py"
     bad = tmp_path / "bad.py"

@@ -144,4 +144,4 @@ def test_cli_defaults_to_current_working_directory(tmp_path: Path) -> None:
     exit_code = run_cli((), stdout=stdout, cwd=tmp_path)
 
     assert exit_code == 0
-    assert str(src) in stdout.getvalue()
+    assert str(tmp_path) in stdout.getvalue()

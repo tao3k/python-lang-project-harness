@@ -45,12 +45,12 @@ Supported plugin options:
   pytest `rootdir`.
 - `--python-project-harness-no-tests`: skip parsing test files while still
   evaluating tests-root layout.
-- `--python-project-harness-source-dir NAME`: add one source root name; can be
-  repeated.
-- `--python-project-harness-test-dir NAME`: add one test root name; can be
-  repeated.
-- `--python-project-harness-extra-path NAME`: add one extra project path; can
-  be repeated.
+- `--python-project-harness-source-dir NAME`: add one source classification
+  root name; can be repeated.
+- `--python-project-harness-test-dir NAME`: add one test classification root
+  name; can be repeated.
+- `--python-project-harness-extra-path NAME`: add one external project path;
+  can be repeated.
 - `--python-project-harness-error-only`: fail only on parser errors.
 - `--python-project-harness-no-advice`: hide non-blocking advice in assertion
   output.
@@ -79,7 +79,9 @@ test_python_project_harness_policy = python_project_harness_test(
 )
 ```
 
-Both pytest entry points call the parser-backed project runner. They do not own
+Both pytest entry points call the parser-backed project runner. The runner
+scans the whole project root by default; source/test options classify policy
+roots rather than narrowing parser coverage. The pytest layer does not own
 Python parsing, source scanning semantics, or policy-specific AST logic.
 
 :RELATIONS:

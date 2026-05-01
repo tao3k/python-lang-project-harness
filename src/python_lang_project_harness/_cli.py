@@ -159,5 +159,6 @@ def _help_text() -> str:
         "Runs the default package-level Python harness.\n\n"
         "Compact text is the default output for humans and repair-oriented agents.\n"
         "Use --json to emit the structured PythonHarnessReport JSON shape.\n"
-        "Repeat --source-dir, --test-dir, or --extra-path to customize project scope.\n"
+        "Repeat --source-dir or --test-dir to customize policy root classification.\n"
+        "Repeat --extra-path to include external project paths.\n"
     )

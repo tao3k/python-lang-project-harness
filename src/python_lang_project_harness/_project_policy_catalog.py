@@ -13,6 +13,9 @@ PY_PROJ_R001 = "PY-PROJ-R001"
 PY_PROJ_R002 = "PY-PROJ-R002"
 PY_PROJ_R003 = "PY-PROJ-R003"
 PY_PROJ_R004 = "PY-PROJ-R004"
+PY_PROJ_R005 = "PY-PROJ-R005"
+PY_PROJ_R006 = "PY-PROJ-R006"
+PY_PROJ_R007 = "PY-PROJ-R007"
 
 _RULE_LABELS = {
     "language": "python",
@@ -49,6 +52,30 @@ _RULES = (
         severity=PythonDiagnosticSeverity.WARNING,
         title="Typed package public callable lacks annotations",
         requirement="Annotate public callable boundaries in `py.typed` packages so the declared typed surface remains complete and agent-readable.",
+        labels=dict(_RULE_LABELS),
+    ),
+    PythonHarnessRule(
+        rule_id=PY_PROJ_R005,
+        pack_id=PROJECT_POLICY_PACK_ID,
+        severity=PythonDiagnosticSeverity.WARNING,
+        title="Project metadata should declare package name",
+        requirement="Declare `[project].name` in `pyproject.toml` so package identity is explicit for build tools, agents, and release metadata.",
+        labels=dict(_RULE_LABELS),
+    ),
+    PythonHarnessRule(
+        rule_id=PY_PROJ_R006,
+        pack_id=PROJECT_POLICY_PACK_ID,
+        severity=PythonDiagnosticSeverity.WARNING,
+        title="Project metadata should declare supported Python versions",
+        requirement="Declare `[project].requires-python` so installers, CI, and agents can resolve the intended supported Python range.",
+        labels=dict(_RULE_LABELS),
+    ),
+    PythonHarnessRule(
+        rule_id=PY_PROJ_R007,
+        pack_id=PROJECT_POLICY_PACK_ID,
+        severity=PythonDiagnosticSeverity.WARNING,
+        title="Build-system table should declare build requirements",
+        requirement="Declare `[build-system].requires` whenever `[build-system]` is present so isolated builds can install backend requirements deterministically.",
         labels=dict(_RULE_LABELS),
     ),
 )

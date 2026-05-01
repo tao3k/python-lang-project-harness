@@ -2,8 +2,8 @@
 source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
-[lint:error] $TEMP/src python
-Source: $TEMP/src
+[lint:error] $TEMP python
+Source: $TEMP
 Files: 1 Parsed: 0
 Issues: 1
 

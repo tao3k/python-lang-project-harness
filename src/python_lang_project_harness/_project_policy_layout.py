@@ -20,9 +20,20 @@ def project_layout_findings(
 ) -> tuple[PythonHarnessFinding, ...]:
     """Return findings for project source and package-root layout."""
 
+    if not _is_packaged_project(metadata):
+        return ()
+
     return (
         *_src_layout_findings(scope, metadata, pack_id),
         *_declared_package_root_findings(metadata, pack_id),
+    )
+
+
+def _is_packaged_project(metadata: PythonProjectMetadata) -> bool:
+    return (
+        metadata.has_project_table
+        or metadata.has_build_system_table
+        or bool(metadata.package_roots)
     )
 
 

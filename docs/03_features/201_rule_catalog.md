@@ -43,6 +43,10 @@ The other default packs are blocking through `Warning` or `Error` findings.
 - `PY-PROJ-R003`: public typed package roots should include `py.typed`.
 - `PY-PROJ-R004`: public callable boundaries in typed packages need
   annotations.
+- `PY-PROJ-R005`: `[project]` metadata should declare package name.
+- `PY-PROJ-R006`: `[project]` metadata should declare supported Python
+  versions.
+- `PY-PROJ-R007`: `[build-system]` tables should declare build requirements.
 - `PY-MOD-R001`: wildcard imports must become explicit imports.
 - `PY-MOD-R002`: library modules should not use bare `print`.
 - `PY-MOD-R003`: package facades with re-exports should declare `__all__`.

@@ -26,9 +26,12 @@ def test_read_python_project_metadata_collects_hatch_package_roots(
     metadata = read_python_project_metadata(tmp_path)
 
     assert metadata is not None
+    assert metadata.has_project_table is True
+    assert metadata.has_build_system_table is True
     assert metadata.project_name == "example-pkg"
     assert metadata.requires_python == ">=3.12"
     assert metadata.build_backend == "hatchling.build"
+    assert metadata.build_requires == ("hatchling",)
     assert metadata.wheel_packages == ("src/example_pkg",)
     assert metadata.package_roots == (package,)
 
@@ -57,6 +60,28 @@ def test_read_python_project_metadata_ignores_unsupported_package_values(
     assert metadata is not None
     assert metadata.wheel_packages == ()
     assert metadata.package_roots == ()
+
+
+def test_read_python_project_metadata_keeps_tool_only_pyproject_non_package(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib"]
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    metadata = read_python_project_metadata(tmp_path)
+
+    assert metadata is not None
+    assert metadata.has_project_table is False
+    assert metadata.has_build_system_table is False
+    assert metadata.project_name is None
+    assert metadata.requires_python is None
+    assert metadata.build_backend is None
+    assert metadata.build_requires == ()
 
 
 def test_read_python_project_metadata_compacts_duplicate_package_roots(
@@ -91,6 +116,7 @@ name = "{project_name}"
 requires-python = "{requires_python}"
 
 [build-system]
+requires = ["hatchling"]
 build-backend = "{build_backend}"
 
 [tool.hatch.build.targets.wheel]

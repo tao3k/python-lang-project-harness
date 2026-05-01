@@ -122,6 +122,57 @@ def test_py_proj_r004_typed_annotations_snapshot(tmp_path: Path) -> None:
     _assert_project_snapshot(tmp_path, "PY-PROJ-R004", "py_proj_r004_typed_annotations")
 
 
+def test_py_proj_r005_project_name_snapshot(tmp_path: Path) -> None:
+    _src(tmp_path)
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+requires-python = ">=3.12"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    _assert_project_snapshot(tmp_path, "PY-PROJ-R005", "py_proj_r005_project_name")
+
+
+def test_py_proj_r006_requires_python_snapshot(tmp_path: Path) -> None:
+    _src(tmp_path)
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "snapshot-package"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    _assert_project_snapshot(tmp_path, "PY-PROJ-R006", "py_proj_r006_requires_python")
+
+
+def test_py_proj_r007_build_requires_snapshot(tmp_path: Path) -> None:
+    _src(tmp_path)
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "snapshot-package"
+requires-python = ">=3.12"
+
+[build-system]
+build-backend = "hatchling.build"
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    _assert_project_snapshot(tmp_path, "PY-PROJ-R007", "py_proj_r007_build_requires")
+
+
 def test_py_test_r001_root_pytest_snapshot(tmp_path: Path) -> None:
     tests = tmp_path / "tests"
     tests.mkdir()
@@ -181,6 +232,7 @@ name = "snapshot-package"
 requires-python = ">=3.12"
 
 [build-system]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]

@@ -26,7 +26,10 @@ def test_project_runner_uses_configured_source_and_test_roots(
         "def test_service() -> None:\n    assert True\n",
         encoding="utf-8",
     )
-    (tests / "test_bad.py").write_text("def broken(:\n    pass\n", encoding="utf-8")
+    (tests / "test_service.py").write_text(
+        "def test_other_service() -> None:\n    assert True\n",
+        encoding="utf-8",
+    )
 
     report = run_python_project_harness(
         tmp_path,
@@ -40,6 +43,7 @@ def test_project_runner_uses_configured_source_and_test_roots(
     assert sorted(module.path for module in report.modules) == [
         str(checks / "test_service.py"),
         str(lib / "service.py"),
+        str(tests / "test_service.py"),
     ]
     assert report.project_scope is not None
     assert report.project_scope.source_paths == (lib,)
@@ -53,7 +57,7 @@ def test_project_runner_parameters_override_configured_roots(
     src = tmp_path / "src"
     lib.mkdir()
     src.mkdir()
-    (lib / "ignored.py").write_text("def broken(:\n    pass\n", encoding="utf-8")
+    (lib / "included.py").write_text('"""Included docs."""\n', encoding="utf-8")
     (src / "service.py").write_text('"""Service docs."""\n', encoding="utf-8")
 
     report = run_python_project_harness(
@@ -64,7 +68,12 @@ def test_project_runner_parameters_override_configured_roots(
     )
 
     assert report.is_clean
-    assert [module.path for module in report.modules] == [str(src / "service.py")]
+    assert [module.path for module in report.modules] == [
+        str(lib / "included.py"),
+        str(src / "service.py"),
+    ]
+    assert report.project_scope is not None
+    assert report.project_scope.source_paths == (src,)
 
 
 def test_project_runner_parameters_override_configured_extra_paths(
@@ -77,7 +86,7 @@ def test_project_runner_parameters_override_configured_extra_paths(
     examples.mkdir()
     tools.mkdir()
     (src / "service.py").write_text('"""Service docs."""\n', encoding="utf-8")
-    (examples / "broken.py").write_text("def broken(:\n    pass\n", encoding="utf-8")
+    (examples / "demo.py").write_text('"""Example docs."""\n', encoding="utf-8")
     (tools / "check.py").write_text('"""Check docs."""\n', encoding="utf-8")
 
     report = run_python_project_harness(
@@ -88,6 +97,7 @@ def test_project_runner_parameters_override_configured_extra_paths(
 
     assert report.is_clean
     assert sorted(module.path for module in report.modules) == [
+        str(examples / "demo.py"),
         str(src / "service.py"),
         str(tools / "check.py"),
     ]

@@ -82,8 +82,9 @@ class PythonProjectHarnessScope:
     """Concrete project paths monitored by an embedded Python harness run."""
 
     project_root: Path
-    source_paths: tuple[Path, ...]
-    test_paths: tuple[Path, ...]
+    project_paths: tuple[Path, ...] = ()
+    source_paths: tuple[Path, ...] = ()
+    test_paths: tuple[Path, ...] = ()
     extra_paths: tuple[Path, ...] = ()
     include_tests: bool = True
     fallback_paths: tuple[Path, ...] = ()
@@ -92,13 +93,16 @@ class PythonProjectHarnessScope:
     def monitored_paths(self) -> tuple[Path, ...]:
         """Return the concrete roots scanned by the parser and rule packs."""
 
+        selected = self.project_paths
+        if selected:
+            return _dedupe_paths((*selected, *self.extra_paths))
         selected = (
             (*self.source_paths, *self.test_paths, *self.extra_paths)
             if self.include_tests
             else (*self.source_paths, *self.extra_paths)
         )
         if selected:
-            return selected
+            return _dedupe_paths(selected)
         return self.fallback_paths
 
     def to_dict(self) -> dict[str, object]:
@@ -106,12 +110,25 @@ class PythonProjectHarnessScope:
 
         return {
             "project_root": str(self.project_root),
+            "project_paths": [str(path) for path in self.project_paths],
             "source_paths": [str(path) for path in self.source_paths],
             "test_paths": [str(path) for path in self.test_paths],
             "extra_paths": [str(path) for path in self.extra_paths],
             "include_tests": self.include_tests,
             "monitored_paths": [str(path) for path in self.monitored_paths],
         }
+
+
+def _dedupe_paths(paths: Iterable[Path]) -> tuple[Path, ...]:
+    seen: set[Path] = set()
+    deduped: list[Path] = []
+    for path in paths:
+        key = path.resolve()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(path)
+    return tuple(deduped)
 
 
 class PythonLangRulePack(Protocol):

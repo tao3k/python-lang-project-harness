@@ -14,9 +14,12 @@ class PythonProjectMetadata:
 
     project_root: Path
     pyproject_path: Path
+    has_project_table: bool
+    has_build_system_table: bool
     project_name: str | None
     requires_python: str | None
     build_backend: str | None
+    build_requires: tuple[str, ...]
     wheel_packages: tuple[str, ...]
     package_roots: tuple[Path, ...]
 
@@ -36,6 +39,8 @@ def read_python_project_metadata(
     except (OSError, tomllib.TOMLDecodeError, UnicodeDecodeError):
         return None
 
+    has_project_table = isinstance(payload.get("project"), dict)
+    has_build_system_table = isinstance(payload.get("build-system"), dict)
     project = _table(payload.get("project"))
     build_system = _table(payload.get("build-system"))
     tool = _table(payload.get("tool"))
@@ -48,9 +53,12 @@ def read_python_project_metadata(
     return PythonProjectMetadata(
         project_root=root,
         pyproject_path=pyproject_path,
+        has_project_table=has_project_table,
+        has_build_system_table=has_build_system_table,
         project_name=_string_or_none(project.get("name")),
         requires_python=_string_or_none(project.get("requires-python")),
         build_backend=_string_or_none(build_system.get("build-backend")),
+        build_requires=_string_tuple(build_system.get("requires")),
         wheel_packages=wheel_packages,
         package_roots=tuple(
             _resolve_package_path(root, item) for item in wheel_packages
