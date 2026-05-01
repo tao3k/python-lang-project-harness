@@ -52,6 +52,8 @@ def test_python_reasoning_tree_nodes_carry_agent_navigation_facts() -> None:
             "child_names": ["service"],
             "has_intent_doc": True,
             "has_public_surface": False,
+            "public_names": [],
+            "export_contract_kind": "inferred",
             "is_valid": True,
             "effective_code_lines": 1,
         },
@@ -63,9 +65,41 @@ def test_python_reasoning_tree_nodes_carry_agent_navigation_facts() -> None:
             "child_names": [],
             "has_intent_doc": True,
             "has_public_surface": True,
+            "public_names": ["build"],
+            "export_contract_kind": "inferred",
             "is_valid": True,
             "effective_code_lines": 3,
         },
+    ]
+
+
+def test_python_reasoning_tree_nodes_expose_public_export_surface() -> None:
+    facts = python_reasoning_tree_facts(
+        (
+            parse_python_source(
+                '"""Facade."""\n\nfrom .service import build\n\n__all__ = ("build",)\n',
+                path="/repo/src/pkg/domain/__init__.py",
+            ),
+            parse_python_source(
+                '"""Service leaf."""\n\nVALUE = 1\n_private = 2\n\n\ndef build() -> None:\n    return None\n',
+                path="/repo/src/pkg/domain/service.py",
+            ),
+        ),
+        import_roots=("/repo/src",),
+        project_root="/repo",
+    )
+
+    assert [
+        (
+            node.namespace,
+            node.public_names,
+            node.export_contract_kind,
+            node.has_public_surface,
+        )
+        for node in facts.nodes
+    ] == [
+        (("pkg", "domain"), ("build",), "static", True),
+        (("pkg", "domain", "service"), ("VALUE", "build"), "inferred", True),
     ]
 
 

@@ -167,9 +167,31 @@ def _render_reasoning_tree_node(node: PythonReasoningTreeNode) -> str:
     ]
     if node.child_names:
         flags.append("children=" + ",".join(node.child_names))
+    export_flag = _render_reasoning_tree_export_flag(node)
+    if export_flag is not None:
+        flags.append(export_flag)
     if not node.is_valid:
         flags.append("invalid")
     return f"{indent}- {namespace} ({'; '.join(flags)}) {node.path}"
+
+
+def _render_reasoning_tree_export_flag(node: PythonReasoningTreeNode) -> str | None:
+    if node.public_names:
+        return "exports=" + _render_compact_name_list(node.public_names)
+    if node.export_contract_kind == "static":
+        return "exports=none"
+    if node.export_contract_kind == "dynamic":
+        return "exports=dynamic"
+    return None
+
+
+def _render_compact_name_list(names: tuple[str, ...], *, max_names: int = 6) -> str:
+    shown = names[:max_names]
+    rendered = ",".join(shown)
+    omitted = len(names) - len(shown)
+    if omitted > 0:
+        rendered += f",+{omitted}"
+    return rendered
 
 
 def _render_reasoning_tree_import_edge(edge: PythonReasoningTreeImportEdge) -> str:

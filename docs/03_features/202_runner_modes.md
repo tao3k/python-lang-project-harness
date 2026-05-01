@@ -93,8 +93,8 @@ inspect.
 `render_python_reasoning_tree(report)` turns a project report into a compact
 agent navigation snapshot. It uses parser-owned package tree facts, not raw
 path guessing, and summarizes package branches, module leaves, public/internal
-surface, child names, internal import edges, and owner shadows. Use it before
-repair-oriented agents choose which subtree to edit.
+surface, compact export names, child names, internal import edges, and owner
+shadows. Use it before repair-oriented agents choose which subtree to edit.
 
 :RELATIONS:
 :LINKS: [Harness Boundary](../01_core/101_harness_boundary.md), [Rule Catalog](201_rule_catalog.md), [CLI](203_cli.md)

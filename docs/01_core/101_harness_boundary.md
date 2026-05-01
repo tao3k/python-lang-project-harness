@@ -66,13 +66,16 @@ such as `domain.py` beside `domain/__init__.py`, and branch packages whose
 immediate child modules need an intent docstring for agent navigation. It also
 resolves project-internal import edges from parser import records and import
 roots, so agents can see which modules depend on a subtree before editing. The
+tree nodes carry parser-owned export candidates and `__all__` contract kind, so
+the agent sees public API names without re-reading source text. The
 harness turns those facts into `PY-MOD-R007` and `PY-AGENT-R007` findings; it
 does not re-parse Python source to infer tree shape or dependency direction.
 
 The same parser facts back `render_python_reasoning_tree()`, a compact
 agent-facing tree snapshot. That render is intentionally separate from JSON:
 agents can inspect package branches, public leaves, child names, and owner
-shadows, plus internal imports, before choosing a repair surface.
+shadows, plus compact exports and internal imports, before choosing a repair
+surface.
 
 ## Runner Modes
 

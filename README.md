@@ -56,8 +56,9 @@ policy still runs. Explained local exceptions can live in
 
 For agent repair loops, `render_python_reasoning_tree(report)` emits a compact
 package/module owner tree from parser-owned facts. It shows package branches,
-public/internal leaves, child names, internal import edges, and owner shadows
-without forcing an LLM to consume the full JSON report first.
+public/internal leaves, compact export names, child names, internal import
+edges, and owner shadows without forcing an LLM to consume the full JSON report
+first.
 
 The console script follows the same render contract:
 

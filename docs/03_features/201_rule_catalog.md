@@ -86,7 +86,8 @@ the parser-owned public surface. `python_lang_parser` owns the tree facts:
 tree nodes, child names, public/internal surface flags, module/package owner
 shadows, internal import edges, and branch package child counts are derived
 from `PythonModuleReport` paths, parser import records, module shape,
-public-surface helpers, and module docstrings.
+public-surface helpers, export candidates, `__all__` contract kind, and module
+docstrings.
 
 `PY-MOD-R007` blocks a collapsed owner tree such as `domain.py` next to
 `domain/__init__.py`, because both spell the same import owner and repair
@@ -97,8 +98,9 @@ subtree before editing.
 
 `render_python_reasoning_tree()` exposes the same tree as compact text for LLM
 repair loops. It includes an `[imports]` section for parser-resolved
-project-internal edges, making it the preferred first read when an agent needs
-to understand where a change belongs and what it may affect before touching
+project-internal edges and compact `exports=` flags on public nodes, making it
+the preferred first read when an agent needs to understand where a change
+belongs, what public API it touches, and what it may affect before touching
 code.
 
 ## Rendered Diagnostic Policy

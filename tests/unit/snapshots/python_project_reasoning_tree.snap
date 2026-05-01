@@ -1,9 +1,10 @@
 [tree] $TEMP python
 Files: 3 Parsed: 3
-Nodes: 3 Branches: 1 Imports: 1 Shadows: 0
+Nodes: 3 Branches: 1 Imports: 2 Shadows: 0
 [nodes]
-  - pkg.domain (package; doc; internal; children=models,service) $TEMP/src/pkg/domain/__init__.py
-    - pkg.domain.models (module; doc; public) $TEMP/src/pkg/domain/models.py
-    - pkg.domain.service (module; doc; public) $TEMP/src/pkg/domain/service.py
+  - pkg.domain (package; doc; public; children=models,service; exports=build) $TEMP/src/pkg/domain/__init__.py
+    - pkg.domain.models (module; doc; public; exports=Model,build) $TEMP/src/pkg/domain/models.py
+    - pkg.domain.service (module; doc; public; exports=build) $TEMP/src/pkg/domain/service.py
 [imports]
+- pkg.domain -> pkg.domain.service (relative; module; as build)
 - pkg.domain.models -> pkg.domain.service (relative; module; as build)

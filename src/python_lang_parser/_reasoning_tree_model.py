@@ -20,6 +20,8 @@ class PythonReasoningTreeNode:
     child_names: tuple[str, ...] = ()
     has_intent_doc: bool = False
     has_public_surface: bool = False
+    public_names: tuple[str, ...] = ()
+    export_contract_kind: str = "inferred"
     is_valid: bool = True
     effective_code_lines: int = 0
 
@@ -36,6 +38,8 @@ class PythonReasoningTreeNode:
             "child_names": list(self.child_names),
             "has_intent_doc": self.has_intent_doc,
             "has_public_surface": self.has_public_surface,
+            "public_names": list(self.public_names),
+            "export_contract_kind": self.export_contract_kind,
             "is_valid": self.is_valid,
             "effective_code_lines": self.effective_code_lines,
         }

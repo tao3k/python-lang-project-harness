@@ -121,6 +121,8 @@ def _nodes(
                 child_names=child_names_by_namespace.get(module.namespace, ()),
                 has_intent_doc=module.report.module_docstring is not None,
                 has_public_surface=python_module_has_public_surface(module.report),
+                public_names=module.report.export_candidates,
+                export_contract_kind=module.report.export_contract.kind.value,
                 is_valid=module.report.is_valid,
                 effective_code_lines=0 if shape is None else shape.effective_code_lines,
             )

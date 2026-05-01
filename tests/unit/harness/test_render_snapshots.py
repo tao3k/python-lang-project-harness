@@ -74,7 +74,7 @@ def _reasoning_tree_snapshot_report() -> PythonHarnessReport:
     return PythonHarnessReport(
         modules=(
             parse_python_source(
-                '"""Domain package owner."""\n',
+                '"""Domain package owner."""\n\nfrom .service import build\n\n__all__ = ("build",)\n',
                 path=src / "pkg" / "domain" / "__init__.py",
             ),
             parse_python_source(
