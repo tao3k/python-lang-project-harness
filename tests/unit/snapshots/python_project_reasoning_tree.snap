@@ -1,6 +1,4 @@
 [tree] $TEMP python
-Files: 3 Parsed: 3
-Nodes: 3 Branches: 1 Imports: 2 Shadows: 0
 [project]
 - name=snapshot-package requires-python=>=3.12
 - import-names=pkg

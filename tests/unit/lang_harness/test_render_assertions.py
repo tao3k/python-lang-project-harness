@@ -45,7 +45,7 @@ def test_render_python_lang_harness_attaches_agent_advice_by_default(
     quiet_output = render_python_lang_harness(report, include_advice=False)
 
     assert "[PY-MOD-R002] Warning: Library module uses bare print" in default_output
-    assert "[advice]\nIssues: 2" in default_output
+    assert "\n[advice]\n[PY-AGENT-R001]" in default_output
     assert (
         "[PY-AGENT-R001] Info: Library module lacks a module intent docstring"
         in default_output

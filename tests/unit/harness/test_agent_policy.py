@@ -25,8 +25,9 @@ def test_agent_policy_reports_compact_repairable_snapshot(tmp_path: Path) -> Non
     output = output.replace(str(source), "$TMP/service.py")
 
     assert report.is_clean
-    assert render_python_lang_harness(report).startswith("[ok]")
-    assert "[advice]" in render_python_lang_harness(report)
+    rendered = render_python_lang_harness(report)
+    assert rendered.startswith("[advice]\n[PY-AGENT-R001]")
+    assert "[ok]" not in rendered
     assert (
         output
         == """[PY-AGENT-R001] Info: Library module lacks a module intent docstring

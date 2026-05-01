@@ -30,21 +30,22 @@ def render_python_lang_harness(
     """Render a compact diagnostic report for humans and repair workflows."""
 
     blocking_findings = report.blocking_findings(severities=severities)
-    rendered = (
-        _render_findings(blocking_findings)
-        if blocking_findings
-        else _render_ok_header(report)
-    )
-    if include_advice:
-        advice_findings = _deduplicate_advice_findings(
+    advice_findings = (
+        _deduplicate_advice_findings(
             report.advisory_findings(),
             blocking_findings=blocking_findings,
         )
+        if include_advice
+        else ()
+    )
+    if blocking_findings:
+        rendered = _render_findings(blocking_findings)
         if advice_findings:
-            rendered += f"\n[advice]\nIssues: {len(advice_findings)}\n"
-            for finding in advice_findings:
-                rendered += "\n" + _render_finding(finding)
-    return rendered
+            rendered += "\n[advice]\n" + _render_findings(advice_findings)
+        return rendered
+    if advice_findings:
+        return "[advice]\n" + _render_findings(advice_findings)
+    return _render_ok_header(report)
 
 
 def render_python_lang_harness_json(report: PythonHarnessReport) -> str:
@@ -83,16 +84,7 @@ def render_python_reasoning_tree(
         ),
     )
     target = ", ".join(report.root_paths)
-    lines = [
-        f"[tree] {target} python",
-        f"Files: {report.file_count} Parsed: {report.parsed_count}",
-        (
-            f"Nodes: {len(facts.nodes)} "
-            f"Branches: {len(facts.branches)} "
-            f"Imports: {len(facts.import_edges)} "
-            f"Shadows: {len(facts.shadowed_module_sources)}"
-        ),
-    ]
+    lines = [f"[tree] {target} python"]
     if facts.shadowed_module_sources:
         lines.append("[shadows]")
         for shadow in facts.shadowed_module_sources:
@@ -122,9 +114,7 @@ def _render_ok_header(report: PythonHarnessReport) -> str:
     target = ", ".join(report.root_paths)
     return (
         f"[ok] {target} python\n"
-        f"Source: {target}\n"
         f"Files: {report.file_count} Parsed: {report.parsed_count}\n"
-        "No blocking issues found.\n"
     )
 
 

@@ -23,6 +23,17 @@ _PROJECT_ROOT = next(
 )
 _SNAPSHOT_ROOT = _PROJECT_ROOT / "tests" / "unit" / "snapshots"
 _RULE_CATALOG_DOC = _PROJECT_ROOT / "docs" / "03_features" / "201_rule_catalog.md"
+_REDUNDANT_AGENT_RENDER_LINES = (
+    "[lint:",
+    "[ok]",
+    "Source:",
+    "Issues:",
+    "No blocking issues found.",
+)
+_REDUNDANT_TREE_RENDER_LINES = (
+    "Files:",
+    "Nodes:",
+)
 _EXPECTED_RULE_SNAPSHOT_FILES = {
     "unit_test__agent_policy_snapshot__py_agent_r001_module_intent.snap",
     "unit_test__agent_policy_snapshot__py_agent_r002_callable_annotations.snap",
@@ -185,12 +196,26 @@ def test_rule_snapshot_files_have_no_stale_policy_baselines() -> None:
     assert actual_rule_snapshots == _EXPECTED_RULE_SNAPSHOT_FILES
 
 
+def test_agent_facing_snapshots_avoid_redundant_render_preambles() -> None:
+    for snapshot in _SNAPSHOT_ROOT.glob("unit_test__agent_policy_snapshot__*.snap"):
+        text = snapshot.read_text(encoding="utf-8")
+        for line in _REDUNDANT_AGENT_RENDER_LINES:
+            assert line not in text, snapshot.name
+
+    tree_text = (_SNAPSHOT_ROOT / "python_project_reasoning_tree.snap").read_text(
+        encoding="utf-8"
+    )
+    for line in _REDUNDANT_TREE_RENDER_LINES:
+        assert line not in tree_text
+
+
 def test_project_is_clean_under_its_own_harness() -> None:
     report = run_python_project_harness(_PROJECT_ROOT)
     rendered = render_python_lang_harness(report)
 
     assert report.is_clean, rendered
-    assert "No blocking issues found." in rendered
+    assert rendered.startswith("[ok]")
+    assert "Files:" in rendered
 
 
 def _all_default_rule_ids() -> tuple[str, ...]:
