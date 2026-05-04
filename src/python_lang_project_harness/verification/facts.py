@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -221,7 +222,7 @@ def verification_fingerprint(
 def canonical_distribution_name(value: str) -> str:
     """Return normalized Python distribution identity."""
 
-    return value.replace("_", "-").lower()
+    return re.sub(r"[-_.]+", "-", value).lower()
 
 
 def _append_owner_responsibilities(

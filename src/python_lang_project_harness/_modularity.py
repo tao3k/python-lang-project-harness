@@ -23,7 +23,7 @@ from ._source import path_location
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
-    from python_lang_parser import PythonModuleReport
+    from python_lang_parser import PythonModuleReport, PythonSymbol
 
     from ._model import PythonProjectHarnessScope
 
@@ -106,7 +106,7 @@ def _file_modularity_findings(
     shape = report.shape
     if shape is None:
         return ()
-    if _is_parser_model_catalog(report):
+    if _is_data_model_catalog(report):
         return ()
 
     if (
@@ -193,7 +193,7 @@ def _reasoning_tree_import_roots(scope: PythonProjectHarnessScope) -> tuple[Path
     return scope.monitored_paths
 
 
-def _is_parser_model_catalog(report: PythonModuleReport) -> bool:
+def _is_data_model_catalog(report: PythonModuleReport) -> bool:
     top_level_symbols = tuple(symbol for symbol in report.symbols if symbol.scope == "")
     if not top_level_symbols:
         return False
@@ -205,7 +205,37 @@ def _is_parser_model_catalog(report: PythonModuleReport) -> bool:
     )
     if not classes:
         return False
-    return all(symbol.name.startswith("_") for symbol in callables)
+    if any(not symbol.name.startswith("_") for symbol in callables):
+        return False
+    return all(_is_data_model_class(symbol) for symbol in classes)
+
+
+def _is_data_model_class(symbol: PythonSymbol) -> bool:
+    if _has_dataclass_decorator(symbol.decorators):
+        return True
+    return any(_is_data_model_base(base_class) for base_class in symbol.base_classes)
+
+
+def _has_dataclass_decorator(decorators: tuple[str, ...]) -> bool:
+    return any(
+        decorator == "dataclass"
+        or decorator.startswith("dataclass(")
+        or decorator.endswith(".dataclass")
+        or ".dataclass(" in decorator
+        for decorator in decorators
+    )
+
+
+def _is_data_model_base(base_class: str) -> bool:
+    base_name = base_class.rsplit(".", 1)[-1]
+    return base_name in {
+        "Enum",
+        "Flag",
+        "IntEnum",
+        "IntFlag",
+        "Protocol",
+        "StrEnum",
+    }
 
 
 def _rule(rule_id: str) -> PythonHarnessRule:

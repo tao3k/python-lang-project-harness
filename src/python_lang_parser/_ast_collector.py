@@ -222,6 +222,11 @@ class PythonAstCollector(ast.NodeVisitor):
                 decorators=tuple(
                     unparse(decorator) for decorator in node.decorator_list
                 ),
+                base_classes=(
+                    tuple(unparse(base) for base in node.bases)
+                    if isinstance(node, ast.ClassDef)
+                    else ()
+                ),
                 docstring=ast.get_docstring(node),
                 has_annotations=symbol_has_annotations(node),
                 is_public=is_public_name(node.name),

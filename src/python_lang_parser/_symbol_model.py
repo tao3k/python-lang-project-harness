@@ -65,6 +65,7 @@ class PythonSymbol:
     location: SourceLocation
     end_line: int | None
     decorators: tuple[str, ...] = field(default_factory=tuple)
+    base_classes: tuple[str, ...] = field(default_factory=tuple)
     docstring: str | None = None
     has_annotations: bool = False
     is_public: bool = False
@@ -76,6 +77,7 @@ class PythonSymbol:
         payload = asdict(self)
         payload["kind"] = self.kind.value
         payload["decorators"] = list(self.decorators)
+        payload["base_classes"] = list(self.base_classes)
         return payload
 
 

@@ -136,6 +136,7 @@ def _tasks_for_profile_hint(
         hint,
         node,
         parser_responsibilities=parser_responsibilities,
+        policy=policy,
     )
     if review_reason is not None:
         task = _task(
@@ -295,6 +296,7 @@ def _profile_hint_review_reason(
     node: PythonReasoningTreeNode | None,
     *,
     parser_responsibilities: tuple[PythonOwnerResponsibility, ...],
+    policy: PythonVerificationPolicy,
 ) -> str | None:
     if node is None and not parser_responsibilities:
         return "responsibility_review=profile owner path is not parser-visible"
@@ -305,11 +307,7 @@ def _profile_hint_review_reason(
         and not hint.rationale.strip()
         and (
             set(hint.task_kinds)
-            != set(
-                PythonVerificationPolicy().task_kinds_for_responsibilities(
-                    hint.responsibilities
-                )
-            )
+            != set(policy.task_kinds_for_responsibilities(hint.responsibilities))
             or bool(hint.task_contracts)
         )
     ):
