@@ -26,4 +26,5 @@ def test_project_policy_rule_pack_descriptor_and_catalog_are_stable() -> None:
         "PY-PROJ-R007",
         "PY-PROJ-R008",
         "PY-PROJ-R009",
+        "PY-PROJ-R010",
     ]

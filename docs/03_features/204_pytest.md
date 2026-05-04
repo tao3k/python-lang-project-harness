@@ -38,6 +38,12 @@ quiet unless `--python-project-harness` is enabled. This keeps the package safe
 as a normal library dependency while making the policy gate easy to opt into
 from pytest config.
 
+Project policy validates this wiring. If parser-owned `pyproject.toml` facts
+show that a project depends on `python-lang-project-harness` for test/dev use,
+the project must expose either `--python-project-harness` in pytest addopts or
+an explicit `python_project_harness_test()` callable. This keeps the dependency
+from becoming decorative metadata that CI can bypass.
+
 Project-local policy can live beside pytest config in `pyproject.toml`:
 
 ```toml

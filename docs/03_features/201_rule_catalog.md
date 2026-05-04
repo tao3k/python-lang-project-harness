@@ -51,6 +51,8 @@ The other default packs are blocking through `Warning` or `Error` findings.
   resolve to parser-visible project module owners.
 - `PY-PROJ-R009`: console script, GUI script, and entry point targets should
   resolve to parser-visible project modules.
+- `PY-PROJ-R010`: projects that declare the harness as a test/dev dependency
+  should mount a parser-visible pytest gate.
 - `PY-MOD-R001`: wildcard imports must become explicit imports.
 - `PY-MOD-R002`: library modules should not use bare `print`.
 - `PY-MOD-R003`: package facades with re-exports should declare `__all__`.

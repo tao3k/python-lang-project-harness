@@ -7,6 +7,28 @@ from pathlib import Path
 
 
 @dataclass(frozen=True, slots=True)
+class PythonProjectDependency:
+    """One dependency declaration from parser-owned project metadata."""
+
+    requirement: str
+    name: str
+    source: str
+    group: str | None = None
+    extra: str | None = None
+
+    def to_dict(self) -> dict[str, object]:
+        """Return a JSON-compatible representation."""
+
+        return {
+            "requirement": self.requirement,
+            "name": self.name,
+            "source": self.source,
+            "group": self.group,
+            "extra": self.extra,
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class PythonProjectImportName:
     """One declared import name from Python project metadata."""
 
@@ -75,6 +97,27 @@ class PythonProjectEntryPoint:
 
 
 @dataclass(frozen=True, slots=True)
+class PythonPytestOptions:
+    """Parser-owned pytest options from `pyproject.toml`."""
+
+    addopts: tuple[str, ...] = ()
+
+    @property
+    def enables_python_project_harness(self) -> bool:
+        """Return whether pytest addopts mounts the project harness plugin."""
+
+        return "--python-project-harness" in self.addopts
+
+    def to_dict(self) -> dict[str, object]:
+        """Return a JSON-compatible representation."""
+
+        return {
+            "addopts": list(self.addopts),
+            "enables_python_project_harness": self.enables_python_project_harness,
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class PythonProjectMetadata:
     """Compact `pyproject.toml` metadata needed by parser consumers."""
 
@@ -88,11 +131,13 @@ class PythonProjectMetadata:
     build_requires: tuple[str, ...]
     wheel_packages: tuple[str, ...]
     package_roots: tuple[Path, ...]
+    dependencies: tuple[PythonProjectDependency, ...] = ()
     import_names: tuple[PythonProjectImportName, ...] = ()
     import_namespaces: tuple[PythonProjectImportName, ...] = ()
     scripts: tuple[PythonProjectScript, ...] = ()
     gui_scripts: tuple[PythonProjectScript, ...] = ()
     entry_points: tuple[PythonProjectEntryPoint, ...] = ()
+    pytest_options: PythonPytestOptions = PythonPytestOptions()
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-compatible representation."""
@@ -106,6 +151,7 @@ class PythonProjectMetadata:
             "requires_python": self.requires_python,
             "build_backend": self.build_backend,
             "build_requires": list(self.build_requires),
+            "dependencies": [item.to_dict() for item in self.dependencies],
             "wheel_packages": list(self.wheel_packages),
             "package_roots": [str(path) for path in self.package_roots],
             "import_names": [item.to_dict() for item in self.import_names],
@@ -113,4 +159,5 @@ class PythonProjectMetadata:
             "scripts": [item.to_dict() for item in self.scripts],
             "gui_scripts": [item.to_dict() for item in self.gui_scripts],
             "entry_points": [item.to_dict() for item in self.entry_points],
+            "pytest_options": self.pytest_options.to_dict(),
         }

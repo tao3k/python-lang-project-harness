@@ -11,7 +11,7 @@ _PROJECT_ROOT = next(
 
 def test_harness_policy_does_not_parse_python_source_directly() -> None:
     harness_sources = sorted(
-        (_PROJECT_ROOT / "src" / "python_lang_project_harness").glob("*.py")
+        (_PROJECT_ROOT / "src" / "python_lang_project_harness").rglob("*.py")
     )
 
     for path in harness_sources:
@@ -24,7 +24,7 @@ def test_harness_policy_does_not_parse_python_source_directly() -> None:
 
 def test_harness_semantic_roles_use_parser_symbol_helpers() -> None:
     harness_sources = sorted(
-        (_PROJECT_ROOT / "src" / "python_lang_project_harness").glob("*.py")
+        (_PROJECT_ROOT / "src" / "python_lang_project_harness").rglob("*.py")
     )
     for path in harness_sources:
         if path.name == "__init__.py":
@@ -110,3 +110,16 @@ def test_test_layout_python_source_lines_use_parser_reports() -> None:
     assert "tests_root_entry_findings(tests_dir, pack_id, modules)" in layout
     assert 'if path.suffix == ".py":' in entries
     assert "return report.source_line(line)" in entries
+
+
+def test_harness_pyproject_metadata_comes_from_parser_boundary() -> None:
+    harness_sources = sorted(
+        (_PROJECT_ROOT / "src" / "python_lang_project_harness").rglob("*.py")
+    )
+
+    for path in harness_sources:
+        if path.name in {"_project_config.py", "_test_layout_config.py"}:
+            continue
+        source = path.read_text(encoding="utf-8")
+        assert "import tomllib" not in source, path
+        assert "tomllib." not in source, path

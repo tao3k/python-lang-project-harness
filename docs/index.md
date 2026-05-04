@@ -29,9 +29,11 @@ entrypoint into a catch-all reference page.
   modes, and exit-code contract.
 - [Pytest Dev Dependency](03_features/204_pytest.md): pytest plugin entry
   point, one-line test helper, and downstream dev dependency examples.
+- [Verification Planning](03_features/205_verification.md): parser-backed
+  verification tasks, profile hints, receipts, waivers, and report artifacts.
 
 :RELATIONS:
-:LINKS: [Harness Boundary](01_core/101_harness_boundary.md), [Rule Catalog](03_features/201_rule_catalog.md), [Runner Modes](03_features/202_runner_modes.md), [CLI](03_features/203_cli.md), [Pytest Dev Dependency](03_features/204_pytest.md)
+:LINKS: [Harness Boundary](01_core/101_harness_boundary.md), [Rule Catalog](03_features/201_rule_catalog.md), [Runner Modes](03_features/202_runner_modes.md), [CLI](03_features/203_cli.md), [Pytest Dev Dependency](03_features/204_pytest.md), [Verification Planning](03_features/205_verification.md)
 :END:
 
 ---

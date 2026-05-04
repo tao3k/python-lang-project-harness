@@ -40,6 +40,35 @@ packages = [
 [tool.uv]
 package = true
 
+[tool.pytest.ini_options]
+addopts = [
+    "--python-project-harness",
+]
+
+[[tool.python-lang-project-harness.verification.profile_hints]]
+owner_path = "pyproject.toml"
+responsibilities = ["pytest_gate"]
+verification_tasks_enabled = false
+rationale = "self pytest addopts and CI cover the harness gate contract"
+
+[[tool.python-lang-project-harness.verification.profile_hints]]
+owner_path = "src/python_lang_parser/__init__.py"
+responsibilities = ["public_api"]
+verification_tasks_enabled = false
+rationale = "self parser tests, CLI harness, and build cover the parser public facade"
+
+[[tool.python-lang-project-harness.verification.profile_hints]]
+owner_path = "src/python_lang_project_harness/__init__.py"
+responsibilities = ["public_api", "cli"]
+verification_tasks_enabled = false
+rationale = "self public API tests, CLI tests, pytest gate, and build cover the harness facade"
+
+[[tool.python-lang-project-harness.verification.profile_hints]]
+owner_path = "src/python_lang_project_harness/pytest_plugin.py"
+responsibilities = ["cli"]
+verification_tasks_enabled = false
+rationale = "self pytest addopts exercise the pytest plugin gate"
+
 [tool.ruff]
 line-length = 88
 target-version = "py312"

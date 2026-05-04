@@ -42,6 +42,26 @@ def test_cli_json_flag_renders_structured_report(tmp_path: Path) -> None:
     assert payload["project_scope"]["project_root"] == str(tmp_path)
 
 
+def test_cli_agent_snapshot_renders_parser_backed_project_shape(
+    tmp_path: Path,
+) -> None:
+    package = tmp_path / "src" / "pkg"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text('"""Package docs."""\n', encoding="utf-8")
+    stdout = io.StringIO()
+
+    exit_code = run_cli(["--agent-snapshot", str(tmp_path)], stdout=stdout)
+
+    assert exit_code == 0
+    rendered = stdout.getvalue()
+    assert rendered.startswith("[agent-snapshot] . python\n")
+    assert "[tree] . python" in rendered
+    assert "Modules: source=1" in rendered
+    assert "[nodes]" not in rendered
+    assert "[ok]" not in rendered
+    assert str(tmp_path) not in rendered
+
+
 def test_cli_keeps_agent_advice_non_blocking(tmp_path: Path) -> None:
     src = tmp_path / "src"
     src.mkdir()
@@ -136,10 +156,22 @@ def test_cli_help_and_argument_errors_are_stable(tmp_path: Path) -> None:
     error_stderr = io.StringIO()
 
     assert run_cli(["--help"], stdout=help_stdout) == 0
-    assert "python-project-harness [--json] [--no-tests]" in help_stdout.getvalue()
+    assert (
+        "python-project-harness [--json | --agent-snapshot] [--no-tests]"
+        in help_stdout.getvalue()
+    )
     assert run_cli(["--bogus"], stderr=error_stderr) == 2
     assert "unknown option: --bogus" in error_stderr.getvalue()
     assert run_cli([str(tmp_path), str(tmp_path)], stderr=io.StringIO()) == 2
+    mutually_exclusive_stderr = io.StringIO()
+    assert (
+        run_cli(
+            ["--json", "--agent-snapshot", str(tmp_path)],
+            stderr=mutually_exclusive_stderr,
+        )
+        == 2
+    )
+    assert "mutually exclusive" in mutually_exclusive_stderr.getvalue()
 
 
 def test_cli_scope_flags_customize_project_paths(tmp_path: Path) -> None:

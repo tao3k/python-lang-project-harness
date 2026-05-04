@@ -6,7 +6,8 @@
 direnv exec . uv run --group test ruff format --check src tests
 direnv exec . uv run --group test ruff check src tests
 direnv exec . uv run --group test pytest tests -q
-direnv exec . uv run python-project-harness .
+direnv exec . uv run --group test python-project-harness .
+direnv exec . uv run --group test python-project-harness --agent-snapshot .
 direnv exec . uv build
 direnv exec . git diff --check
 ```
@@ -16,7 +17,7 @@ consistently.
 
 GitHub Actions runs the same validation surface without `direnv`: `uv sync
 --group test --locked`, ruff format/check, pytest, self-harness, package build,
-and `git diff --check`.
+agent snapshot, and `git diff --check`.
 
 ## Library Boundary
 

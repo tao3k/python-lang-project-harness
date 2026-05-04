@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
+import shlex
 import tomllib
 from pathlib import Path
 from typing import Any
 
 from ._project_model import (
+    PythonProjectDependency,
     PythonProjectEntryPoint,
     PythonProjectImportName,
     PythonProjectMetadata,
     PythonProjectScript,
+    PythonPytestOptions,
 )
 
 
@@ -33,6 +36,8 @@ def parse_python_project_metadata(
     has_build_system_table = isinstance(payload.get("build-system"), dict)
     project = _table(payload.get("project"))
     build_system = _table(payload.get("build-system"))
+    dependency_groups = _table(payload.get("dependency-groups"))
+    tool = _table(payload.get("tool"))
     wheel_packages = _hatch_wheel_packages(payload)
     import_names = _project_import_names(project.get("import-names"))
     import_namespaces = _project_import_names(project.get("import-namespaces"))
@@ -57,6 +62,8 @@ def parse_python_project_metadata(
         scripts=_project_scripts(project.get("scripts"), kind="console"),
         gui_scripts=_project_scripts(project.get("gui-scripts"), kind="gui"),
         entry_points=_project_entry_points(project.get("entry-points")),
+        dependencies=_project_dependencies(project, dependency_groups),
+        pytest_options=_pytest_options(tool),
     )
 
 
@@ -174,6 +181,115 @@ def _project_entry_points(value: object) -> tuple[PythonProjectEntryPoint, ...]:
                 )
             )
     return tuple(entry_points)
+
+
+def _project_dependencies(
+    project: dict[str, Any],
+    dependency_groups: dict[str, Any],
+) -> tuple[PythonProjectDependency, ...]:
+    dependencies: list[PythonProjectDependency] = []
+    seen: set[tuple[str, str, str | None, str | None]] = set()
+    _extend_dependencies(
+        dependencies,
+        seen,
+        project.get("dependencies"),
+        source="project.dependencies",
+    )
+    optional_dependencies = _table(project.get("optional-dependencies"))
+    for extra, value in sorted(optional_dependencies.items()):
+        if not isinstance(extra, str):
+            continue
+        _extend_dependencies(
+            dependencies,
+            seen,
+            value,
+            source="project.optional-dependencies",
+            extra=extra,
+        )
+    for group, value in sorted(dependency_groups.items()):
+        if not isinstance(group, str):
+            continue
+        _extend_dependencies(
+            dependencies,
+            seen,
+            value,
+            source="dependency-groups",
+            group=group,
+        )
+    return tuple(dependencies)
+
+
+def _extend_dependencies(
+    dependencies: list[PythonProjectDependency],
+    seen: set[tuple[str, str, str | None, str | None]],
+    value: object,
+    *,
+    source: str,
+    group: str | None = None,
+    extra: str | None = None,
+) -> None:
+    if not isinstance(value, list):
+        return
+    for item in value:
+        if isinstance(item, str):
+            requirement = item.strip()
+        elif isinstance(item, dict):
+            requirement = _dependency_object_requirement(item)
+        else:
+            continue
+        if not requirement:
+            continue
+        dependency = PythonProjectDependency(
+            requirement=requirement,
+            name=_dependency_name(requirement),
+            source=source,
+            group=group,
+            extra=extra,
+        )
+        key = (
+            dependency.requirement,
+            dependency.source,
+            dependency.group,
+            dependency.extra,
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        dependencies.append(dependency)
+
+
+def _dependency_object_requirement(value: dict[str, Any]) -> str:
+    dependency = value.get("dependency")
+    if isinstance(dependency, str):
+        return dependency.strip()
+    package = value.get("package")
+    if isinstance(package, str):
+        return package.strip()
+    return ""
+
+
+def _dependency_name(requirement: str) -> str:
+    name = requirement.split(";", 1)[0].split("[", 1)[0].strip()
+    for marker in ("<", ">", "=", "!", "~", " "):
+        name = name.split(marker, 1)[0].strip()
+    return name
+
+
+def _pytest_options(tool: dict[str, Any]) -> PythonPytestOptions:
+    pytest_table = _table(tool.get("pytest"))
+    ini_options = _table(pytest_table.get("ini_options"))
+    return PythonPytestOptions(addopts=_pytest_addopts(ini_options.get("addopts")))
+
+
+def _pytest_addopts(value: object) -> tuple[str, ...]:
+    if isinstance(value, str):
+        try:
+            return tuple(shlex.split(value))
+        except ValueError:
+            return tuple(part for part in value.split() if part)
+    if isinstance(value, list):
+        return tuple(item for item in value if isinstance(item, str))
+    return ()
 
 
 def _target_facts(target: str) -> tuple[str, tuple[str, ...], tuple[str, ...]]:

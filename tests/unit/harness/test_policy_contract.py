@@ -57,6 +57,7 @@ _EXPECTED_RULE_SNAPSHOT_FILES = {
     "unit_test__policy_snapshot__py_proj_r007_build_requires.snap",
     "unit_test__policy_snapshot__py_proj_r008_import_names.snap",
     "unit_test__policy_snapshot__py_proj_r009_entry_point_target.snap",
+    "unit_test__policy_snapshot__py_proj_r010_pytest_gate.snap",
     "unit_test__policy_snapshot__py_test_r001_root_pytest.snap",
     "unit_test__policy_snapshot__py_test_r002_unexpected_root.snap",
     "unit_test__policy_snapshot__py_test_r003_unit_bloat.snap",
@@ -118,6 +119,7 @@ def test_rule_catalogs_expose_stable_rule_ids() -> None:
         "PY-PROJ-R007",
         "PY-PROJ-R008",
         "PY-PROJ-R009",
+        "PY-PROJ-R010",
     ]
     assert [rule.rule_id for rule in python_modern_design_rules()] == [
         "PY-MOD-R001",

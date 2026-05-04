@@ -13,7 +13,7 @@ from collections import abc
 
 
 @decorator("value")
-class Runner:
+class Runner(abc.ABC):
     """Runner docs."""
 
     async def run(self) -> None:
@@ -42,13 +42,30 @@ class Runner:
             symbol.qualified_name,
             symbol.scope,
             symbol.decorators,
+            symbol.base_classes,
             symbol.is_public,
             symbol.is_top_level,
         )
         for symbol in report.symbols
     ] == [
-        (PythonSymbolKind.CLASS, "Runner", "", ("decorator('value')",), True, True),
-        (PythonSymbolKind.ASYNC_FUNCTION, "Runner.run", "Runner", (), True, False),
+        (
+            PythonSymbolKind.CLASS,
+            "Runner",
+            "",
+            ("decorator('value')",),
+            ("abc.ABC",),
+            True,
+            True,
+        ),
+        (
+            PythonSymbolKind.ASYNC_FUNCTION,
+            "Runner.run",
+            "Runner",
+            (),
+            (),
+            True,
+            False,
+        ),
     ]
     assert report.shape is not None
     assert report.shape.responsibility_groups == ("types",)
