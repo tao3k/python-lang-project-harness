@@ -2,10 +2,21 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from typing import TYPE_CHECKING, Protocol
 
 from ._constants import DEFAULT_BLOCKING_SEVERITIES, IGNORED_DIR_NAMES
+from .verification.model import (
+    PythonVerificationDependencySignal,
+    PythonVerificationPolicy,
+    PythonVerificationProfileHint,
+    PythonVerificationReceipt,
+    PythonVerificationSkillBinding,
+    PythonVerificationSkillDescriptor,
+    PythonVerificationTaskContract,
+    PythonVerificationTaskKind,
+    PythonVerificationWaiver,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -164,7 +175,105 @@ class PythonHarnessConfig:
     extra_path_names: tuple[str, ...] = ()
     disabled_rule_ids: frozenset[str] = frozenset()
     blocking_rule_ids: frozenset[str] = frozenset()
+    verification_policy: PythonVerificationPolicy = field(
+        default_factory=PythonVerificationPolicy
+    )
     rule_packs: tuple[PythonLangRulePack, ...] | None = None
+
+    def with_verification_policy(
+        self,
+        policy: PythonVerificationPolicy,
+    ) -> PythonHarnessConfig:
+        """Return a config with an explicit verification policy."""
+
+        return replace(self, verification_policy=policy)
+
+    def with_verification_profile_hint(
+        self,
+        hint: PythonVerificationProfileHint,
+    ) -> PythonHarnessConfig:
+        """Return a config with one verification profile hint appended."""
+
+        return replace(
+            self,
+            verification_policy=self.verification_policy.with_profile_hint(hint),
+        )
+
+    def with_verification_dependency_signal(
+        self,
+        signal: PythonVerificationDependencySignal,
+    ) -> PythonHarnessConfig:
+        """Return a config with one dependency-to-responsibility signal."""
+
+        return replace(
+            self,
+            verification_policy=self.verification_policy.with_dependency_signal(signal),
+        )
+
+    def with_verification_receipt(
+        self,
+        receipt: PythonVerificationReceipt,
+    ) -> PythonHarnessConfig:
+        """Return a config with one verification receipt appended."""
+
+        return replace(
+            self,
+            verification_policy=self.verification_policy.with_receipt(receipt),
+        )
+
+    def with_verification_waiver(
+        self,
+        waiver: PythonVerificationWaiver,
+    ) -> PythonHarnessConfig:
+        """Return a config with one verification waiver appended."""
+
+        return replace(
+            self,
+            verification_policy=self.verification_policy.with_waiver(waiver),
+        )
+
+    def with_verification_task_contract(
+        self,
+        kind: PythonVerificationTaskKind,
+        contract: PythonVerificationTaskContract,
+    ) -> PythonHarnessConfig:
+        """Return a config with one verification task contract override."""
+
+        return replace(
+            self,
+            verification_policy=self.verification_policy.with_task_contract(
+                kind,
+                contract,
+            ),
+        )
+
+    def with_verification_skill_binding(
+        self,
+        kind: PythonVerificationTaskKind,
+        binding: PythonVerificationSkillBinding,
+    ) -> PythonHarnessConfig:
+        """Return a config with one verification skill binding."""
+
+        return replace(
+            self,
+            verification_policy=self.verification_policy.with_skill_binding(
+                kind,
+                binding,
+            ),
+        )
+
+    def with_verification_skill_descriptor(
+        self,
+        descriptor: PythonVerificationSkillDescriptor,
+    ) -> PythonHarnessConfig:
+        """Return a config with one verification skill descriptor."""
+
+        return replace(
+            self,
+            verification_policy=self.verification_policy.with_skill_descriptor(
+                descriptor
+            ),
+        )
 
 
 @dataclass(frozen=True, slots=True)

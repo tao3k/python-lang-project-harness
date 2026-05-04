@@ -18,6 +18,7 @@ PY_PROJ_R006 = "PY-PROJ-R006"
 PY_PROJ_R007 = "PY-PROJ-R007"
 PY_PROJ_R008 = "PY-PROJ-R008"
 PY_PROJ_R009 = "PY-PROJ-R009"
+PY_PROJ_R010 = "PY-PROJ-R010"
 
 _RULE_LABELS = {
     "language": "python",
@@ -94,6 +95,14 @@ _RULES = (
         severity=PythonDiagnosticSeverity.WARNING,
         title="Declared entry point targets should resolve to project modules",
         requirement="Keep console scripts, GUI scripts, and entry points pointed at parser-visible project modules so agent entry maps and packaging metadata agree.",
+        labels=dict(_RULE_LABELS),
+    ),
+    PythonHarnessRule(
+        rule_id=PY_PROJ_R010,
+        pack_id=PROJECT_POLICY_PACK_ID,
+        severity=PythonDiagnosticSeverity.WARNING,
+        title="Harness dev dependency should mount a pytest gate",
+        requirement="Enable `--python-project-harness` in pytest addopts or expose `python_project_harness_test()` so the dev dependency actually gates project policy.",
         labels=dict(_RULE_LABELS),
     ),
 )

@@ -6,7 +6,12 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from python_lang_parser import PythonDiagnosticSeverity, python_reasoning_tree_facts
+from python_lang_parser import (
+    PythonDiagnosticSeverity,
+    python_reasoning_tree_facts,
+    python_symbol_is_callable,
+    python_symbol_is_class,
+)
 
 from ._model import (
     PythonHarnessFinding,
@@ -101,6 +106,8 @@ def _file_modularity_findings(
     shape = report.shape
     if shape is None:
         return ()
+    if _is_parser_model_catalog(report):
+        return ()
 
     if (
         shape.effective_code_lines < _MAX_MODULE_EFFECTIVE_CODE_LINES
@@ -184,6 +191,21 @@ def _reasoning_tree_import_roots(scope: PythonProjectHarnessScope) -> tuple[Path
     if scope.source_paths:
         return scope.source_paths
     return scope.monitored_paths
+
+
+def _is_parser_model_catalog(report: PythonModuleReport) -> bool:
+    top_level_symbols = tuple(symbol for symbol in report.symbols if symbol.scope == "")
+    if not top_level_symbols:
+        return False
+    classes = tuple(
+        symbol for symbol in top_level_symbols if python_symbol_is_class(symbol)
+    )
+    callables = tuple(
+        symbol for symbol in top_level_symbols if python_symbol_is_callable(symbol)
+    )
+    if not classes:
+        return False
+    return all(symbol.name.startswith("_") for symbol in callables)
 
 
 def _rule(rule_id: str) -> PythonHarnessRule:

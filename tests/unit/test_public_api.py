@@ -10,10 +10,12 @@ def test_root_package_reexports_parser_fact_models() -> None:
     assert harness_api.PythonExportContract is parser_api.PythonExportContract
     assert harness_api.PythonExportContractKind is parser_api.PythonExportContractKind
     assert harness_api.PythonModuleShape is parser_api.PythonModuleShape
+    assert harness_api.PythonProjectDependency is parser_api.PythonProjectDependency
     assert harness_api.PythonProjectEntryPoint is parser_api.PythonProjectEntryPoint
     assert harness_api.PythonProjectImportName is parser_api.PythonProjectImportName
     assert harness_api.PythonProjectMetadata is parser_api.PythonProjectMetadata
     assert harness_api.PythonProjectScript is parser_api.PythonProjectScript
+    assert harness_api.PythonPytestOptions is parser_api.PythonPytestOptions
     assert harness_api.PythonReasoningTreeFacts is parser_api.PythonReasoningTreeFacts
     assert (
         harness_api.PythonReasoningTreeImportEdge
@@ -82,10 +84,14 @@ def test_root_package_reexports_parser_fact_models() -> None:
     assert "python_name_is_public" in harness_api.__all__
     assert "PythonReasoningTreeFacts" in harness_api.__all__
     assert "PythonProjectMetadata" in harness_api.__all__
+    assert "PythonProjectDependency" in harness_api.__all__
+    assert "PythonPytestOptions" in harness_api.__all__
     assert "parse_python_project_metadata" in harness_api.__all__
     assert "PythonReasoningTreeImportEdge" in harness_api.__all__
     assert "PythonReasoningTreeNode" in harness_api.__all__
     assert "PythonProjectMetadata" in parser_api.__all__
+    assert "PythonProjectDependency" in parser_api.__all__
+    assert "PythonPytestOptions" in parser_api.__all__
     assert "PythonReasoningTreeImportEdge" in parser_api.__all__
     assert "parse_python_project_metadata" in parser_api.__all__
     assert "python_reasoning_tree_facts" in harness_api.__all__
@@ -105,6 +111,17 @@ def test_root_package_reexports_parser_fact_models() -> None:
 def test_root_package_reexports_embedding_harness_surface() -> None:
     assert harness_api.PythonHarnessConfig is harness_facade.PythonHarnessConfig
     assert harness_api.PythonHarnessReport is harness_facade.PythonHarnessReport
+    assert (
+        harness_api.PythonVerificationPolicy is harness_facade.PythonVerificationPolicy
+    )
+    assert (
+        harness_api.PythonVerificationProfileHint
+        is harness_facade.PythonVerificationProfileHint
+    )
+    assert (
+        harness_api.PythonVerificationTaskKind
+        is harness_facade.PythonVerificationTaskKind
+    )
     assert (
         harness_api.PythonProjectPolicyRulePack
         is harness_facade.PythonProjectPolicyRulePack
@@ -138,6 +155,14 @@ def test_root_package_reexports_embedding_harness_surface() -> None:
         is harness_facade.render_python_reasoning_tree
     )
     assert (
+        harness_api.render_python_project_harness_agent_snapshot
+        is harness_facade.render_python_project_harness_agent_snapshot
+    )
+    assert (
+        harness_api.render_python_project_harness_agent_snapshot_with_config
+        is harness_facade.render_python_project_harness_agent_snapshot_with_config
+    )
+    assert (
         harness_api.read_python_project_harness_config
         is harness_facade.read_python_project_harness_config
     )
@@ -148,9 +173,27 @@ def test_root_package_reexports_embedding_harness_surface() -> None:
     assert harness_api.python_syntax_rules is harness_facade.python_syntax_rules
     assert harness_api.run_cli is harness_facade.run_cli
     assert harness_api.run_cli_from_env is harness_facade.run_cli_from_env
+    assert (
+        harness_api.plan_python_project_verification
+        is harness_facade.plan_python_project_verification
+    )
+    assert (
+        harness_api.render_python_verification_plan
+        is harness_facade.render_python_verification_plan
+    )
     assert "render_python_lang_harness_advice" in harness_api.__all__
     assert "render_python_lang_harness_json" in harness_api.__all__
+    assert "render_python_project_harness_agent_snapshot" in harness_api.__all__
+    assert (
+        "render_python_project_harness_agent_snapshot_with_config"
+        in harness_api.__all__
+    )
     assert "render_python_reasoning_tree" in harness_api.__all__
     assert "read_python_project_harness_config" in harness_api.__all__
     assert "run_cli_from_env" in harness_api.__all__
     assert "python_syntax_rules" in harness_api.__all__
+    assert "PythonVerificationPolicy" in harness_api.__all__
+    assert "PythonVerificationProfileHint" in harness_api.__all__
+    assert "PythonVerificationTaskKind" in harness_api.__all__
+    assert "plan_python_project_verification" in harness_api.__all__
+    assert "render_python_verification_plan" in harness_api.__all__

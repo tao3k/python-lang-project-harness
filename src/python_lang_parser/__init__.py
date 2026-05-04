@@ -13,10 +13,12 @@ from ._module_policy import (
 )
 from ._name_policy import python_name_is_public, python_scope_is_public
 from ._project_model import (
+    PythonProjectDependency,
     PythonProjectEntryPoint,
     PythonProjectImportName,
     PythonProjectMetadata,
     PythonProjectScript,
+    PythonPytestOptions,
 )
 from ._pyproject_metadata import parse_python_project_metadata
 from ._reasoning_tree import (
@@ -71,10 +73,12 @@ __all__ = [
     "PythonModuleReport",
     "PythonModuleShape",
     "PythonNameBinding",
+    "PythonProjectDependency",
     "PythonProjectEntryPoint",
     "PythonProjectImportName",
     "PythonProjectMetadata",
     "PythonProjectScript",
+    "PythonPytestOptions",
     "PythonReference",
     "PythonReferenceKind",
     "PythonReasoningTreeBranch",

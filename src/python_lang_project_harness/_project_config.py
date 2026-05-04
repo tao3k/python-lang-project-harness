@@ -9,6 +9,20 @@ from typing import Any
 from python_lang_parser import PythonDiagnosticSeverity
 
 from ._model import PythonHarnessConfig
+from .verification import (
+    PythonOwnerResponsibility,
+    PythonVerificationDependencySignal,
+    PythonVerificationPhase,
+    PythonVerificationPolicy,
+    PythonVerificationProfileHint,
+    PythonVerificationReceipt,
+    PythonVerificationRequirement,
+    PythonVerificationSkillBinding,
+    PythonVerificationSkillDescriptor,
+    PythonVerificationTaskContract,
+    PythonVerificationTaskKind,
+    PythonVerificationWaiver,
+)
 
 _TOOL_TABLE_NAME = "python-lang-project-harness"
 
@@ -41,6 +55,7 @@ def read_python_project_harness_config(
     _put_string_frozenset(kwargs, table, "disabled_rule_ids")
     _put_string_frozenset(kwargs, table, "blocking_rule_ids")
     _put_severity_frozenset(kwargs, table, "blocking_severities")
+    _put_verification_policy(kwargs, table)
     return PythonHarnessConfig(**kwargs)
 
 
@@ -88,6 +103,269 @@ def _put_severity_frozenset(
     if value is None:
         return
     kwargs[key] = frozenset(_severity(value) for value in _string_tuple(value, key=key))
+
+
+def _put_verification_policy(
+    kwargs: dict[str, object],
+    table: dict[str, Any],
+) -> None:
+    verification = _table(table.get("verification"))
+    if not verification:
+        return
+    kwargs["verification_policy"] = PythonVerificationPolicy(
+        profile_hints=_profile_hints(verification.get("profile_hints")),
+        dependency_signals=_dependency_signals(verification.get("dependency_signals")),
+        receipts=_receipts(verification.get("receipts")),
+        waivers=_waivers(verification.get("waivers")),
+        responsibility_task_kinds=_responsibility_task_kinds(
+            verification.get("responsibility_task_kinds")
+        ),
+        task_contracts=_task_contracts(verification.get("task_contracts")),
+        skill_bindings=_skill_bindings(verification.get("skill_bindings")),
+        skill_descriptors=_skill_descriptors(verification.get("skill_descriptors")),
+    )
+
+
+def _profile_hints(value: object) -> tuple[PythonVerificationProfileHint, ...]:
+    if not isinstance(value, list):
+        return ()
+    hints: list[PythonVerificationProfileHint] = []
+    for item in value:
+        table = _table(item)
+        owner_path = table.get("owner_path")
+        if not isinstance(owner_path, str):
+            continue
+        responsibilities = _responsibilities(table.get("responsibilities"))
+        if not responsibilities:
+            continue
+        task_kinds = _task_kinds(table.get("task_kinds"))
+        enabled = table.get("verification_tasks_enabled")
+        hints.append(
+            PythonVerificationProfileHint(
+                owner_path=owner_path,
+                responsibilities=responsibilities,
+                task_kinds=task_kinds,
+                verification_tasks_enabled=(
+                    enabled if isinstance(enabled, bool) else True
+                ),
+                rationale=table.get("rationale")
+                if isinstance(table.get("rationale"), str)
+                else "",
+                task_contracts=_task_contracts(table.get("task_contracts")),
+            )
+        )
+    return tuple(hints)
+
+
+def _dependency_signals(
+    value: object,
+) -> tuple[PythonVerificationDependencySignal, ...]:
+    if not isinstance(value, list):
+        return ()
+    signals: list[PythonVerificationDependencySignal] = []
+    for item in value:
+        table = _table(item)
+        package_name = table.get("package_name", table.get("package"))
+        if not isinstance(package_name, str):
+            continue
+        responsibilities = _responsibilities(table.get("responsibilities"))
+        if not responsibilities:
+            continue
+        rationale = table.get("rationale")
+        signals.append(
+            PythonVerificationDependencySignal(
+                package_name=package_name,
+                responsibilities=responsibilities,
+                task_kinds=_task_kinds(table.get("task_kinds")),
+                rationale=rationale if isinstance(rationale, str) else "",
+            )
+        )
+    return tuple(signals)
+
+
+def _receipts(value: object) -> tuple[PythonVerificationReceipt, ...]:
+    if not isinstance(value, list):
+        return ()
+    receipts: list[PythonVerificationReceipt] = []
+    for item in value:
+        table = _table(item)
+        fingerprint = table.get("task_fingerprint")
+        if not isinstance(fingerprint, str):
+            continue
+        summary = table.get("summary")
+        receipts.append(
+            PythonVerificationReceipt(
+                task_fingerprint=fingerprint,
+                summary=summary if isinstance(summary, str) else "",
+            )
+        )
+    return tuple(receipts)
+
+
+def _waivers(value: object) -> tuple[PythonVerificationWaiver, ...]:
+    if not isinstance(value, list):
+        return ()
+    waivers: list[PythonVerificationWaiver] = []
+    for item in value:
+        table = _table(item)
+        fingerprint = table.get("task_fingerprint")
+        rationale = table.get("rationale")
+        if not isinstance(fingerprint, str) or not isinstance(rationale, str):
+            continue
+        waivers.append(
+            PythonVerificationWaiver(
+                task_fingerprint=fingerprint,
+                rationale=rationale,
+            )
+        )
+    return tuple(waivers)
+
+
+def _responsibility_task_kinds(
+    value: object,
+) -> dict[PythonOwnerResponsibility, tuple[PythonVerificationTaskKind, ...]]:
+    table = _table(value)
+    result: dict[PythonOwnerResponsibility, tuple[PythonVerificationTaskKind, ...]] = {}
+    for key, task_values in table.items():
+        if not isinstance(key, str):
+            continue
+        result[_responsibility(key)] = _task_kinds(task_values)
+    return result
+
+
+def _task_contracts(
+    value: object,
+) -> dict[PythonVerificationTaskKind, PythonVerificationTaskContract]:
+    table = _table(value)
+    result: dict[PythonVerificationTaskKind, PythonVerificationTaskContract] = {}
+    for key, contract_value in table.items():
+        if not isinstance(key, str):
+            continue
+        contract = _task_contract(contract_value)
+        if contract is None:
+            continue
+        result[_task_kind(key)] = contract
+    return result
+
+
+def _task_contract(value: object) -> PythonVerificationTaskContract | None:
+    table = _table(value)
+    summary = table.get("summary")
+    if not isinstance(summary, str):
+        return None
+    phase_value = table.get("phase")
+    return PythonVerificationTaskContract(
+        phase=(
+            _phase(phase_value)
+            if isinstance(phase_value, str)
+            else PythonVerificationPhase.BEFORE_RELEASE
+        ),
+        summary=summary,
+        requirements=_requirements(table.get("requirements")),
+    )
+
+
+def _skill_bindings(
+    value: object,
+) -> dict[PythonVerificationTaskKind, PythonVerificationSkillBinding]:
+    table = _table(value)
+    result: dict[PythonVerificationTaskKind, PythonVerificationSkillBinding] = {}
+    for key, binding_value in table.items():
+        if not isinstance(key, str):
+            continue
+        if isinstance(binding_value, str):
+            result[_task_kind(key)] = PythonVerificationSkillBinding(binding_value)
+            continue
+        binding_table = _table(binding_value)
+        skill = binding_table.get("skill")
+        if not isinstance(skill, str):
+            continue
+        adapter = binding_table.get("adapter")
+        result[_task_kind(key)] = PythonVerificationSkillBinding(
+            skill=skill,
+            adapter=adapter if isinstance(adapter, str) else None,
+        )
+    return result
+
+
+def _skill_descriptors(
+    value: object,
+) -> dict[str, PythonVerificationSkillDescriptor]:
+    table = _table(value)
+    result: dict[str, PythonVerificationSkillDescriptor] = {}
+    for key, descriptor_value in table.items():
+        if not isinstance(key, str):
+            continue
+        descriptor_table = _table(descriptor_value)
+        task_kind_value = descriptor_table.get("task_kind")
+        summary = descriptor_table.get("summary")
+        if not isinstance(task_kind_value, str) or not isinstance(summary, str):
+            continue
+        adapter = descriptor_table.get("adapter")
+        descriptor = PythonVerificationSkillDescriptor(
+            key=key,
+            task_kind=_task_kind(task_kind_value),
+            summary=summary,
+            adapter=adapter if isinstance(adapter, str) else None,
+            requirements=_requirements(descriptor_table.get("requirements")),
+        )
+        result[descriptor.compact_label] = descriptor
+    return result
+
+
+def _requirements(value: object) -> tuple[PythonVerificationRequirement, ...]:
+    if not isinstance(value, list):
+        return ()
+    requirements: list[PythonVerificationRequirement] = []
+    for item in value:
+        table = _table(item)
+        label = table.get("label")
+        detail = table.get("detail")
+        if not isinstance(label, str) or not isinstance(detail, str):
+            continue
+        requirements.append(PythonVerificationRequirement(label, detail))
+    return tuple(requirements)
+
+
+def _responsibilities(value: object) -> tuple[PythonOwnerResponsibility, ...]:
+    if value is None:
+        return ()
+    return tuple(
+        _responsibility(item) for item in _string_tuple(value, key="responsibilities")
+    )
+
+
+def _task_kinds(value: object) -> tuple[PythonVerificationTaskKind, ...]:
+    if value is None:
+        return ()
+    return tuple(_task_kind(item) for item in _string_tuple(value, key="task_kinds"))
+
+
+def _responsibility(value: str) -> PythonOwnerResponsibility:
+    try:
+        return PythonOwnerResponsibility(value)
+    except ValueError as error:
+        raise ValueError(
+            f"{_TOOL_TABLE_NAME}.verification has unknown responsibility: {value}"
+        ) from error
+
+
+def _task_kind(value: str) -> PythonVerificationTaskKind:
+    try:
+        return PythonVerificationTaskKind(value)
+    except ValueError as error:
+        raise ValueError(
+            f"{_TOOL_TABLE_NAME}.verification has unknown task kind: {value}"
+        ) from error
+
+
+def _phase(value: str) -> PythonVerificationPhase:
+    try:
+        return PythonVerificationPhase(value)
+    except ValueError as error:
+        raise ValueError(
+            f"{_TOOL_TABLE_NAME}.verification has unknown phase: {value}"
+        ) from error
 
 
 def _table(value: object) -> dict[str, Any]:

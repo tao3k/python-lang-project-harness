@@ -25,9 +25,15 @@ from pathlib import Path
 
 from python_lang_project_harness import (
     __version__,
+    PythonOwnerResponsibility,
+    PythonVerificationProfileHint,
+    PythonVerificationTaskKind,
     assert_python_project_harness_clean,
+    default_python_harness_config,
+    plan_python_project_verification_with_config,
     render_python_lang_harness,
     render_python_reasoning_tree,
+    render_python_verification_plan,
     run_python_project_harness,
 )
 
@@ -69,14 +75,56 @@ shadows without forcing an LLM to consume the full JSON report first. In
 project-scoped runs, tree paths are rendered relative to the project root to
 avoid repeating long absolute prefixes.
 
+`render_python_project_harness_agent_snapshot(".")` and the
+`--agent-snapshot` CLI mode bundle compact policy findings, reasoning-tree
+facts, verification-profile reminders, and active verification tasks into one
+low-noise Agent repair surface. The snapshot uses capped module summaries,
+branches, public owners, import edges, and branch-first profile candidates; it
+does not print clean-run file counts or empty section summaries.
+
 The console script follows the same render contract:
 
 ```shell
 python-project-harness .
 python-project-harness --json .
+python-project-harness --agent-snapshot .
 python-project-harness --source-dir lib --extra-path tools --no-tests .
 python -m python_lang_project_harness .
 ```
+
+## Verification Planning
+
+Verification is a library-first Agent contract. The harness does not execute
+benchmark, security, stress, or chaos tools. It plans parser-backed obligations
+that external skills can satisfy with receipts or complete waivers:
+
+```python
+config = default_python_harness_config().with_verification_profile_hint(
+    PythonVerificationProfileHint(
+        "src/pkg/api.py",
+        (PythonOwnerResponsibility.PUBLIC_API,),
+    )
+    .with_task_kinds((PythonVerificationTaskKind.SECURITY,))
+    .with_rationale("this public API needs a security review")
+)
+plan = plan_python_project_verification_with_config(Path("."), config)
+print(render_python_verification_plan(plan))
+```
+
+Profile hints, dependency signals, receipts, waivers, task-kind mappings, and
+skill bindings are configurable through `PythonVerificationPolicy` or
+`[tool.python-lang-project-harness.verification]`. Parser facts win over config
+hints; mismatches become `responsibility_review` tasks instead of silent trust.
+`build_python_verification_profile_index(...)` exposes `active_profile_hints()`
+so Agents can turn parser-suggested owners into config-ready verification
+hints. Public package branches aggregate child-module public API signals, so
+large packages surface owner decisions instead of one reminder per file. Report
+helpers can render or persist `verification_plan.json`,
+`verification_task_index.json`, and `performance_index.json` obligations; source
+manifests list only source-baseline artifacts, while runtime manifests carry
+the complete bundle with `project_root`.
+Profile drift output includes both configured and parser-suggested
+responsibilities.
 
 ## Pytest Dev Dependency
 
@@ -126,4 +174,4 @@ Detailed package material lives under [`docs/`](docs/index.md).
 
 GitHub Actions runs the package contract on every pull request and on pushes to
 the default branch: `uv sync --group test --locked`, ruff format/check, pytest,
-self-harness, wheel/sdist build, and diff hygiene.
+self-harness, agent snapshot, wheel/sdist build, and diff hygiene.

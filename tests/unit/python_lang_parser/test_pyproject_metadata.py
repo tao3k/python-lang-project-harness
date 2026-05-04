@@ -21,12 +21,28 @@ name = "example-pkg"
 requires-python = ">=3.12"
 import-names = ["example_pkg", "_example_private ; private"]
 import-namespaces = ["example_namespace"]
+dependencies = ["httpx>=0.28"]
+
+[project.optional-dependencies]
+pytest = ["pytest>=8"]
 
 [project.scripts]
 example = "example_pkg.cli:main"
 
 [project.entry-points.pytest11]
 example_pkg = "example_pkg.pytest_plugin"
+
+[dependency-groups]
+docs = [
+    { package = "mkdocs>=1.6" },
+]
+test = [
+    "python-lang-project-harness[pytest]>=0.1.0",
+    { dependency = "ruff>=0.13" },
+]
+
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib", "--python-project-harness"]
 
 [build-system]
 requires = ["hatchling"]
@@ -45,6 +61,48 @@ packages = ["src/example_pkg"]
     assert metadata.requires_python == ">=3.12"
     assert metadata.build_backend == "hatchling.build"
     assert metadata.build_requires == ("hatchling",)
+    assert [item.to_dict() for item in metadata.dependencies] == [
+        {
+            "requirement": "httpx>=0.28",
+            "name": "httpx",
+            "source": "project.dependencies",
+            "group": None,
+            "extra": None,
+        },
+        {
+            "requirement": "pytest>=8",
+            "name": "pytest",
+            "source": "project.optional-dependencies",
+            "group": None,
+            "extra": "pytest",
+        },
+        {
+            "requirement": "mkdocs>=1.6",
+            "name": "mkdocs",
+            "source": "dependency-groups",
+            "group": "docs",
+            "extra": None,
+        },
+        {
+            "requirement": "python-lang-project-harness[pytest]>=0.1.0",
+            "name": "python-lang-project-harness",
+            "source": "dependency-groups",
+            "group": "test",
+            "extra": None,
+        },
+        {
+            "requirement": "ruff>=0.13",
+            "name": "ruff",
+            "source": "dependency-groups",
+            "group": "test",
+            "extra": None,
+        },
+    ]
+    assert metadata.pytest_options.addopts == (
+        "--import-mode=importlib",
+        "--python-project-harness",
+    )
+    assert metadata.pytest_options.enables_python_project_harness is True
     assert metadata.wheel_packages == ("src/example_pkg",)
     assert metadata.package_roots == (package,)
     assert [item.to_dict() for item in metadata.import_names] == [

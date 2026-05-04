@@ -7,6 +7,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TextIO
 
+from ._agent_snapshot import render_python_project_harness_agent_snapshot_report
 from ._model import PythonHarnessConfig
 from ._project_config import read_python_project_harness_config
 from ._render import render_python_lang_harness, render_python_lang_harness_json
@@ -38,9 +39,10 @@ def run_cli(
         project_root = options.project_root(cwd)
         if not project_root.exists():
             raise ValueError(f"project root does not exist: {project_root}")
+        config = options.harness_config(project_root)
         report = run_python_project_harness(
             project_root,
-            config=options.harness_config(project_root),
+            config=config,
             include_tests=options.include_tests,
             source_dir_names=options.source_dir_names,
             test_dir_names=options.test_dir_names,
@@ -49,6 +51,17 @@ def run_cli(
         if options.json:
             selected_stdout.write(render_python_lang_harness_json(report))
             selected_stdout.write("\n")
+        elif options.agent_snapshot:
+            selected_stdout.write(
+                render_python_project_harness_agent_snapshot_report(
+                    report,
+                    config=(
+                        config
+                        or read_python_project_harness_config(project_root)
+                        or PythonHarnessConfig()
+                    ),
+                )
+            )
         else:
             selected_stdout.write(render_python_lang_harness(report))
         return 0 if report.is_clean else 1
@@ -60,6 +73,7 @@ def run_cli(
 @dataclass(slots=True)
 class _CliOptions:
     json: bool = False
+    agent_snapshot: bool = False
     help: bool = False
     include_tests: bool | None = None
     source_dir_values: list[str] = field(default_factory=list)
@@ -85,6 +99,8 @@ class _CliOptions:
                     positional_only = True
                 case "--json":
                     options.json = True
+                case "--agent-snapshot":
+                    options.agent_snapshot = True
                 case "--no-tests":
                     options.include_tests = False
                 case "--source-dir":
@@ -120,6 +136,8 @@ class _CliOptions:
                     options.paths.append(Path(value))
         if len(options.paths) > 1:
             raise ValueError("expected at most one PROJECT_ROOT argument")
+        if options.json and options.agent_snapshot:
+            raise ValueError("--json and --agent-snapshot are mutually exclusive")
         return options
 
     def project_root(self, cwd: Path | None) -> Path:
@@ -190,12 +208,13 @@ def _option_value(
 
 def _help_text() -> str:
     return (
-        "python-project-harness [--json] [--no-tests] "
+        "python-project-harness [--json | --agent-snapshot] [--no-tests] "
         "[--source-dir DIR] [--test-dir DIR] [--extra-path PATH] "
         "[--disable-rule RULE_ID] [--block-rule RULE_ID] [PROJECT_ROOT]\n\n"
         "Runs the default package-level Python harness.\n\n"
         "Compact text is the default output for humans and repair-oriented agents.\n"
         "Use --json to emit the structured PythonHarnessReport JSON shape.\n"
+        "Use --agent-snapshot to emit parser facts for project repair agents.\n"
         "Repeat --source-dir or --test-dir to customize policy root classification.\n"
         "Repeat --extra-path to include external project paths.\n"
         "Repeat --disable-rule or --block-rule to customize policy by rule id.\n"
