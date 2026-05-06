@@ -90,6 +90,8 @@ LLMs and are not blocking by default.
 - `PY-AGENT-R006`: public value name conflicts across namespaces.
 - `PY-AGENT-R007`: branch packages with multiple child modules should include
   a reasoning-tree intent docstring.
+- `PY-AGENT-R008`: broad branch packages should split into focused subpackages
+  or document the facade and owner map for agent repair loops.
 
 ## Reasoning Tree Policy
 
@@ -107,7 +109,11 @@ docstrings, and parser-owned `pyproject.toml` metadata.
 agents cannot know which surface owns the change. `PY-AGENT-R007` stays
 advisory and asks branch package `__init__.py` files with multiple child
 modules to carry a short intent docstring, so agents can choose the right
-subtree before editing.
+subtree before editing. `PY-AGENT-R008` is also advisory; it combines branch
+child count with public-child and effective-line signals so crowded non-facade
+folders surface as owner-map advice without becoming a raw child-count gate.
+Packages that already expose an explicit public facade are treated as having
+an owner map.
 
 `render_python_reasoning_tree()` exposes the same tree as compact text for LLM
 repair loops. It includes an `[imports]` section for parser-resolved

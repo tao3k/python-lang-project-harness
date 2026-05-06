@@ -173,6 +173,11 @@ fail a file for line count alone; it requires the effective-line budget plus a
 long function span or multiple split indicators such as wide public surface,
 many top-level items, or mixed responsibility groups.
 
+Agent advice also uses package-tree facts. Broad non-facade branch packages get
+owner-map advice when child count combines with public-child or effective-line
+signals, which helps agents see folder-level responsibility drift during
+coding without changing default blocking behavior.
+
 Detailed package material lives under [`docs/`](docs/index.md).
 
 ## CI

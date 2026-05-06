@@ -129,6 +129,28 @@ def test_py_agent_r007_branch_intent_snapshot(tmp_path: Path) -> None:
     )
 
 
+def test_py_agent_r008_branch_surface_snapshot(tmp_path: Path) -> None:
+    branch = tmp_path / "src" / "pkg" / "domain"
+    branch.mkdir(parents=True)
+    (branch / "__init__.py").write_text(
+        '"""Domain package owner."""\n',
+        encoding="utf-8",
+    )
+    for index in range(6):
+        (branch / f"feature_{index}.py").write_text(
+            f'"""Feature {index} owner."""\n\n\n'
+            f"def build_{index}(value: int) -> int:\n"
+            f"    return value + {index}\n",
+            encoding="utf-8",
+        )
+
+    _assert_project_snapshot(
+        tmp_path,
+        "PY-AGENT-R008",
+        "py_agent_r008_branch_surface",
+    )
+
+
 def _assert_lang_snapshot(
     root: Path,
     paths: list[Path],

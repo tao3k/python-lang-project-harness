@@ -184,6 +184,32 @@ def test_agent_policy_deduplicates_repeated_namespace_branches(
     assert [finding.rule_id for finding in report.findings] == ["PY-AGENT-R004"]
 
 
+def test_agent_policy_reports_broad_branch_package_surface(tmp_path: Path) -> None:
+    branch = tmp_path / "src" / "pkg" / "domain"
+    branch.mkdir(parents=True)
+    (branch / "__init__.py").write_text(
+        '"""Domain package owner."""\n',
+        encoding="utf-8",
+    )
+    for index in range(6):
+        (branch / f"feature_{index}.py").write_text(
+            f'"""Feature {index} owner."""\n\n\n'
+            f"def build_{index}(value: int) -> int:\n"
+            f"    return value + {index}\n",
+            encoding="utf-8",
+        )
+
+    report = run_python_project_harness(tmp_path)
+
+    assert [
+        (finding.rule_id, finding.location.path) for finding in report.findings
+    ] == [
+        ("PY-AGENT-R008", str(branch / "__init__.py")),
+    ]
+    assert "one folder as one responsibility" in report.findings[0].requirement
+    assert "owner map" in report.findings[0].label
+
+
 def test_agent_policy_advice_can_be_promoted_to_blocking(
     tmp_path: Path,
 ) -> None:
@@ -232,5 +258,6 @@ def test_agent_policy_descriptor_and_catalog_are_stable() -> None:
         "PY-AGENT-R005",
         "PY-AGENT-R006",
         "PY-AGENT-R007",
+        "PY-AGENT-R008",
     ]
     assert {rule.severity for rule in rules} == {PythonDiagnosticSeverity.INFO}

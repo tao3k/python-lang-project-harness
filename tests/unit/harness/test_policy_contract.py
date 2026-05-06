@@ -42,6 +42,7 @@ _EXPECTED_RULE_SNAPSHOT_FILES = {
     "unit_test__agent_policy_snapshot__py_agent_r005_type_conflict.snap",
     "unit_test__agent_policy_snapshot__py_agent_r006_value_conflict.snap",
     "unit_test__agent_policy_snapshot__py_agent_r007_branch_intent.snap",
+    "unit_test__agent_policy_snapshot__py_agent_r008_branch_surface.snap",
     "unit_test__policy_snapshot__py_mod_r001_wildcard_import.snap",
     "unit_test__policy_snapshot__py_mod_r002_bare_print.snap",
     "unit_test__policy_snapshot__py_mod_r003_facade_all.snap",
@@ -139,6 +140,7 @@ def test_rule_catalogs_expose_stable_rule_ids() -> None:
         "PY-AGENT-R005",
         "PY-AGENT-R006",
         "PY-AGENT-R007",
+        "PY-AGENT-R008",
     ]
     assert [rule.rule_id for rule in python_test_layout_rules()] == [
         "PY-TEST-R001",
