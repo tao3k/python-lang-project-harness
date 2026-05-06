@@ -4,7 +4,7 @@
 :ID: 4af1b8e663ad854b94d6bd438596ab03c9829653
 :TYPE: FEATURE
 :STATUS: ACTIVE
-:LAST_SYNC: 2026-04-30
+:LAST_SYNC: 2026-05-05
 :END:
 
 The harness exposes deterministic rule metadata through compact library
@@ -69,6 +69,13 @@ The other default packs are blocking through `Warning` or `Error` findings.
 Project-local pytest-layout exceptions live in
 `tests/python-project-harness-rules.toml`; each exception needs a non-empty
 explanation before it suppresses `PY-TEST-*` findings.
+
+`PY-MOD-R006` is a mixed-signal modularity gate, not a line-count gate. The
+rule first requires the parser-owned effective-line budget to be exceeded, then
+requires either a long function span or multiple split indicators such as many
+top-level items, mixed responsibility groups, or a wide public surface. Large
+single-signal modules, such as generated constants or narrow data tables, do
+not fail only because they are long.
 
 ## Agent Advice Rules
 

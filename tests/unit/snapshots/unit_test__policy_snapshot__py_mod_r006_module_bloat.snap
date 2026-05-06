@@ -6,4 +6,4 @@ expression: rendered
    ,-[ src/feature.py:1:1 ]
  1 | """Large feature module."""
    | `- split this module into focused ownership seams
-   |Required: Split feature.py into focused modules; current size is 261 effective lines across 60 top-level items.
+   |Required: Split feature.py into focused modules because mixed signals cross the modularity budget: many top-level items, wide public surface.

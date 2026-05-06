@@ -30,6 +30,8 @@ from .model import (
 )
 
 if TYPE_CHECKING:
+    from python_lang_parser import PythonReasoningTreeFacts
+
     from .._model import PythonHarnessConfig, PythonHarnessReport
 
 
@@ -64,6 +66,34 @@ def build_python_verification_profile_index_report(
     facts = verification_reasoning_tree_facts(report)
     candidates: list[PythonVerificationProfileCandidate] = []
     candidate_index_by_path: dict[str, int] = {}
+    _append_node_candidates(
+        facts,
+        project_root=project_root,
+        policy=policy,
+        candidates=candidates,
+        candidate_index_by_path=candidate_index_by_path,
+    )
+    _append_metadata_candidates(
+        facts,
+        project_root=project_root,
+        policy=policy,
+        candidates=candidates,
+        candidate_index_by_path=candidate_index_by_path,
+    )
+    return PythonVerificationProfileIndex(
+        project_root=project_root,
+        candidates=tuple(sorted(candidates, key=lambda item: item.owner_path)),
+    )
+
+
+def _append_node_candidates(
+    facts: PythonReasoningTreeFacts,
+    *,
+    project_root: Path,
+    policy: PythonVerificationPolicy,
+    candidates: list[PythonVerificationProfileCandidate],
+    candidate_index_by_path: dict[str, int],
+) -> None:
     aggregate_public_namespaces = frozenset(
         branch.namespace for branch in facts.branches if branch.has_public_surface
     )
@@ -86,63 +116,87 @@ def build_python_verification_profile_index_report(
                 evidence=node_evidence(node),
                 policy=policy,
             )
+
+
+def _append_metadata_candidates(
+    facts: PythonReasoningTreeFacts,
+    *,
+    project_root: Path,
+    policy: PythonVerificationPolicy,
+    candidates: list[PythonVerificationProfileCandidate],
+    candidate_index_by_path: dict[str, int],
+) -> None:
     metadata = facts.project_metadata
-    if metadata is not None:
-        metadata_owner_path = project_metadata_owner_path(
-            facts,
-            project_root=project_root,
-        )
-        for path, namespace in entry_point_owner_paths(
-            facts,
-            project_root=project_root,
-        ):
-            _append_candidate(
-                candidates,
-                candidate_index_by_path,
-                owner_path=path,
-                owner_namespace=namespace,
-                responsibilities=(PythonOwnerResponsibility.CLI,),
-                evidence=(PythonVerificationEvidence("entry-point", "true"),),
-                policy=policy,
-            )
-        if metadata_owner_path is not None and (
-            metadata.pytest_options.enables_python_project_harness
-            or any(entry.group == "pytest11" for entry in metadata.entry_points)
-        ):
-            _append_candidate(
-                candidates,
-                candidate_index_by_path,
-                owner_path=metadata_owner_path,
-                owner_namespace=(),
-                responsibilities=(PythonOwnerResponsibility.PYTEST_GATE,),
-                evidence=(PythonVerificationEvidence("pytest-gate", "true"),),
-                policy=policy,
-            )
-        for dependency, signal in matched_dependency_signals(
-            metadata.dependencies,
-            policy.dependency_signals,
-        ):
-            if metadata_owner_path is None:
-                continue
-            _append_candidate(
-                candidates,
-                candidate_index_by_path,
-                owner_path=metadata_owner_path,
-                owner_namespace=(),
-                responsibilities=signal.responsibilities,
-                evidence=(
-                    PythonVerificationEvidence(
-                        "dependency",
-                        require_dependency_name(dependency),
-                    ),
-                ),
-                task_kinds=signal.task_kinds,
-                policy=policy,
-            )
-    return PythonVerificationProfileIndex(
+    if metadata is None:
+        return
+    metadata_owner_path = project_metadata_owner_path(
+        facts,
         project_root=project_root,
-        candidates=tuple(sorted(candidates, key=lambda item: item.owner_path)),
     )
+    _append_entry_point_candidates(
+        facts,
+        project_root=project_root,
+        policy=policy,
+        candidates=candidates,
+        candidate_index_by_path=candidate_index_by_path,
+    )
+    if metadata_owner_path is not None and (
+        metadata.pytest_options.enables_python_project_harness
+        or any(entry.group == "pytest11" for entry in metadata.entry_points)
+    ):
+        _append_candidate(
+            candidates,
+            candidate_index_by_path,
+            owner_path=metadata_owner_path,
+            owner_namespace=(),
+            responsibilities=(PythonOwnerResponsibility.PYTEST_GATE,),
+            evidence=(PythonVerificationEvidence("pytest-gate", "true"),),
+            policy=policy,
+        )
+    for dependency, signal in matched_dependency_signals(
+        metadata.dependencies,
+        policy.dependency_signals,
+    ):
+        if metadata_owner_path is None:
+            continue
+        _append_candidate(
+            candidates,
+            candidate_index_by_path,
+            owner_path=metadata_owner_path,
+            owner_namespace=(),
+            responsibilities=signal.responsibilities,
+            evidence=(
+                PythonVerificationEvidence(
+                    "dependency",
+                    require_dependency_name(dependency),
+                ),
+            ),
+            task_kinds=signal.task_kinds,
+            policy=policy,
+        )
+
+
+def _append_entry_point_candidates(
+    facts: PythonReasoningTreeFacts,
+    *,
+    project_root: Path,
+    policy: PythonVerificationPolicy,
+    candidates: list[PythonVerificationProfileCandidate],
+    candidate_index_by_path: dict[str, int],
+) -> None:
+    for path, namespace in entry_point_owner_paths(
+        facts,
+        project_root=project_root,
+    ):
+        _append_candidate(
+            candidates,
+            candidate_index_by_path,
+            owner_path=path,
+            owner_namespace=namespace,
+            responsibilities=(PythonOwnerResponsibility.CLI,),
+            evidence=(PythonVerificationEvidence("entry-point", "true"),),
+            policy=policy,
+        )
 
 
 def _responsibilities_for_node(

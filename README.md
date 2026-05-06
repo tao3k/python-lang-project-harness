@@ -168,6 +168,11 @@ Default project execution runs these packs in order:
 including `PY-AGENT-*` advice, stay visible in compact diagnostics without
 blocking unless a caller opts into stricter severities.
 
+The modularity pack uses parser-owned mixed signals. `PY-MOD-R006` does not
+fail a file for line count alone; it requires the effective-line budget plus a
+long function span or multiple split indicators such as wide public surface,
+many top-level items, or mixed responsibility groups.
+
 Detailed package material lives under [`docs/`](docs/index.md).
 
 ## CI

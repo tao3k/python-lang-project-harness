@@ -18,6 +18,10 @@ from ._model import (
     PythonHarnessRule,
     PythonRulePackDescriptor,
 )
+from ._modularity_signals import (
+    collect_module_complexity_signals,
+    module_needs_split,
+)
 from ._source import path_location
 
 if TYPE_CHECKING:
@@ -31,10 +35,6 @@ MODULARITY_PACK_ID = "python.modularity"
 PY_MOD_R006 = "PY-MOD-R006"
 PY_MOD_R007 = "PY-MOD-R007"
 
-_MAX_MODULE_EFFECTIVE_CODE_LINES = 220
-_MAX_MODULE_TOP_LEVEL_ITEMS = 8
-_MIN_MODULE_RESPONSIBILITY_GROUPS = 3
-_MIN_MODULE_PUBLIC_SURFACE_ITEMS = 5
 _RULE_LABELS = {
     "language": "python",
     "domain": "modularity",
@@ -109,14 +109,8 @@ def _file_modularity_findings(
     if _is_data_model_catalog(report):
         return ()
 
-    if (
-        shape.effective_code_lines < _MAX_MODULE_EFFECTIVE_CODE_LINES
-        or shape.top_level_statement_count < _MAX_MODULE_TOP_LEVEL_ITEMS
-        or (
-            shape.responsibility_group_count < _MIN_MODULE_RESPONSIBILITY_GROUPS
-            and shape.public_surface_count < _MIN_MODULE_PUBLIC_SURFACE_ITEMS
-        )
-    ):
+    signals = collect_module_complexity_signals(report)
+    if not module_needs_split(signals):
         return ()
 
     rule = _rule(PY_MOD_R006)
@@ -128,16 +122,18 @@ def _file_modularity_findings(
             severity=rule.severity,
             title=rule.title,
             summary=(
-                f"{path.name} has {shape.effective_code_lines} effective lines, "
-                f"{shape.top_level_statement_count} top-level items, "
-                f"{shape.responsibility_group_count} responsibility groups, "
-                f"and {shape.public_surface_count} public surface items."
+                f"{path.name} has {signals.effective_code_lines} effective lines, "
+                f"{signals.top_level_statement_count} top-level items, "
+                f"{signals.responsibility_group_count} responsibility groups, "
+                f"{signals.public_surface_count} public surface items, "
+                f"{signals.long_function_count} long functions, "
+                f"and max function span {signals.max_function_lines} lines."
             ),
             location=path_location(path),
             requirement=(
-                f"Split {path.name} into focused modules; current size is "
-                f"{shape.effective_code_lines} effective lines across "
-                f"{shape.top_level_statement_count} top-level items."
+                f"Split {path.name} into focused modules because mixed signals "
+                f"cross the modularity budget: "
+                f"{', '.join(signals.split_indicators)}."
             ),
             source_line=report.source_line(1),
             label="split this module into focused ownership seams",
