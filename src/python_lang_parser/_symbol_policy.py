@@ -12,6 +12,12 @@ def python_symbol_is_callable(symbol: PythonSymbol) -> bool:
     return symbol.kind in {PythonSymbolKind.FUNCTION, PythonSymbolKind.ASYNC_FUNCTION}
 
 
+def python_symbol_is_top_level_callable(symbol: PythonSymbol) -> bool:
+    """Return whether a parser symbol is a module-level callable."""
+
+    return python_symbol_is_callable(symbol) and symbol.is_top_level
+
+
 def python_symbol_is_class(symbol: PythonSymbol) -> bool:
     """Return whether a parser symbol is a class definition."""
 

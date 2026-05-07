@@ -92,11 +92,17 @@ LLMs and are not blocking by default.
   a reasoning-tree intent docstring.
 - `PY-AGENT-R008`: broad branch packages should split into focused subpackages
   or document the facade and owner map for agent repair loops.
-- `PY-AGENT-R009`: public functions with deeply nested control flow should
+- `PY-AGENT-R009`: top-level functions and public methods with deeply nested
+  control flow should
   expose the algorithm shape through guard clauses, explicit dispatch,
   `match/case`, or small named pipeline steps.
-- `PY-AGENT-R010`: public functions with broad linear statement blocks should
-  split into named helpers or pipeline steps that are easier for agents to edit.
+- `PY-AGENT-R010`: top-level functions and public methods with broad linear
+  statement blocks should split into named helpers or pipeline steps that are
+  easier for agents to edit.
+- `PY-AGENT-R011`: top-level functions and public methods that manually spell
+  simple collection or predicate loops should use native Python idioms such as
+  comprehensions, generator expressions, built-ins such as `sum`/`any`/`all`,
+  `collections.Counter`/`defaultdict`, or named iterator pipeline helpers.
 
 ## Reasoning Tree Policy
 
@@ -139,6 +145,15 @@ consumes `PythonFunctionControlFlow` facts and does not run a second AST parse.
 procedure-like public functions, while the latter catches nested control-flow
 shape. This keeps the advice compact and avoids telling the agent the same
 thing twice.
+
+`PY-AGENT-R011` is the native-Python idiom layer. It is backed by parser-owned
+function facts for simple accumulator loops and predicate loops, so the harness
+can advise comprehensions, generator expressions, built-ins, or iterator
+pipeline helpers without parsing source in the policy layer. The rule is
+conservative: it targets module-level functions and public methods where a loop
+only maps, filters, counts, groups, accumulates, or answers a boolean predicate.
+Explicit loops remain valid for effects, complex state machines, debugging, or
+measured performance work.
 
 `render_python_reasoning_tree()` exposes the same tree as compact text for LLM
 repair loops. It includes an `[imports]` section for parser-resolved

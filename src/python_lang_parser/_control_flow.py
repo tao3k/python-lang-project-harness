@@ -6,6 +6,7 @@ import ast
 from dataclasses import dataclass
 
 from ._ast_names import unparse
+from ._native_idiom_loops import collect_native_idiom_loop_facts
 from .model import PythonFunctionControlFlow
 
 
@@ -19,6 +20,11 @@ def collect_function_control_flow(
     return PythonFunctionControlFlow(
         statement_count=collector.statement_count,
         max_block_statement_count=collector.max_block_statement_count,
+        manual_collection_loop_count=collector.manual_collection_loop_count,
+        manual_predicate_loop_count=collector.manual_predicate_loop_count,
+        manual_mapping_count_loop_count=collector.manual_mapping_count_loop_count,
+        manual_mapping_group_loop_count=collector.manual_mapping_group_loop_count,
+        manual_numeric_sum_loop_count=collector.manual_numeric_sum_loop_count,
         branch_count=collector.branch_count,
         loop_count=collector.loop_count,
         match_count=collector.match_count,
@@ -35,6 +41,11 @@ def collect_function_control_flow(
 class _ControlFlowCollector:
     statement_count: int = 0
     max_block_statement_count: int = 0
+    manual_collection_loop_count: int = 0
+    manual_predicate_loop_count: int = 0
+    manual_mapping_count_loop_count: int = 0
+    manual_mapping_group_loop_count: int = 0
+    manual_numeric_sum_loop_count: int = 0
     branch_count: int = 0
     loop_count: int = 0
     match_count: int = 0
@@ -56,6 +67,7 @@ class _ControlFlowCollector:
             self.max_block_statement_count,
             len(statements),
         )
+        self._record_native_idiom_opportunities(statements)
         for statement in statements:
             self.visit_statement(
                 statement,
@@ -239,6 +251,17 @@ class _ControlFlowCollector:
         self.max_nesting_depth = max(self.max_nesting_depth, depth)
         if depth >= 3:
             self.nested_control_flow_count += 1
+
+    def _record_native_idiom_opportunities(
+        self,
+        statements: list[ast.stmt],
+    ) -> None:
+        facts = collect_native_idiom_loop_facts(statements)
+        self.manual_collection_loop_count += facts.manual_collection_loop_count
+        self.manual_predicate_loop_count += facts.manual_predicate_loop_count
+        self.manual_mapping_count_loop_count += facts.manual_mapping_count_loop_count
+        self.manual_mapping_group_loop_count += facts.manual_mapping_group_loop_count
+        self.manual_numeric_sum_loop_count += facts.manual_numeric_sum_loop_count
 
 
 def _body_has_terminal_exit(statements: list[ast.stmt]) -> bool:

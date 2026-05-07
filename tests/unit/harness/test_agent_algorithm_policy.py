@@ -105,6 +105,56 @@ def test_py_agent_r010_function_compactness_snapshot(tmp_path: Path) -> None:
     )
 
 
+def test_py_agent_r011_native_idiom_snapshot(tmp_path: Path) -> None:
+    source = tmp_path / "service.py"
+    source.write_text(
+        '''
+"""Service algorithms."""
+
+
+def _has_admin(values: list[str]) -> bool:
+    total = 0
+    for value in values:
+        total += len(value)
+    counts = {}
+    groups = {}
+    for value in values:
+        if value not in counts:
+            counts[value] = 0
+        counts[value] += 1
+    for value in values:
+        if value not in groups:
+            groups[value] = []
+        groups[value].append(value)
+    names = []
+    for value in values:
+        if value:
+            names.append(value.strip())
+    for name in names:
+        if name == "admin":
+            return True
+    return False
+''',
+        encoding="utf-8",
+    )
+
+    report = run_python_lang_harness([source])
+    filtered = replace(
+        report,
+        findings=tuple(
+            finding for finding in report.findings if finding.rule_id == "PY-AGENT-R011"
+        ),
+    )
+    rendered = normalize_temp_root(render_python_lang_harness(filtered), tmp_path)
+
+    assert filtered.findings, "expected PY-AGENT-R011 finding"
+    assert_snapshot(
+        "unit_test__agent_policy_snapshot__py_agent_r011_native_idiom",
+        rendered,
+        source="tests/unit/harness/test_agent_algorithm_policy.py",
+    )
+
+
 def _broad_linear_function_source() -> str:
     lines = [
         '"""Service algorithms."""',

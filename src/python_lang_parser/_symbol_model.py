@@ -39,6 +39,11 @@ class PythonFunctionControlFlow:
 
     statement_count: int = 0
     max_block_statement_count: int = 0
+    manual_collection_loop_count: int = 0
+    manual_predicate_loop_count: int = 0
+    manual_mapping_count_loop_count: int = 0
+    manual_mapping_group_loop_count: int = 0
+    manual_numeric_sum_loop_count: int = 0
     branch_count: int = 0
     loop_count: int = 0
     match_count: int = 0

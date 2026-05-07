@@ -41,26 +41,60 @@ def _iter_import_edges(
     namespaces: set[tuple[str, ...]],
     modules_by_namespace: dict[tuple[str, ...], PythonReasoningTreeModuleInfo],
 ) -> tuple[PythonReasoningTreeImportEdge, ...]:
-    edges: list[PythonReasoningTreeImportEdge] = []
-    for module in modules:
-        if not module.namespace:
-            continue
-        for import_record in module.report.imports:
-            for resolved in _resolved_imports(
+    return tuple(
+        edge
+        for module in modules
+        if module.namespace
+        for edge in _module_import_edges(
+            module,
+            namespaces=namespaces,
+            modules_by_namespace=modules_by_namespace,
+        )
+    )
+
+
+def _module_import_edges(
+    module: PythonReasoningTreeModuleInfo,
+    *,
+    namespaces: set[tuple[str, ...]],
+    modules_by_namespace: dict[tuple[str, ...], PythonReasoningTreeModuleInfo],
+) -> tuple[PythonReasoningTreeImportEdge, ...]:
+    return tuple(
+        edge
+        for import_record in module.report.imports
+        for edge in _import_record_edges(
+            module,
+            import_record,
+            namespaces=namespaces,
+            modules_by_namespace=modules_by_namespace,
+        )
+    )
+
+
+def _import_record_edges(
+    module: PythonReasoningTreeModuleInfo,
+    import_record: PythonImport,
+    *,
+    namespaces: set[tuple[str, ...]],
+    modules_by_namespace: dict[tuple[str, ...], PythonReasoningTreeModuleInfo],
+) -> tuple[PythonReasoningTreeImportEdge, ...]:
+    return tuple(
+        edge
+        for resolved in _resolved_imports(
+            module,
+            import_record,
+            namespaces=namespaces,
+        )
+        if (
+            edge := _import_edge(
                 module,
                 import_record,
-                namespaces=namespaces,
-            ):
-                edge = _import_edge(
-                    module,
-                    import_record,
-                    resolved,
-                    modules_by_namespace=modules_by_namespace,
-                )
-                if edge is None:
-                    continue
-                edges.append(edge)
-    return tuple(edges)
+                resolved,
+                modules_by_namespace=modules_by_namespace,
+            )
+        )
+        is not None
+    )
 
 
 def _import_edge(

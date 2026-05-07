@@ -134,6 +134,8 @@ def test_agent_readability_policy_consumes_parser_function_facts() -> None:
         source = path.read_text(encoding="utf-8")
         assert "import ast" not in source, path
         assert "ast." not in source, path
+        assert "symbol.is_top_level" not in source, path
+        assert "symbol.is_public" not in source, path
 
     combined = "\n".join(
         path.read_text(encoding="utf-8")
@@ -141,3 +143,4 @@ def test_agent_readability_policy_consumes_parser_function_facts() -> None:
     )
     assert "symbol.control_flow" in combined
     assert "PythonFunctionControlFlow" in combined
+    assert "python_symbol_is_top_level_callable(" in combined

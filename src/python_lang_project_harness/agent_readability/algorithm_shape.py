@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from python_lang_parser import (
-    python_symbol_is_public_callable_boundary,
-    python_symbol_is_public_class,
-)
-
 from .._agent_policy_catalog import PY_AGENT_R009, agent_policy_rule
 from .._model import PythonHarnessFinding
+from ._boundaries import (
+    agent_readability_function_is_boundary,
+    agent_readability_public_class_scopes,
+    agent_readability_report_is_in_scope,
+)
 
 if TYPE_CHECKING:
     from python_lang_parser import (
@@ -26,13 +26,15 @@ def agent_algorithm_shape_findings(
 ) -> tuple[PythonHarnessFinding, ...]:
     """Return machine-readability advice for public algorithm boundaries."""
 
+    if not agent_readability_report_is_in_scope(report):
+        return ()
     findings: list[PythonHarnessFinding] = []
     rule = agent_policy_rule(PY_AGENT_R009)
-    public_class_scopes = _public_class_scopes(report)
+    public_class_scopes = agent_readability_public_class_scopes(report)
     for symbol in report.symbols:
         control_flow = symbol.control_flow
         if (
-            not _is_agent_algorithm_boundary(
+            not agent_readability_function_is_boundary(
                 symbol,
                 public_class_scopes=public_class_scopes,
             )
@@ -57,25 +59,6 @@ def agent_algorithm_shape_findings(
             )
         )
     return tuple(findings)
-
-
-def _is_agent_algorithm_boundary(
-    symbol: PythonSymbol,
-    *,
-    public_class_scopes: frozenset[str],
-) -> bool:
-    return python_symbol_is_public_callable_boundary(
-        symbol,
-        public_class_scopes=public_class_scopes,
-    )
-
-
-def _public_class_scopes(report: PythonModuleReport) -> frozenset[str]:
-    return frozenset(
-        symbol.qualified_name
-        for symbol in report.symbols
-        if python_symbol_is_public_class(symbol)
-    )
 
 
 def _agent_algorithm_profile(

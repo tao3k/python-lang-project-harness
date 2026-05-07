@@ -1,10 +1,10 @@
-"""Agent-facing compact-function advice from parser-owned function facts."""
+"""Agent-facing native-idiom advice from parser-owned function facts."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .._agent_policy_catalog import PY_AGENT_R010, agent_policy_rule
+from .._agent_policy_catalog import PY_AGENT_R011, agent_policy_rule
 from .._model import PythonHarnessFinding
 from ._boundaries import (
     agent_readability_function_is_boundary,
@@ -19,22 +19,17 @@ if TYPE_CHECKING:
         PythonSymbol,
     )
 
-_MAX_PUBLIC_FUNCTION_LINES = 72
-_MAX_LINEAR_BLOCK_STATEMENTS = 14
-_MAX_TOTAL_STATEMENTS = 22
-_MAX_NESTING_FOR_LINEAR_RULE = 2
 
-
-def agent_function_compactness_findings(
+def agent_native_idiom_findings(
     report: PythonModuleReport,
     pack_id: str,
 ) -> tuple[PythonHarnessFinding, ...]:
-    """Return machine-readability advice for broad public function bodies."""
+    """Return repair advice for public functions that miss native Python idioms."""
 
     if not agent_readability_report_is_in_scope(report):
         return ()
     findings: list[PythonHarnessFinding] = []
-    rule = agent_policy_rule(PY_AGENT_R010)
+    rule = agent_policy_rule(PY_AGENT_R011)
     public_class_scopes = agent_readability_public_class_scopes(report)
     for symbol in report.symbols:
         control_flow = symbol.control_flow
@@ -46,8 +41,7 @@ def agent_function_compactness_findings(
             or control_flow is None
         ):
             continue
-        line_span = _symbol_line_span(symbol)
-        profile = _compactness_profile(control_flow, line_span=line_span)
+        profile = _native_idiom_profile(control_flow)
         if not profile:
             continue
         findings.append(
@@ -56,49 +50,43 @@ def agent_function_compactness_findings(
                 pack_id=pack_id,
                 severity=rule.severity,
                 title=rule.title,
-                summary=_summary(symbol, control_flow, line_span=line_span),
+                summary=_summary(symbol, control_flow),
                 location=symbol.location,
                 requirement=f"{rule.requirement} Signals: {', '.join(profile)}.",
                 source_line=report.source_line(symbol.location.line),
-                label="split this broad function into named algorithm steps",
+                label="replace this boilerplate loop with a native Python idiom",
                 labels=dict(rule.labels),
             )
         )
     return tuple(findings)
 
 
-def _compactness_profile(
+def _native_idiom_profile(
     control_flow: PythonFunctionControlFlow,
-    *,
-    line_span: int,
 ) -> tuple[str, ...]:
-    if control_flow.max_nesting_depth > _MAX_NESTING_FOR_LINEAR_RULE:
-        return ()
     indicators: list[str] = []
-    if (
-        line_span >= _MAX_PUBLIC_FUNCTION_LINES
-        and control_flow.statement_count >= _MAX_TOTAL_STATEMENTS
-    ):
-        indicators.append("long public function body")
-    if control_flow.max_block_statement_count >= _MAX_LINEAR_BLOCK_STATEMENTS:
-        indicators.append("large linear statement block")
+    if control_flow.manual_collection_loop_count:
+        indicators.append("manual collection accumulator loop")
+    if control_flow.manual_predicate_loop_count:
+        indicators.append("manual predicate loop")
+    if control_flow.manual_mapping_count_loop_count:
+        indicators.append("manual mapping counter loop")
+    if control_flow.manual_mapping_group_loop_count:
+        indicators.append("manual mapping grouping loop")
+    if control_flow.manual_numeric_sum_loop_count:
+        indicators.append("manual numeric sum loop")
     return tuple(indicators)
-
-
-def _symbol_line_span(symbol: PythonSymbol) -> int:
-    if symbol.end_line is None:
-        return 0
-    return max(1, symbol.end_line - symbol.location.line + 1)
 
 
 def _summary(
     symbol: PythonSymbol,
     control_flow: PythonFunctionControlFlow,
-    *,
-    line_span: int,
 ) -> str:
     return (
-        f"{symbol.qualified_name} spans {line_span} lines with "
-        f"{control_flow.statement_count} statements and a "
-        f"{control_flow.max_block_statement_count}-statement linear block."
+        f"{symbol.qualified_name} has "
+        f"{control_flow.manual_collection_loop_count} manual collection loops "
+        f"{control_flow.manual_predicate_loop_count} manual predicate loops, "
+        f"{control_flow.manual_mapping_count_loop_count} manual counter loops, "
+        f"{control_flow.manual_mapping_group_loop_count} manual grouping loops, "
+        f"and {control_flow.manual_numeric_sum_loop_count} manual sum loops."
     )

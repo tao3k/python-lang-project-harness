@@ -76,6 +76,10 @@ def test_root_package_reexports_parser_fact_models() -> None:
         is parser_api.python_symbol_is_public_top_level
     )
     assert (
+        harness_api.python_symbol_is_top_level_callable
+        is parser_api.python_symbol_is_top_level_callable
+    )
+    assert (
         harness_api.python_symbol_is_test_function
         is parser_api.python_symbol_is_test_function
     )
@@ -108,6 +112,7 @@ def test_root_package_reexports_parser_fact_models() -> None:
     assert "python_symbol_is_public_callable_boundary" in harness_api.__all__
     assert "python_symbol_is_public_class" in harness_api.__all__
     assert "python_symbol_is_public_top_level" in harness_api.__all__
+    assert "python_symbol_is_top_level_callable" in harness_api.__all__
     assert "python_symbol_is_test_function" in harness_api.__all__
 
 

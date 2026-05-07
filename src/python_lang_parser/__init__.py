@@ -38,6 +38,7 @@ from ._symbol_policy import (
     python_symbol_is_public_class,
     python_symbol_is_public_top_level,
     python_symbol_is_test_function,
+    python_symbol_is_top_level_callable,
 )
 from ._version import __version__
 from .model import (
@@ -112,4 +113,5 @@ __all__ = [
     "python_symbol_is_public_class",
     "python_symbol_is_public_top_level",
     "python_symbol_is_test_function",
+    "python_symbol_is_top_level_callable",
 ]

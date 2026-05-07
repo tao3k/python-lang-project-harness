@@ -19,6 +19,7 @@ PY_AGENT_R007 = "PY-AGENT-R007"
 PY_AGENT_R008 = "PY-AGENT-R008"
 PY_AGENT_R009 = "PY-AGENT-R009"
 PY_AGENT_R010 = "PY-AGENT-R010"
+PY_AGENT_R011 = "PY-AGENT-R011"
 
 _RULE_LABELS = {
     "language": "python",
@@ -103,6 +104,14 @@ _RULES = (
         severity=PythonDiagnosticSeverity.INFO,
         title="Function owns a broad linear algorithm surface",
         requirement="Split long public functions with broad linear statement blocks into small named helpers or pipeline steps so agents can edit one algorithm responsibility at a time.",
+        labels=dict(_RULE_LABELS),
+    ),
+    PythonHarnessRule(
+        rule_id=PY_AGENT_R011,
+        pack_id=AGENT_POLICY_PACK_ID,
+        severity=PythonDiagnosticSeverity.INFO,
+        title="Function manually spells a native Python transform",
+        requirement="Use comprehensions, generator expressions, built-ins such as sum/any/all, collections.Counter/defaultdict, or named iterator pipeline helpers when a loop only maps, filters, counts, groups, accumulates, or answers a predicate.",
         labels=dict(_RULE_LABELS),
     ),
 )
