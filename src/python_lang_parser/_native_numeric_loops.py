@@ -4,15 +4,28 @@ from __future__ import annotations
 
 import ast
 
+from ._binding_mutations import _rebound_names
+
 
 def numeric_accumulator_bindings(statements: list[ast.stmt]) -> frozenset[str]:
-    """Return names initialized as numeric accumulators in one statement block."""
+    """Return active names initialized as numeric accumulators in one block."""
 
-    return frozenset(
-        name
-        for statement in statements
-        if (name := _zero_number_binding(statement)) is not None
-    )
+    bindings = frozenset[str]()
+    for statement in statements:
+        bindings = updated_numeric_accumulator_bindings(bindings, statement)
+    return bindings
+
+
+def updated_numeric_accumulator_bindings(
+    bindings: frozenset[str],
+    statement: ast.stmt,
+) -> frozenset[str]:
+    """Return numeric accumulator binding state after one statement executes."""
+
+    active_bindings = bindings - _rebound_names(statement)
+    if (name := _zero_number_binding(statement)) is None:
+        return active_bindings
+    return active_bindings | {name}
 
 
 def is_manual_numeric_sum_loop(

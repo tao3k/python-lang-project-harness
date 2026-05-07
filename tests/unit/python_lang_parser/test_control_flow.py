@@ -169,6 +169,74 @@ def summarize(values: list[int]) -> int:
     assert control_flow.manual_numeric_sum_loop_count == 1
 
 
+def test_parse_python_source_invalidates_reassigned_accumulator_bindings() -> None:
+    report = parse_python_source(
+        '''
+"""Native idiom binding-state fixture."""
+
+
+def collect(values: list[int]) -> tuple[list[int], dict[int, int], int]:
+    items = []
+    items = preload_items()
+    for value in values:
+        items.append(value)
+    counts = {}
+    counts = preload_counts()
+    for value in values:
+        if value not in counts:
+            counts[value] = 0
+        counts[value] += 1
+    total = 0
+    total = preload_total()
+    for value in values:
+        total += value
+    return items, counts, total
+''',
+        path="native_idiom.py",
+    )
+
+    control_flow = report.symbols[0].control_flow
+
+    assert control_flow is not None
+    assert control_flow.manual_collection_loop_count == 0
+    assert control_flow.manual_predicate_loop_count == 0
+    assert control_flow.manual_mapping_count_loop_count == 0
+    assert control_flow.manual_mapping_group_loop_count == 0
+    assert control_flow.manual_numeric_sum_loop_count == 0
+
+
+def test_parse_python_source_invalidates_accumulators_after_mutation() -> None:
+    report = parse_python_source(
+        '''
+"""Native idiom binding-state fixture."""
+
+
+def collect(values: list[int], more_values: list[int]) -> tuple[list[int], int]:
+    items = []
+    for value in values:
+        items.append(value)
+    for value in more_values:
+        items.append(value)
+    total = 0
+    for value in values:
+        total += value
+    for value in more_values:
+        total += value
+    return items, total
+''',
+        path="native_idiom.py",
+    )
+
+    control_flow = report.symbols[0].control_flow
+
+    assert control_flow is not None
+    assert control_flow.manual_collection_loop_count == 1
+    assert control_flow.manual_predicate_loop_count == 0
+    assert control_flow.manual_mapping_count_loop_count == 0
+    assert control_flow.manual_mapping_group_loop_count == 0
+    assert control_flow.manual_numeric_sum_loop_count == 1
+
+
 def test_control_flow_collector_avoids_module_wide_ast_walks() -> None:
     source = (
         _PROJECT_ROOT / "src" / "python_lang_parser" / "_control_flow.py"

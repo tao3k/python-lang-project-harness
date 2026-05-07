@@ -4,17 +4,36 @@ from __future__ import annotations
 
 import ast
 
+from ._binding_mutations import _collection_mutation_names, _rebound_names
+
 _COLLECTION_CONSTRUCTOR_NAMES = frozenset({"dict", "list", "set"})
 
 
 def collection_bindings(statements: list[ast.stmt]) -> dict[str, str]:
-    """Return names bound to empty collection literals or constructors."""
+    """Return active names bound to empty collection literals or constructors."""
 
-    return dict(
-        binding
-        for statement in statements
-        if (binding := empty_collection_binding(statement)) is not None
+    bindings: dict[str, str] = {}
+    for statement in statements:
+        bindings = updated_collection_bindings(bindings, statement)
+    return bindings
+
+
+def updated_collection_bindings(
+    bindings: dict[str, str],
+    statement: ast.stmt,
+) -> dict[str, str]:
+    """Return binding state after one statement executes."""
+
+    invalidated_names = _rebound_names(statement) | _collection_mutation_names(
+        statement
     )
+    active_bindings = {
+        name: kind for name, kind in bindings.items() if name not in invalidated_names
+    }
+    if (binding := empty_collection_binding(statement)) is None:
+        return active_bindings
+    name, kind = binding
+    return active_bindings | {name: kind}
 
 
 def manual_collection_loop_kind(
