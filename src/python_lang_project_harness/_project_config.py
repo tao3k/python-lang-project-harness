@@ -32,8 +32,13 @@ def read_python_project_harness_config(
 ) -> PythonHarnessConfig | None:
     """Read `[tool.python-lang-project-harness]` from `pyproject.toml`."""
 
-    root = Path(project_root)
-    pyproject_path = root / "pyproject.toml"
+    table = _read_project_config_table(Path(project_root) / "pyproject.toml")
+    if not table:
+        return None
+    return PythonHarnessConfig(**_harness_config_kwargs(table))
+
+
+def _read_project_config_table(pyproject_path: Path) -> dict[str, Any] | None:
     if not pyproject_path.exists():
         return None
 
@@ -45,7 +50,10 @@ def read_python_project_harness_config(
     table = _table(_table(payload.get("tool")).get(_TOOL_TABLE_NAME))
     if not table:
         return None
+    return table
 
+
+def _harness_config_kwargs(table: dict[str, Any]) -> dict[str, object]:
     kwargs: dict[str, object] = {}
     _put_bool(kwargs, table, "include_tests")
     _put_string_tuple(kwargs, table, "source_dir_names")
@@ -56,7 +64,7 @@ def read_python_project_harness_config(
     _put_string_frozenset(kwargs, table, "blocking_rule_ids")
     _put_severity_frozenset(kwargs, table, "blocking_severities")
     _put_verification_policy(kwargs, table)
-    return PythonHarnessConfig(**kwargs)
+    return kwargs
 
 
 def _put_bool(

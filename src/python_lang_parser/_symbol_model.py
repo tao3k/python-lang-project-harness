@@ -34,6 +34,28 @@ class PythonCallEffect(StrEnum):
 
 
 @dataclass(frozen=True, slots=True)
+class PythonFunctionControlFlow:
+    """Parser-owned control-flow shape facts for one function body."""
+
+    statement_count: int = 0
+    max_block_statement_count: int = 0
+    branch_count: int = 0
+    loop_count: int = 0
+    match_count: int = 0
+    return_count: int = 0
+    terminal_else_count: int = 0
+    max_nesting_depth: int = 0
+    max_loop_nesting_depth: int = 0
+    max_literal_dispatch_chain: int = 0
+    nested_control_flow_count: int = 0
+
+    def to_dict(self) -> dict[str, object]:
+        """Return a JSON-compatible representation."""
+
+        return asdict(self)
+
+
+@dataclass(frozen=True, slots=True)
 class PythonImport:
     """One import statement collected from a Python module."""
 
@@ -66,6 +88,7 @@ class PythonSymbol:
     end_line: int | None
     decorators: tuple[str, ...] = field(default_factory=tuple)
     base_classes: tuple[str, ...] = field(default_factory=tuple)
+    control_flow: PythonFunctionControlFlow | None = None
     docstring: str | None = None
     has_annotations: bool = False
     is_public: bool = False
@@ -78,6 +101,9 @@ class PythonSymbol:
         payload["kind"] = self.kind.value
         payload["decorators"] = list(self.decorators)
         payload["base_classes"] = list(self.base_classes)
+        payload["control_flow"] = (
+            None if self.control_flow is None else self.control_flow.to_dict()
+        )
         return payload
 
 

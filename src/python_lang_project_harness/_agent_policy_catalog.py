@@ -17,6 +17,8 @@ PY_AGENT_R005 = "PY-AGENT-R005"
 PY_AGENT_R006 = "PY-AGENT-R006"
 PY_AGENT_R007 = "PY-AGENT-R007"
 PY_AGENT_R008 = "PY-AGENT-R008"
+PY_AGENT_R009 = "PY-AGENT-R009"
+PY_AGENT_R010 = "PY-AGENT-R010"
 
 _RULE_LABELS = {
     "language": "python",
@@ -85,6 +87,22 @@ _RULES = (
         severity=PythonDiagnosticSeverity.INFO,
         title="Branch package owns a broad mixed surface",
         requirement="Split crowded branch packages into focused subpackages, or document the facade and owner map so agents do not treat one folder as one responsibility.",
+        labels=dict(_RULE_LABELS),
+    ),
+    PythonHarnessRule(
+        rule_id=PY_AGENT_R009,
+        pack_id=AGENT_POLICY_PACK_ID,
+        severity=PythonDiagnosticSeverity.INFO,
+        title="Function hides algorithm behind nested control flow",
+        requirement="Flatten deeply nested if/loop logic into guard clauses, explicit dispatch, match/case, or small named pipeline steps so agents can reason about the algorithm shape.",
+        labels=dict(_RULE_LABELS),
+    ),
+    PythonHarnessRule(
+        rule_id=PY_AGENT_R010,
+        pack_id=AGENT_POLICY_PACK_ID,
+        severity=PythonDiagnosticSeverity.INFO,
+        title="Function owns a broad linear algorithm surface",
+        requirement="Split long public functions with broad linear statement blocks into small named helpers or pipeline steps so agents can edit one algorithm responsibility at a time.",
         labels=dict(_RULE_LABELS),
     ),
 )

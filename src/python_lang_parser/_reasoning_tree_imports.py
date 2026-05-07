@@ -22,46 +22,85 @@ def python_reasoning_tree_import_edges(
     modules_by_namespace = _modules_by_namespace(modules)
     edges: list[PythonReasoningTreeImportEdge] = []
     seen: set[tuple[str, tuple[str, ...], str, str, int, int]] = set()
+    for edge in _iter_import_edges(
+        modules,
+        namespaces=namespaces,
+        modules_by_namespace=modules_by_namespace,
+    ):
+        key = _edge_key(edge)
+        if key in seen:
+            continue
+        seen.add(key)
+        edges.append(edge)
+    return tuple(sorted(edges, key=lambda item: (item.importer_path, item.line)))
+
+
+def _iter_import_edges(
+    modules: tuple[PythonReasoningTreeModuleInfo, ...],
+    *,
+    namespaces: set[tuple[str, ...]],
+    modules_by_namespace: dict[tuple[str, ...], PythonReasoningTreeModuleInfo],
+) -> tuple[PythonReasoningTreeImportEdge, ...]:
+    edges: list[PythonReasoningTreeImportEdge] = []
     for module in modules:
         if not module.namespace:
             continue
         for import_record in module.report.imports:
-            for import_name, bound_name, imported_namespace in _resolved_imports(
+            for resolved in _resolved_imports(
                 module,
                 import_record,
                 namespaces=namespaces,
             ):
-                if imported_namespace == module.namespace:
-                    continue
-                imported_module = modules_by_namespace.get(imported_namespace)
-                if imported_module is None:
-                    continue
-                key = (
-                    module.path,
-                    imported_namespace,
-                    import_name,
-                    import_record.scope,
-                    import_record.location.line,
-                    import_record.location.column,
+                edge = _import_edge(
+                    module,
+                    import_record,
+                    resolved,
+                    modules_by_namespace=modules_by_namespace,
                 )
-                if key in seen:
+                if edge is None:
                     continue
-                seen.add(key)
-                edges.append(
-                    PythonReasoningTreeImportEdge(
-                        importer_path=module.path,
-                        importer_namespace=module.namespace,
-                        imported_path=imported_module.path,
-                        imported_namespace=imported_namespace,
-                        import_name=import_name,
-                        bound_name=bound_name,
-                        scope=import_record.scope,
-                        line=import_record.location.line,
-                        column=import_record.location.column,
-                        is_relative=import_record.level > 0,
-                    )
-                )
-    return tuple(sorted(edges, key=lambda item: (item.importer_path, item.line)))
+                edges.append(edge)
+    return tuple(edges)
+
+
+def _import_edge(
+    module: PythonReasoningTreeModuleInfo,
+    import_record: PythonImport,
+    resolved: tuple[str, str, tuple[str, ...]],
+    *,
+    modules_by_namespace: dict[tuple[str, ...], PythonReasoningTreeModuleInfo],
+) -> PythonReasoningTreeImportEdge | None:
+    import_name, bound_name, imported_namespace = resolved
+    if imported_namespace == module.namespace:
+        return None
+    imported_module = modules_by_namespace.get(imported_namespace)
+    if imported_module is None:
+        return None
+    return PythonReasoningTreeImportEdge(
+        importer_path=module.path,
+        importer_namespace=module.namespace,
+        imported_path=imported_module.path,
+        imported_namespace=imported_namespace,
+        import_name=import_name,
+        bound_name=bound_name,
+        scope=import_record.scope,
+        line=import_record.location.line,
+        column=import_record.location.column,
+        is_relative=import_record.level > 0,
+    )
+
+
+def _edge_key(
+    edge: PythonReasoningTreeImportEdge,
+) -> tuple[str, tuple[str, ...], str, str, int, int]:
+    return (
+        edge.importer_path,
+        edge.imported_namespace,
+        edge.import_name,
+        edge.scope,
+        edge.line,
+        edge.column,
+    )
 
 
 def _resolved_imports(

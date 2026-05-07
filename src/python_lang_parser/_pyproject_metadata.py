@@ -24,14 +24,27 @@ def parse_python_project_metadata(
 
     root = Path(project_root)
     pyproject_path = root / "pyproject.toml"
+    payload = _read_pyproject_payload(pyproject_path)
+    if payload is None:
+        return None
+    return _metadata_from_payload(root, pyproject_path, payload)
+
+
+def _read_pyproject_payload(pyproject_path: Path) -> dict[str, Any] | None:
     if not pyproject_path.exists():
         return None
 
     try:
-        payload = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
+        return tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
     except (OSError, tomllib.TOMLDecodeError, UnicodeDecodeError):
         return None
 
+
+def _metadata_from_payload(
+    root: Path,
+    pyproject_path: Path,
+    payload: dict[str, Any],
+) -> PythonProjectMetadata:
     has_project_table = isinstance(payload.get("project"), dict)
     has_build_system_table = isinstance(payload.get("build-system"), dict)
     project = _table(payload.get("project"))

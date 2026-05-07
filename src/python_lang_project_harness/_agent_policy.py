@@ -21,6 +21,10 @@ from ._agent_policy_catalog import (
 from ._agent_reasoning_tree import agent_reasoning_tree_findings
 from ._model import PythonHarnessFinding, PythonRulePackDescriptor
 from ._source import path_location
+from .agent_readability import (
+    agent_algorithm_shape_findings,
+    agent_function_compactness_findings,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
@@ -55,6 +59,8 @@ class PythonAgentPolicyRulePack:
         findings: list[PythonHarnessFinding] = []
         findings.extend(_module_docstring_findings(report, self.pack_id))
         findings.extend(_public_callable_annotation_findings(report, self.pack_id))
+        findings.extend(agent_algorithm_shape_findings(report, self.pack_id))
+        findings.extend(agent_function_compactness_findings(report, self.pack_id))
         return tuple(findings)
 
     def evaluate_project_modules(
