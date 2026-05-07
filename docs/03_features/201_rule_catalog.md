@@ -82,6 +82,14 @@ not fail only because they are long.
 `PY-AGENT-*` rules are `Info` findings. They are designed as repair hints for
 LLMs and are not blocking by default.
 
+The target reader for these rules is the repair Agent, not a human style
+reviewer. A rule belongs in this pack only when parser-owned facts expose a
+shape that makes the project harder for a model to navigate or edit: ambiguous
+ownership, unclear public surface, broad algorithm bodies, nested control flow,
+or hand-written loops that hide a native Python intent. The advice should make
+the reasoning tree more visually legible to an Agent while staying compact
+enough to use as the first repair prompt.
+
 - `PY-AGENT-R001`: public module surface lacks an intent docstring.
 - `PY-AGENT-R002`: public callable lacks type annotations.
 - `PY-AGENT-R003`: public callable name conflicts across namespaces.

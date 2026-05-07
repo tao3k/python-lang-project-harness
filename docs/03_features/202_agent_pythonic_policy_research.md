@@ -6,6 +6,39 @@ goal is to give repair agents a compact reasoning-tree contract for the parts
 those tools do not own: algorithm shape, public edit boundaries, and native
 Python idioms that keep code small enough for an LLM to edit reliably.
 
+## Target Reader Shift
+
+The harness target reader has changed. The primary reader is no longer a human
+reviewer looking for pleasant style; it is an Agent or large language model
+that must choose a small, correct edit surface from a whole Python project. A
+human can tolerate incidental ceremony and remember local context outside the
+file. An Agent pays for every repeated branch, every broad loop body, every
+untyped data shape, and every ambiguous owner boundary in tokens, attention,
+and repair risk.
+
+This changes the policy test. Agent-facing Python quality is the degree to
+which parser facts make the project visually navigable for a model before it
+edits:
+
+- project anchors: import roots, package branches, public facades, owner maps,
+  and internal import edges;
+- surface anchors: typed public callables, public data/type/value names,
+  explicit exports, and branch intent docstrings;
+- data anchors: `dataclass`, `TypedDict`, `Protocol`, `Enum`/`StrEnum`, and
+  closed `Literal` domains when parser facts can prove the shape;
+- algorithm anchors: guard clauses, `match/case`, dispatch tables,
+  comprehensions, generator expressions, built-ins, `collections` helpers, and
+  named iterator pipeline steps;
+- verification anchors: compact snapshot sections, task contracts, receipts,
+  waivers, and responsibility-review tasks.
+
+The harness should therefore reject policy ideas that are merely aesthetic. A
+new Agent rule needs four properties: it must be backed by parser-owned facts,
+it must reduce the model's search or edit surface, it must render as compact
+actionable advice rather than redundant explanation, and it must self-apply to
+this repository without forcing measured or side-effectful code into a fake
+idiom.
+
 ## Evidence
 
 Official Python guidance gives the north star. PEP 20 names the shape values
@@ -30,6 +63,13 @@ Modern Python also has native constructs that remove common LLM boilerplate:
   algorithms as hand-managed dictionary state.
 - `dataclasses` turn plain data carriers into annotated, generated-method data
   models instead of hand-written storage classes.
+- `Enum` and `StrEnum` turn closed value sets into named members rather than
+  repeated string or integer literals.
+- `typing.Protocol`, `TypedDict`, and `Literal` make structural interfaces,
+  dictionary payloads, and closed literal domains visible to tools and agents.
+- `functools.singledispatch` provides a standard-library dispatch surface for
+  type-directed behavior that would otherwise become a broad `isinstance`
+  ladder.
 - `typing` is not runtime enforcement, but it gives tools and agents explicit
   callable and data shapes.
 
@@ -59,6 +99,13 @@ boolean flags, and manual search loops. Python has native idioms for many of
 these shapes. A parser-backed advisory rule can point agents toward those
 idioms without blocking valid explicit loops.
 
+The long-term shape is a visual reasoning tree, not a pile of style
+diagnostics. The tree should let an Agent see: which package owns the change,
+which public surface is affected, which data shapes and closed domains govern
+the function, which algorithm step is map/filter/count/group/sum/dispatch, and
+which verification task proves the edit. That is the basis for short, native
+Python code that is also easier for a model to repair.
+
 ## Rule Direction
 
 Existing rules cover two algorithm-shape problems:
@@ -86,6 +133,9 @@ measured.
 | Dictionary counting/grouping loops | `collections.Counter` and `defaultdict` official docs; pytest and pydantic use both in project code | Implement as parser facts for manual counter/grouping loops |
 | Numeric accumulation loops | Built-in `sum` and generator expression guidance | Implement as parser fact for simple `total += expr` loops |
 | Data carrier classes | `dataclasses` official docs | Research-only for now; needs class-field parser facts before policy |
+| Closed state/value sets | `enum.Enum`, `enum.StrEnum`, and `typing.Literal` official docs | Research-only for now; needs parser facts for repeated literal domains and existing enum surfaces |
+| Structural interfaces | `typing.Protocol` official docs | Research-only for now; parser already exposes base classes, but policy needs role/use facts before advice |
+| Dictionary payload shapes | `typing.TypedDict` official docs | Research-only for now; needs parser facts for repeated dict-literal key sets and public payload boundaries |
 | Resource lifetime / context managers | `contextlib` and `pathlib` docs, plus existing Ruff coverage | Defer to tool substrate unless parser can prove unsafe lifetime |
 | Type dispatch | `match/case` and `functools.singledispatch` docs | Covered partly by `PY-AGENT-R009`; enrich later only with concrete parser facts |
 
@@ -97,8 +147,11 @@ measured.
 - https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions
 - https://docs.python.org/3/library/itertools.html
 - https://docs.python.org/3/library/functions.html
+- https://docs.python.org/3/library/collections.html
 - https://docs.python.org/3/library/dataclasses.html
+- https://docs.python.org/3/library/enum.html
 - https://docs.python.org/3/library/typing.html
+- https://docs.python.org/3/library/functools.html
 - https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 - https://github.com/pydantic/pydantic
 - https://github.com/pytest-dev/pytest
