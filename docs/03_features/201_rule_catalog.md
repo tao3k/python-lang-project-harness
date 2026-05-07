@@ -111,6 +111,9 @@ enough to use as the first repair prompt.
   simple collection or predicate loops should use native Python idioms such as
   comprehensions, generator expressions, built-ins such as `sum`/`any`/`all`,
   `collections.Counter`/`defaultdict`, or named iterator pipeline helpers.
+- `PY-AGENT-R012`: public classes that mainly store instance fields in
+  `__init__` should expose a visible data/type anchor such as `dataclass`,
+  `TypedDict`, `Protocol`, `Enum`/`StrEnum`, or a named model base.
 
 ## Reasoning Tree Policy
 
@@ -162,6 +165,14 @@ conservative: it targets module-level functions and public methods where a loop
 only maps, filters, counts, groups, accumulates, or answers a boolean predicate.
 Explicit loops remain valid for effects, complex state machines, debugging, or
 measured performance work.
+
+`PY-AGENT-R012` is the data/type visual-anchor layer. It is backed by
+parser-owned class-shape facts: annotated class fields, `__init__` self-field
+storage, method counts, and visible anchors such as `dataclass`, `Enum`,
+`StrEnum`, `Protocol`, `TypedDict`, `NamedTuple`, or a named model base. The
+rule stays advisory and only targets public classes that mostly hand-store
+fields without public behavior. The goal is to make data shapes visible before
+an Agent opens the function body, not to ban ordinary service objects.
 
 `render_python_reasoning_tree()` exposes the same tree as compact text for LLM
 repair loops. It includes an `[imports]` section for parser-resolved

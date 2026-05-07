@@ -142,5 +142,6 @@ def test_agent_readability_policy_consumes_parser_function_facts() -> None:
         for path in sorted(readability_root.glob("*.py"))
     )
     assert "symbol.control_flow" in combined
+    assert "symbol.class_shape" in combined
     assert "PythonFunctionControlFlow" in combined
     assert "python_symbol_is_top_level_callable(" in combined

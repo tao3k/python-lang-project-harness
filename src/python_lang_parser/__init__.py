@@ -45,6 +45,7 @@ from .model import (
     PythonAssignmentTarget,
     PythonCall,
     PythonCallEffect,
+    PythonClassShape,
     PythonDiagnostic,
     PythonDiagnosticSeverity,
     PythonExportContract,
@@ -65,6 +66,7 @@ from .parser import parse_python_file, parse_python_source
 
 __all__ = [
     "PythonAssignmentTarget",
+    "PythonClassShape",
     "PythonCall",
     "PythonCallEffect",
     "PythonDiagnostic",

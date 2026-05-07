@@ -43,6 +43,9 @@ assignments, export contracts, shape summaries, and diagnostics.
 It also parses standard `pyproject.toml` project metadata such as
 `[project].name`, `requires-python`, `import-names`, scripts, entry points,
 build-system requirements, and declared package roots.
+For class surfaces it owns data/type shape facts such as annotated class
+fields, `__init__` self-field storage, method counts, and visible anchors like
+`dataclass`, `Enum`, `Protocol`, `TypedDict`, `NamedTuple`, or model bases.
 
 `python_lang_project_harness` consumes those reports. It owns rule
 catalogs, project discovery, report aggregation, rendering, and pytest

@@ -23,6 +23,7 @@ from ._symbol_model import (
     PythonAssignmentTarget,
     PythonCall,
     PythonCallEffect,
+    PythonClassShape,
     PythonFunctionControlFlow,
     PythonImport,
     PythonModuleShape,
@@ -107,6 +108,7 @@ class PythonModuleReport:
 
 __all__ = [
     "PythonAssignmentTarget",
+    "PythonClassShape",
     "PythonCall",
     "PythonCallEffect",
     "PythonDiagnostic",

@@ -20,6 +20,7 @@ PY_AGENT_R008 = "PY-AGENT-R008"
 PY_AGENT_R009 = "PY-AGENT-R009"
 PY_AGENT_R010 = "PY-AGENT-R010"
 PY_AGENT_R011 = "PY-AGENT-R011"
+PY_AGENT_R012 = "PY-AGENT-R012"
 
 _RULE_LABELS = {
     "language": "python",
@@ -112,6 +113,14 @@ _RULES = (
         severity=PythonDiagnosticSeverity.INFO,
         title="Function manually spells a native Python transform",
         requirement="Use comprehensions, generator expressions, built-ins such as sum/any/all, collections.Counter/defaultdict, or named iterator pipeline helpers when a loop only maps, filters, counts, groups, accumulates, or answers a predicate.",
+        labels=dict(_RULE_LABELS),
+    ),
+    PythonHarnessRule(
+        rule_id=PY_AGENT_R012,
+        pack_id=AGENT_POLICY_PACK_ID,
+        severity=PythonDiagnosticSeverity.INFO,
+        title="Class hides data shape behind manual storage",
+        requirement="Use a visible data/type anchor such as @dataclass(frozen=True, slots=True), TypedDict, Protocol, Enum/StrEnum, or a named model base when a public class mainly stores fields.",
         labels=dict(_RULE_LABELS),
     ),
 )

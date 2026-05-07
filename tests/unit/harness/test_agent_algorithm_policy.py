@@ -155,6 +155,65 @@ def _has_admin(values: list[str]) -> bool:
     )
 
 
+def test_py_agent_r012_type_shape_snapshot(tmp_path: Path) -> None:
+    source = tmp_path / "models.py"
+    source.write_text(
+        '''
+"""Model shapes."""
+
+
+class CustomerRecord:
+    def __init__(self, name: str, email: str, active: bool) -> None:
+        self.name = name
+        self.email = email
+        self.active = active
+
+    def __repr__(self) -> str:
+        return self.name
+''',
+        encoding="utf-8",
+    )
+
+    report = run_python_lang_harness([source])
+    filtered = replace(
+        report,
+        findings=tuple(
+            finding for finding in report.findings if finding.rule_id == "PY-AGENT-R012"
+        ),
+    )
+    rendered = normalize_temp_root(render_python_lang_harness(filtered), tmp_path)
+
+    assert filtered.findings, "expected PY-AGENT-R012 finding"
+    assert_snapshot(
+        "unit_test__agent_policy_snapshot__py_agent_r012_type_shape",
+        rendered,
+        source="tests/unit/harness/test_agent_algorithm_policy.py",
+    )
+
+
+def test_py_agent_r012_accepts_dataclass_anchor(tmp_path: Path) -> None:
+    source = tmp_path / "models.py"
+    source.write_text(
+        '''
+"""Model shapes."""
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True, slots=True)
+class CustomerRecord:
+    name: str
+    email: str
+    active: bool
+''',
+        encoding="utf-8",
+    )
+
+    report = run_python_lang_harness([source])
+
+    assert not any(finding.rule_id == "PY-AGENT-R012" for finding in report.findings)
+
+
 def _broad_linear_function_source() -> str:
     lines = [
         '"""Service algorithms."""',

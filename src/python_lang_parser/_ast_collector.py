@@ -17,6 +17,7 @@ from ._ast_names import (
     unparse,
 )
 from ._call_effects import call_effect
+from ._class_shape import collect_class_shape
 from ._control_flow import collect_function_control_flow
 from ._export_model import PythonExportContract, PythonExportContractKind
 from ._exports import literal_string_sequence
@@ -232,6 +233,11 @@ class PythonAstCollector(ast.NodeVisitor):
                     None
                     if isinstance(node, ast.ClassDef)
                     else collect_function_control_flow(node)
+                ),
+                class_shape=(
+                    collect_class_shape(node)
+                    if isinstance(node, ast.ClassDef)
+                    else None
                 ),
                 docstring=ast.get_docstring(node),
                 has_annotations=symbol_has_annotations(node),

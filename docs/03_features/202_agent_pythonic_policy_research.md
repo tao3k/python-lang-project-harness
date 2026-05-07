@@ -39,6 +39,30 @@ actionable advice rather than redundant explanation, and it must self-apply to
 this repository without forcing measured or side-effectful code into a fake
 idiom.
 
+## Large Source-Derived Policy Axes
+
+The research sources point to four large axes worth solving before adding more
+small lint-like checks:
+
+1. Project navigation anchors. PyPA project metadata, package roots, entry
+   points, pytest wiring, exports, owner maps, and internal import edges decide
+   where an Agent should edit.
+2. Data/type visual anchors. `dataclass`, `TypedDict`, `Protocol`,
+   `Enum`/`StrEnum`, `NamedTuple`, `Literal`, and model bases turn implicit
+   object shape into a visible contract before the Agent enters a method body.
+3. Algorithm intent anchors. `match/case`, comprehensions, generator
+   expressions, built-ins, `collections` helpers, iterator tools, and
+   `singledispatch` turn broad procedural code into named Python intent.
+4. Verification anchors. Pytest gates, profile hints, task contracts,
+   receipts, waivers, and report bundles tell an Agent what evidence closes an
+   edit.
+
+The implementation should prioritize these axes in that order when choosing
+new rules. The first and fourth are already project/reasoning-tree surfaces.
+The second is now parser-backed through class-shape facts and `PY-AGENT-R012`.
+The third is covered by `PY-AGENT-R009` through `PY-AGENT-R011` and should grow
+only when parser facts can prove a native Python replacement.
+
 ## Evidence
 
 Official Python guidance gives the north star. PEP 20 names the shape values
@@ -132,7 +156,7 @@ measured.
 | Predicate search loops | Python built-ins and Functional HOWTO predicate guidance | Implemented by parser fact `manual_predicate_loop_count` |
 | Dictionary counting/grouping loops | `collections.Counter` and `defaultdict` official docs; pytest and pydantic use both in project code | Implement as parser facts for manual counter/grouping loops |
 | Numeric accumulation loops | Built-in `sum` and generator expression guidance | Implement as parser fact for simple `total += expr` loops |
-| Data carrier classes | `dataclasses` official docs | Research-only for now; needs class-field parser facts before policy |
+| Data carrier classes | `dataclasses` official docs | Implemented by parser-owned class-shape facts and `PY-AGENT-R012` |
 | Closed state/value sets | `enum.Enum`, `enum.StrEnum`, and `typing.Literal` official docs | Research-only for now; needs parser facts for repeated literal domains and existing enum surfaces |
 | Structural interfaces | `typing.Protocol` official docs | Research-only for now; parser already exposes base classes, but policy needs role/use facts before advice |
 | Dictionary payload shapes | `typing.TypedDict` official docs | Research-only for now; needs parser facts for repeated dict-literal key sets and public payload boundaries |
