@@ -92,6 +92,11 @@ LLMs and are not blocking by default.
   a reasoning-tree intent docstring.
 - `PY-AGENT-R008`: broad branch packages should split into focused subpackages
   or document the facade and owner map for agent repair loops.
+- `PY-AGENT-R009`: public functions with deeply nested control flow should
+  expose the algorithm shape through guard clauses, explicit dispatch,
+  `match/case`, or small named pipeline steps.
+- `PY-AGENT-R010`: public functions with broad linear statement blocks should
+  split into named helpers or pipeline steps that are easier for agents to edit.
 
 ## Reasoning Tree Policy
 
@@ -114,6 +119,26 @@ child count with public-child and effective-line signals so crowded non-facade
 folders surface as owner-map advice without becoming a raw child-count gate.
 Packages that already expose an explicit public facade are treated as having
 an owner map.
+
+`PY-AGENT-R009` is backed by parser-owned function control-flow facts, not by
+harness string scanning. The parser records branch count, loop count, maximum
+nesting, loop nesting, terminal `else` opportunities, and repeated literal
+dispatch chains for each function symbol during the normal AST collection pass.
+The harness turns those facts into a compact repair hint when a public function
+hides its algorithm behind nested `if`/loop structure. The rule stays advisory
+by default so teams can tune or promote it after seeing their project shape.
+
+The implementation lives under `python_lang_project_harness.agent_readability`
+because the target reader is the repair agent, not a human style reviewer. The
+goal is short, explicit algorithm surfaces that an LLM can use from the
+reasoning tree: guard clauses instead of nested `else`, `match/case` or dispatch
+tables instead of literal branch ladders, and small named pipeline steps instead
+of one broad loop body. Performance remains parser-first: the harness only
+consumes `PythonFunctionControlFlow` facts and does not run a second AST parse.
+`PY-AGENT-R010` complements `PY-AGENT-R009`: the former catches long flat
+procedure-like public functions, while the latter catches nested control-flow
+shape. This keeps the advice compact and avoids telling the agent the same
+thing twice.
 
 `render_python_reasoning_tree()` exposes the same tree as compact text for LLM
 repair loops. It includes an `[imports]` section for parser-resolved

@@ -123,3 +123,21 @@ def test_harness_pyproject_metadata_comes_from_parser_boundary() -> None:
         source = path.read_text(encoding="utf-8")
         assert "import tomllib" not in source, path
         assert "tomllib." not in source, path
+
+
+def test_agent_readability_policy_consumes_parser_function_facts() -> None:
+    readability_root = (
+        _PROJECT_ROOT / "src" / "python_lang_project_harness" / "agent_readability"
+    )
+
+    for path in sorted(readability_root.glob("*.py")):
+        source = path.read_text(encoding="utf-8")
+        assert "import ast" not in source, path
+        assert "ast." not in source, path
+
+    combined = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted(readability_root.glob("*.py"))
+    )
+    assert "symbol.control_flow" in combined
+    assert "PythonFunctionControlFlow" in combined

@@ -25,21 +25,37 @@ def discover_python_files(
     )
     discovered: list[Path] = []
     seen: set[Path] = set()
+    for candidate in _iter_python_file_candidates(
+        paths,
+        ignored_dir_names=ignored_names,
+    ):
+        _append_unique_path(discovered, seen, candidate)
+    return tuple(sorted(discovered, key=lambda item: item.as_posix()))
+
+
+def _iter_python_file_candidates(
+    paths: Sequence[str | Path],
+    *,
+    ignored_dir_names: frozenset[str],
+) -> tuple[Path, ...]:
+    candidates: list[Path] = []
     for raw_path in paths:
         path = Path(raw_path)
         if path.is_file():
             if path.suffix == ".py":
-                _append_unique_path(discovered, seen, path)
+                candidates.append(path)
             continue
         if path.is_dir():
-            for candidate in path.rglob("*.py"):
+            candidates.extend(
+                candidate
+                for candidate in path.rglob("*.py")
                 if is_scannable_python_file(
                     candidate,
                     scan_root=path,
-                    ignored_dir_names=ignored_names,
-                ):
-                    _append_unique_path(discovered, seen, candidate)
-    return tuple(sorted(discovered, key=lambda item: item.as_posix()))
+                    ignored_dir_names=ignored_dir_names,
+                )
+            )
+    return tuple(candidates)
 
 
 def python_project_harness_paths(

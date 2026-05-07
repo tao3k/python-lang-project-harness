@@ -17,6 +17,7 @@ from ._ast_names import (
     unparse,
 )
 from ._call_effects import call_effect
+from ._control_flow import collect_function_control_flow
 from ._export_model import PythonExportContract, PythonExportContractKind
 from ._exports import literal_string_sequence
 from .model import (
@@ -226,6 +227,11 @@ class PythonAstCollector(ast.NodeVisitor):
                     tuple(unparse(base) for base in node.bases)
                     if isinstance(node, ast.ClassDef)
                     else ()
+                ),
+                control_flow=(
+                    None
+                    if isinstance(node, ast.ClassDef)
+                    else collect_function_control_flow(node)
                 ),
                 docstring=ast.get_docstring(node),
                 has_annotations=symbol_has_annotations(node),

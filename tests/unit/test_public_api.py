@@ -9,6 +9,7 @@ def test_root_package_reexports_parser_fact_models() -> None:
     assert harness_api.PythonCallEffect is parser_api.PythonCallEffect
     assert harness_api.PythonExportContract is parser_api.PythonExportContract
     assert harness_api.PythonExportContractKind is parser_api.PythonExportContractKind
+    assert harness_api.PythonFunctionControlFlow is parser_api.PythonFunctionControlFlow
     assert harness_api.PythonModuleShape is parser_api.PythonModuleShape
     assert harness_api.PythonProjectDependency is parser_api.PythonProjectDependency
     assert harness_api.PythonProjectEntryPoint is parser_api.PythonProjectEntryPoint
@@ -93,6 +94,8 @@ def test_root_package_reexports_parser_fact_models() -> None:
     assert "PythonProjectDependency" in parser_api.__all__
     assert "PythonPytestOptions" in parser_api.__all__
     assert "PythonReasoningTreeImportEdge" in parser_api.__all__
+    assert "PythonFunctionControlFlow" in parser_api.__all__
+    assert "PythonFunctionControlFlow" in harness_api.__all__
     assert "parse_python_project_metadata" in parser_api.__all__
     assert "python_reasoning_tree_facts" in harness_api.__all__
     assert "python_scope_is_public" in harness_api.__all__
