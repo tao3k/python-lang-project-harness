@@ -58,14 +58,30 @@ def render_python_verification_profile_index(
     visible_candidates = (
         candidates if max_candidates is None else candidates[:max_candidates]
     )
-    sections = [
+    sections = []
+    if index.needs_profile_configuration():
+        sections.append(_render_profile_configuration_reminder(index).rstrip("\n"))
+    sections.extend(
         _render_profile_candidate(candidate).rstrip("\n")
         for candidate in visible_candidates
-    ]
+    )
     omitted = len(candidates) - len(visible_candidates)
     if omitted > 0:
         sections.append(f"... +{omitted} verification profile candidates")
     return "\n".join(sections) + "\n"
+
+
+def _render_profile_configuration_reminder(
+    index: PythonVerificationProfileIndex,
+) -> str:
+    return "\n".join(
+        (
+            "[verify-profile] profile_hints",
+            "   |state: missing_profile_config",
+            "   |action: configure PythonVerificationProfileHint entries",
+            f"   |candidates: {len(index.active_candidates())}",
+        )
+    )
 
 
 def _render_profile_candidate(

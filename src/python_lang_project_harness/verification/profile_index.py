@@ -83,6 +83,7 @@ def build_python_verification_profile_index_report(
     return PythonVerificationProfileIndex(
         project_root=project_root,
         candidates=tuple(sorted(candidates, key=lambda item: item.owner_path)),
+        configured_profile_hint_count=len(policy.profile_hints),
     )
 
 

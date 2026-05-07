@@ -55,6 +55,12 @@ surface for this policy. Each index exposes parser-suggested candidates and
 same parser-visible owner map is used by the planner, so metadata owners such
 as `pyproject.toml` and script entry-point owners can be accepted without
 falling into false `responsibility_review` tasks.
+
+When parser facts produce candidates before any profile hint is configured,
+the compact renderer emits a single `[verify-profile] profile_hints` reminder
+so the Agent knows to add `PythonVerificationProfileHint` entries instead of
+treating the missing profile as an empty project.
+
 Profile candidates are branch-first: public package branches aggregate their
 child-module public API signal, while unowned public leaves still surface as
 their own candidates. When the same owner has multiple responsibilities, the

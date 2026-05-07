@@ -660,6 +660,7 @@ class PythonVerificationProfileIndex:
 
     project_root: Path
     candidates: tuple[PythonVerificationProfileCandidate, ...]
+    configured_profile_hint_count: int = 0
 
     def active_candidates(self) -> tuple[PythonVerificationProfileCandidate, ...]:
         """Return candidates that still need Agent configuration attention."""
@@ -675,6 +676,13 @@ class PythonVerificationProfileIndex:
 
         return not self.active_candidates()
 
+    def needs_profile_configuration(self) -> bool:
+        """Return whether parser facts found owners before any profile was configured."""
+
+        return self.configured_profile_hint_count == 0 and bool(
+            self.active_candidates()
+        )
+
     def active_profile_hints(self) -> tuple[PythonVerificationProfileHint, ...]:
         """Return config-ready hints for candidates still needing attention."""
 
@@ -688,6 +696,8 @@ class PythonVerificationProfileIndex:
         return {
             "project_root": str(self.project_root),
             "candidates": [item.to_dict() for item in self.candidates],
+            "configured_profile_hint_count": self.configured_profile_hint_count,
+            "needs_profile_configuration": self.needs_profile_configuration(),
             "active_profile_hints": [
                 item.to_dict() for item in self.active_profile_hints()
             ],
