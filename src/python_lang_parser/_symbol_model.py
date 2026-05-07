@@ -39,6 +39,11 @@ class PythonFunctionControlFlow:
 
     statement_count: int = 0
     max_block_statement_count: int = 0
+    manual_collection_loop_count: int = 0
+    manual_predicate_loop_count: int = 0
+    manual_mapping_count_loop_count: int = 0
+    manual_mapping_group_loop_count: int = 0
+    manual_numeric_sum_loop_count: int = 0
     branch_count: int = 0
     loop_count: int = 0
     match_count: int = 0
@@ -53,6 +58,69 @@ class PythonFunctionControlFlow:
         """Return a JSON-compatible representation."""
 
         return asdict(self)
+
+
+@dataclass(frozen=True, slots=True)
+class PythonClassShape:
+    """Parser-owned data/type shape facts for one class body."""
+
+    annotated_field_count: int = 0
+    instance_field_count: int = 0
+    init_self_assignment_count: int = 0
+    method_count: int = 0
+    public_method_count: int = 0
+    dunder_method_count: int = 0
+    has_dataclass_anchor: bool = False
+    has_enum_anchor: bool = False
+    has_protocol_anchor: bool = False
+    has_typed_dict_anchor: bool = False
+    has_named_tuple_anchor: bool = False
+    has_model_anchor: bool = False
+
+    @property
+    def has_visual_data_anchor(self) -> bool:
+        """Return whether the class already exposes a visible data/type shape."""
+
+        return any(
+            (
+                self.has_dataclass_anchor,
+                self.has_enum_anchor,
+                self.has_protocol_anchor,
+                self.has_typed_dict_anchor,
+                self.has_named_tuple_anchor,
+                self.has_model_anchor,
+            )
+        )
+
+    @property
+    def is_manual_data_carrier(self) -> bool:
+        """Return whether the class mainly hand-stores instance fields."""
+
+        return (
+            self.instance_field_count >= 2
+            and self.public_method_count == 0
+            and not self.has_visual_data_anchor
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        """Return a JSON-compatible representation."""
+
+        return {
+            "annotated_field_count": self.annotated_field_count,
+            "instance_field_count": self.instance_field_count,
+            "init_self_assignment_count": self.init_self_assignment_count,
+            "method_count": self.method_count,
+            "public_method_count": self.public_method_count,
+            "dunder_method_count": self.dunder_method_count,
+            "has_dataclass_anchor": self.has_dataclass_anchor,
+            "has_enum_anchor": self.has_enum_anchor,
+            "has_protocol_anchor": self.has_protocol_anchor,
+            "has_typed_dict_anchor": self.has_typed_dict_anchor,
+            "has_named_tuple_anchor": self.has_named_tuple_anchor,
+            "has_model_anchor": self.has_model_anchor,
+            "has_visual_data_anchor": self.has_visual_data_anchor,
+            "is_manual_data_carrier": self.is_manual_data_carrier,
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,6 +157,7 @@ class PythonSymbol:
     decorators: tuple[str, ...] = field(default_factory=tuple)
     base_classes: tuple[str, ...] = field(default_factory=tuple)
     control_flow: PythonFunctionControlFlow | None = None
+    class_shape: PythonClassShape | None = None
     docstring: str | None = None
     has_annotations: bool = False
     is_public: bool = False
@@ -103,6 +172,9 @@ class PythonSymbol:
         payload["base_classes"] = list(self.base_classes)
         payload["control_flow"] = (
             None if self.control_flow is None else self.control_flow.to_dict()
+        )
+        payload["class_shape"] = (
+            None if self.class_shape is None else self.class_shape.to_dict()
         )
         return payload
 

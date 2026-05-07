@@ -7,6 +7,7 @@ import python_lang_project_harness.harness as harness_facade
 
 def test_root_package_reexports_parser_fact_models() -> None:
     assert harness_api.PythonCallEffect is parser_api.PythonCallEffect
+    assert harness_api.PythonClassShape is parser_api.PythonClassShape
     assert harness_api.PythonExportContract is parser_api.PythonExportContract
     assert harness_api.PythonExportContractKind is parser_api.PythonExportContractKind
     assert harness_api.PythonFunctionControlFlow is parser_api.PythonFunctionControlFlow
@@ -76,6 +77,10 @@ def test_root_package_reexports_parser_fact_models() -> None:
         is parser_api.python_symbol_is_public_top_level
     )
     assert (
+        harness_api.python_symbol_is_top_level_callable
+        is parser_api.python_symbol_is_top_level_callable
+    )
+    assert (
         harness_api.python_symbol_is_test_function
         is parser_api.python_symbol_is_test_function
     )
@@ -91,6 +96,8 @@ def test_root_package_reexports_parser_fact_models() -> None:
     assert "PythonReasoningTreeImportEdge" in harness_api.__all__
     assert "PythonReasoningTreeNode" in harness_api.__all__
     assert "PythonProjectMetadata" in parser_api.__all__
+    assert "PythonClassShape" in parser_api.__all__
+    assert "PythonClassShape" in harness_api.__all__
     assert "PythonProjectDependency" in parser_api.__all__
     assert "PythonPytestOptions" in parser_api.__all__
     assert "PythonReasoningTreeImportEdge" in parser_api.__all__
@@ -108,6 +115,7 @@ def test_root_package_reexports_parser_fact_models() -> None:
     assert "python_symbol_is_public_callable_boundary" in harness_api.__all__
     assert "python_symbol_is_public_class" in harness_api.__all__
     assert "python_symbol_is_public_top_level" in harness_api.__all__
+    assert "python_symbol_is_top_level_callable" in harness_api.__all__
     assert "python_symbol_is_test_function" in harness_api.__all__
 
 

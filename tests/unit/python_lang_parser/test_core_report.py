@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from python_lang_parser import PythonSymbolKind, parse_python_source
+from python_lang_parser import PythonClassShape, PythonSymbolKind, parse_python_source
 
 
 def test_parse_python_source_collects_symbols_imports_and_scopes() -> None:
@@ -75,3 +75,58 @@ class Runner(abc.ABC):
     assert report.metadata["symbol_table"] == "cpython.symtable"
     assert report.export_candidates == ("Runner", "abc", "path_mod")
     assert report.source_line(2) == '"""Module docs."""'
+
+
+def test_parse_python_source_collects_class_shape_visual_anchor_facts() -> None:
+    report = parse_python_source(
+        """
+from dataclasses import dataclass
+from enum import StrEnum
+from typing import Protocol, TypedDict
+
+
+class ManualItem:
+    def __init__(self, name: str, count: int) -> None:
+        self.name = name
+        self.count = count
+
+
+@dataclass(frozen=True, slots=True)
+class AnchoredItem:
+    name: str
+    count: int
+
+
+class Payload(TypedDict):
+    name: str
+    count: int
+
+
+class Closer(Protocol):
+    def close(self) -> None: ...
+
+
+class Mode(StrEnum):
+    READ = "read"
+""",
+        path="models.py",
+    )
+
+    shapes = {
+        symbol.name: symbol.class_shape
+        for symbol in report.symbols
+        if symbol.kind == PythonSymbolKind.CLASS
+    }
+
+    assert shapes["ManualItem"] == PythonClassShape(
+        instance_field_count=2,
+        init_self_assignment_count=2,
+        method_count=1,
+        dunder_method_count=1,
+    )
+    assert shapes["ManualItem"].is_manual_data_carrier
+    assert shapes["AnchoredItem"].has_dataclass_anchor
+    assert shapes["AnchoredItem"].has_visual_data_anchor
+    assert shapes["Payload"].has_typed_dict_anchor
+    assert shapes["Closer"].has_protocol_anchor
+    assert shapes["Mode"].has_enum_anchor

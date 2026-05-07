@@ -6,6 +6,7 @@ from python_lang_parser import (
     PythonAssignmentTarget,
     PythonCall,
     PythonCallEffect,
+    PythonClassShape,
     PythonDiagnostic,
     PythonDiagnosticSeverity,
     PythonExportContract,
@@ -51,6 +52,7 @@ from python_lang_parser import (
     python_symbol_is_public_class,
     python_symbol_is_public_top_level,
     python_symbol_is_test_function,
+    python_symbol_is_top_level_callable,
 )
 
 from ._version import DISTRIBUTION_NAME, __version__
@@ -141,6 +143,7 @@ __all__ = [
     "DISTRIBUTION_NAME",
     "PythonAgentPolicyRulePack",
     "PythonAssignmentTarget",
+    "PythonClassShape",
     "PythonCall",
     "PythonCallEffect",
     "PythonDiagnostic",
@@ -237,6 +240,7 @@ __all__ = [
     "python_symbol_is_public_class",
     "python_symbol_is_public_top_level",
     "python_symbol_is_test_function",
+    "python_symbol_is_top_level_callable",
     "python_agent_policy_rules",
     "python_modern_design_rules",
     "python_modularity_rules",

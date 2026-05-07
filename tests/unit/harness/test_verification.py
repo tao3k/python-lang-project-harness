@@ -117,6 +117,8 @@ def test_verification_profile_index_uses_parser_and_dependency_facts(
     assert "[verify-profile] pyproject.toml" in rendered
     assert "   |suggest: network" in rendered
     assert "   |fact: dependency=httpx" in rendered
+    assert profile_payload["configured_profile_hint_count"] == 0
+    assert profile_payload["needs_profile_configuration"] is True
     assert profile_payload["active_profile_hints"]
     assert len(plan_from_hint.active_tasks) == 1
     assert plan_from_hint.active_tasks[0].owner_path == "pyproject.toml"

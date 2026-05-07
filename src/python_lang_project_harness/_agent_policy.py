@@ -24,6 +24,8 @@ from ._source import path_location
 from .agent_readability import (
     agent_algorithm_shape_findings,
     agent_function_compactness_findings,
+    agent_native_idiom_findings,
+    agent_type_shape_findings,
 )
 
 if TYPE_CHECKING:
@@ -61,6 +63,8 @@ class PythonAgentPolicyRulePack:
         findings.extend(_public_callable_annotation_findings(report, self.pack_id))
         findings.extend(agent_algorithm_shape_findings(report, self.pack_id))
         findings.extend(agent_function_compactness_findings(report, self.pack_id))
+        findings.extend(agent_native_idiom_findings(report, self.pack_id))
+        findings.extend(agent_type_shape_findings(report, self.pack_id))
         return tuple(findings)
 
     def evaluate_project_modules(

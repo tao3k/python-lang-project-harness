@@ -20,18 +20,16 @@ def collect_module_shape(
 ) -> PythonModuleShape:
     """Collect compact module-shape facts from native parser surfaces."""
 
-    groups: set[str] = set()
-    top_level_statement_count = 0
-    for statement in tree.body:
-        if _is_ignored_top_level_statement(statement):
-            continue
-        top_level_statement_count += 1
-        groups.add(_responsibility_group(statement))
-
+    relevant_statements = tuple(
+        statement
+        for statement in tree.body
+        if not _is_ignored_top_level_statement(statement)
+    )
+    groups = {_responsibility_group(statement) for statement in relevant_statements}
     public_symbol_count, public_assignment_count = _public_surface_counts(collector)
     return PythonModuleShape(
         effective_code_lines=_count_effective_code_lines(source),
-        top_level_statement_count=top_level_statement_count,
+        top_level_statement_count=len(relevant_statements),
         responsibility_groups=tuple(sorted(groups)),
         public_symbol_count=public_symbol_count,
         public_assignment_count=public_assignment_count,

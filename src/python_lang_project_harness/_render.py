@@ -13,8 +13,10 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from python_lang_parser import (
+        PythonProjectEntryPoint,
         PythonProjectImportName,
         PythonProjectMetadata,
+        PythonProjectScript,
         PythonReasoningTreeImportEdge,
         PythonReasoningTreeNode,
     )
@@ -231,49 +233,85 @@ def _render_reasoning_tree_project_metadata(
     *,
     project_root: Path | None,
 ) -> list[str]:
-    import_names = project_metadata.import_names
-    import_namespaces = project_metadata.import_namespaces
-    package_roots = project_metadata.package_roots
-    scripts = project_metadata.scripts
-    entry_points = project_metadata.entry_points
     lines = ["[project]"]
+    lines.append(_render_project_name_line(project_metadata))
+    lines.extend(
+        line
+        for line in (
+            _render_project_import_names_line(project_metadata.import_names),
+            _render_project_import_namespaces_line(
+                project_metadata.import_namespaces,
+            ),
+            _render_project_package_roots_line(
+                project_metadata.package_roots,
+                project_root=project_root,
+            ),
+            _render_project_scripts_line(project_metadata.scripts),
+            _render_project_entry_points_line(project_metadata.entry_points),
+        )
+        if line is not None
+    )
+    return lines
+
+
+def _render_project_name_line(project_metadata: PythonProjectMetadata) -> str:
     name = project_metadata.project_name or "<unnamed>"
     requires_python = project_metadata.requires_python or "<any>"
-    lines.append(f"- name={name} requires-python={requires_python}")
-    if import_names:
-        lines.append("- import-names=" + _render_project_import_names(import_names))
-    if import_namespaces:
-        lines.append(
-            "- import-namespaces=" + _render_project_import_names(import_namespaces)
-        )
-    if package_roots:
-        lines.append(
-            "- package-roots="
-            + _render_compact_name_list(
-                tuple(
-                    _render_display_path(path, project_root=project_root)
-                    for path in package_roots
-                ),
-                max_names=4,
-            )
-        )
-    if scripts:
-        lines.append(
-            "- scripts="
-            + _render_compact_name_list(
-                tuple(script.name for script in scripts),
-                max_names=6,
-            )
-        )
-    if entry_points:
-        lines.append(
-            "- entry-points="
-            + _render_compact_name_list(
-                tuple(f"{entry.group}:{entry.name}" for entry in entry_points),
-                max_names=6,
-            )
-        )
-    return lines
+    return f"- name={name} requires-python={requires_python}"
+
+
+def _render_project_import_names_line(
+    import_names: Sequence[PythonProjectImportName],
+) -> str | None:
+    if not import_names:
+        return None
+    return "- import-names=" + _render_project_import_names(import_names)
+
+
+def _render_project_import_namespaces_line(
+    import_namespaces: Sequence[PythonProjectImportName],
+) -> str | None:
+    if not import_namespaces:
+        return None
+    return "- import-namespaces=" + _render_project_import_names(import_namespaces)
+
+
+def _render_project_package_roots_line(
+    package_roots: Sequence[Path],
+    *,
+    project_root: Path | None,
+) -> str | None:
+    if not package_roots:
+        return None
+    return "- package-roots=" + _render_compact_name_list(
+        tuple(
+            _render_display_path(path, project_root=project_root)
+            for path in package_roots
+        ),
+        max_names=4,
+    )
+
+
+def _render_project_scripts_line(
+    scripts: Sequence[PythonProjectScript],
+) -> str | None:
+    if not scripts:
+        return None
+    return "- scripts=" + _render_compact_name_list(
+        tuple(script.name for script in scripts),
+        max_names=6,
+    )
+
+
+def _render_project_entry_points_line(
+    entry_points: Sequence[PythonProjectEntryPoint],
+) -> str | None:
+    if not entry_points:
+        return None
+    return "- entry-points=" + _render_compact_name_list(
+        tuple(f"{entry.group}:{entry.name}" for entry in entry_points),
+        max_names=6,
+    )
 
 
 def _render_project_import_names(

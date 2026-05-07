@@ -261,5 +261,7 @@ def test_agent_policy_descriptor_and_catalog_are_stable() -> None:
         "PY-AGENT-R008",
         "PY-AGENT-R009",
         "PY-AGENT-R010",
+        "PY-AGENT-R011",
+        "PY-AGENT-R012",
     ]
     assert {rule.severity for rule in rules} == {PythonDiagnosticSeverity.INFO}

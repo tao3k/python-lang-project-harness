@@ -82,6 +82,14 @@ not fail only because they are long.
 `PY-AGENT-*` rules are `Info` findings. They are designed as repair hints for
 LLMs and are not blocking by default.
 
+The target reader for these rules is the repair Agent, not a human style
+reviewer. A rule belongs in this pack only when parser-owned facts expose a
+shape that makes the project harder for a model to navigate or edit: ambiguous
+ownership, unclear public surface, broad algorithm bodies, nested control flow,
+or hand-written loops that hide a native Python intent. The advice should make
+the reasoning tree more visually legible to an Agent while staying compact
+enough to use as the first repair prompt.
+
 - `PY-AGENT-R001`: public module surface lacks an intent docstring.
 - `PY-AGENT-R002`: public callable lacks type annotations.
 - `PY-AGENT-R003`: public callable name conflicts across namespaces.
@@ -92,11 +100,20 @@ LLMs and are not blocking by default.
   a reasoning-tree intent docstring.
 - `PY-AGENT-R008`: broad branch packages should split into focused subpackages
   or document the facade and owner map for agent repair loops.
-- `PY-AGENT-R009`: public functions with deeply nested control flow should
+- `PY-AGENT-R009`: top-level functions and public methods with deeply nested
+  control flow should
   expose the algorithm shape through guard clauses, explicit dispatch,
   `match/case`, or small named pipeline steps.
-- `PY-AGENT-R010`: public functions with broad linear statement blocks should
-  split into named helpers or pipeline steps that are easier for agents to edit.
+- `PY-AGENT-R010`: top-level functions and public methods with broad linear
+  statement blocks should split into named helpers or pipeline steps that are
+  easier for agents to edit.
+- `PY-AGENT-R011`: top-level functions and public methods that manually spell
+  simple collection or predicate loops should use native Python idioms such as
+  comprehensions, generator expressions, built-ins such as `sum`/`any`/`all`,
+  `collections.Counter`/`defaultdict`, or named iterator pipeline helpers.
+- `PY-AGENT-R012`: public classes that mainly store instance fields in
+  `__init__` should expose a visible data/type anchor such as `dataclass`,
+  `TypedDict`, `Protocol`, `Enum`/`StrEnum`, or a named model base.
 
 ## Reasoning Tree Policy
 
@@ -139,6 +156,23 @@ consumes `PythonFunctionControlFlow` facts and does not run a second AST parse.
 procedure-like public functions, while the latter catches nested control-flow
 shape. This keeps the advice compact and avoids telling the agent the same
 thing twice.
+
+`PY-AGENT-R011` is the native-Python idiom layer. It is backed by parser-owned
+function facts for simple accumulator loops and predicate loops, so the harness
+can advise comprehensions, generator expressions, built-ins, or iterator
+pipeline helpers without parsing source in the policy layer. The rule is
+conservative: it targets module-level functions and public methods where a loop
+only maps, filters, counts, groups, accumulates, or answers a boolean predicate.
+Explicit loops remain valid for effects, complex state machines, debugging, or
+measured performance work.
+
+`PY-AGENT-R012` is the data/type visual-anchor layer. It is backed by
+parser-owned class-shape facts: annotated class fields, `__init__` self-field
+storage, method counts, and visible anchors such as `dataclass`, `Enum`,
+`StrEnum`, `Protocol`, `TypedDict`, `NamedTuple`, or a named model base. The
+rule stays advisory and only targets public classes that mostly hand-store
+fields without public behavior. The goal is to make data shapes visible before
+an Agent opens the function body, not to ban ordinary service objects.
 
 `render_python_reasoning_tree()` exposes the same tree as compact text for LLM
 repair loops. It includes an `[imports]` section for parser-resolved
