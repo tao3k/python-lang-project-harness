@@ -30,7 +30,8 @@ Default project execution runs these packs:
 6. `python.agent_policy`
 
 `python.agent_policy` is advisory by default and runs after the blocking packs.
-The other default packs are blocking through `Warning` or `Error` findings.
+Most other default-pack findings block through `Warning` or `Error`; project
+policy can also emit `Info` configuration work orders for Agents.
 
 ## Blocking Rules
 
@@ -76,6 +77,17 @@ requires either a long function span or multiple split indicators such as many
 top-level items, mixed responsibility groups, or a wide public surface. Large
 single-signal modules, such as generated constants or narrow data tables, do
 not fail only because they are long.
+
+## Project Advice Rules
+
+Some project-policy findings are intentionally `Info`: they are configuration
+work orders for the repair Agent, not immediate merge blockers.
+
+- `PY-PROJ-R011`: projects that declare the harness as a test/dev dependency
+  and expose parser-visible verification owners should configure
+  `[tool.python-lang-project-harness.verification].profile_hints`. The finding
+  points the Agent to `python-project-harness --agent-snapshot`, whose compact
+  `[verify-profile]` section is the config draft.
 
 ## Agent Advice Rules
 

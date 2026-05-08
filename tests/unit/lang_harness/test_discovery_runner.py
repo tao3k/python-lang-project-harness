@@ -24,12 +24,20 @@ if TYPE_CHECKING:
 def test_discover_python_files_skips_cache_dirs(tmp_path: Path) -> None:
     src = tmp_path / "src"
     cache = src / "__pycache__"
+    runtime_cache = tmp_path / ".cache"
+    mirrored_data = tmp_path / ".data"
     src.mkdir()
     cache.mkdir()
+    runtime_cache.mkdir()
+    mirrored_data.mkdir()
     good = src / "good.py"
     ignored = cache / "ignored.py"
+    runtime_ignored = runtime_cache / "ignored.py"
+    data_ignored = mirrored_data / "ignored.py"
     good.write_text("VALUE = 1\n", encoding="utf-8")
     ignored.write_text("VALUE = 2\n", encoding="utf-8")
+    runtime_ignored.write_text("VALUE = 3\n", encoding="utf-8")
+    data_ignored.write_text("VALUE = 4\n", encoding="utf-8")
 
     assert discover_python_files([tmp_path]) == (good,)
 

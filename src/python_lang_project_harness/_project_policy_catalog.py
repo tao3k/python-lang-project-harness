@@ -19,6 +19,7 @@ PY_PROJ_R007 = "PY-PROJ-R007"
 PY_PROJ_R008 = "PY-PROJ-R008"
 PY_PROJ_R009 = "PY-PROJ-R009"
 PY_PROJ_R010 = "PY-PROJ-R010"
+PY_PROJ_R011 = "PY-PROJ-R011"
 
 _RULE_LABELS = {
     "language": "python",
@@ -103,6 +104,14 @@ _RULES = (
         severity=PythonDiagnosticSeverity.WARNING,
         title="Harness dev dependency should mount a pytest gate",
         requirement="Enable `--python-project-harness` in pytest addopts or expose `python_project_harness_test()` so the dev dependency actually gates project policy.",
+        labels=dict(_RULE_LABELS),
+    ),
+    PythonHarnessRule(
+        rule_id=PY_PROJ_R011,
+        pack_id=PROJECT_POLICY_PACK_ID,
+        severity=PythonDiagnosticSeverity.INFO,
+        title="Verification profile hints are not configured",
+        requirement="Configure `[tool.python-lang-project-harness.verification].profile_hints` from parser-suggested owners, or run `python-project-harness --agent-snapshot` to copy the compact `[verify-profile]` hints.",
         labels=dict(_RULE_LABELS),
     ),
 )

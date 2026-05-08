@@ -256,6 +256,41 @@ test = [
     _assert_project_snapshot(tmp_path, "PY-PROJ-R010", "py_proj_r010_pytest_gate")
 
 
+def test_py_proj_r011_verification_profile_snapshot(tmp_path: Path) -> None:
+    package = _src(tmp_path) / "pkg"
+    package.mkdir()
+    (package / "__init__.py").write_text(
+        '"""Package docs."""\nfrom .api import build\n',
+        encoding="utf-8",
+    )
+    (package / "api.py").write_text(
+        '"""API docs."""\n\n\ndef build() -> str:\n    return "ok"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "snapshot-package"
+requires-python = ">=3.12"
+
+[dependency-groups]
+test = [
+    "python-lang-project-harness[pytest]>=0.1.0",
+]
+
+[tool.pytest.ini_options]
+addopts = ["--python-project-harness"]
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    _assert_project_snapshot(
+        tmp_path,
+        "PY-PROJ-R011",
+        "py_proj_r011_verification_profile",
+    )
+
+
 def test_py_test_r001_root_pytest_snapshot(tmp_path: Path) -> None:
     tests = tmp_path / "tests"
     tests.mkdir()

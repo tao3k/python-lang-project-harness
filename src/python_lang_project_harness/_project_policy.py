@@ -13,6 +13,7 @@ from ._project_policy_layout import project_layout_findings
 from ._project_policy_metadata import project_metadata_findings
 from ._project_policy_pytest_gate import project_pytest_gate_findings
 from ._project_policy_typed import typed_package_findings
+from ._project_policy_verification import project_verification_profile_findings
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
@@ -63,5 +64,13 @@ class PythonProjectPolicyRulePack:
             project_import_name_findings(scope, metadata, modules, self.pack_id)
         )
         findings.extend(project_pytest_gate_findings(metadata, modules, self.pack_id))
+        findings.extend(
+            project_verification_profile_findings(
+                scope,
+                metadata,
+                modules,
+                self.pack_id,
+            )
+        )
         findings.extend(typed_package_findings(metadata, modules, self.pack_id))
         return tuple(findings)

@@ -22,7 +22,7 @@ def project_pytest_gate_findings(
 ) -> tuple[PythonHarnessFinding, ...]:
     """Return findings when a harness dependency is not wired into pytest."""
 
-    if not _declares_harness_surface(metadata):
+    if not declares_python_harness_surface(metadata):
         return ()
     if metadata.pytest_options.enables_python_project_harness:
         return ()
@@ -49,7 +49,9 @@ def project_pytest_gate_findings(
     )
 
 
-def _declares_harness_surface(metadata: PythonProjectMetadata) -> bool:
+def declares_python_harness_surface(metadata: PythonProjectMetadata) -> bool:
+    """Return whether project metadata declares this harness as a dev surface."""
+
     distribution_name = _canonical_distribution_name(DISTRIBUTION_NAME)
     if _canonical_distribution_name(metadata.project_name or "") == distribution_name:
         return True

@@ -170,6 +170,86 @@ test = [
     assert not any(finding.rule_id == "PY-PROJ-R010" for finding in report.findings)
 
 
+def test_project_policy_advises_missing_verification_profile_hints(
+    tmp_path: Path,
+) -> None:
+    _write_pyproject(
+        tmp_path,
+        """
+[project]
+name = "example-pkg"
+requires-python = ">=3.12"
+
+[dependency-groups]
+test = [
+    "python-lang-project-harness[pytest]>=0.1.0",
+]
+
+[tool.pytest.ini_options]
+addopts = ["--python-project-harness"]
+""",
+    )
+    package = tmp_path / "src" / "pkg"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text(
+        '"""Package docs."""\nfrom .api import build\n',
+        encoding="utf-8",
+    )
+    (package / "api.py").write_text(
+        '"""API docs."""\n\n\ndef build() -> str:\n    return "ok"\n',
+        encoding="utf-8",
+    )
+
+    report = run_python_project_harness(tmp_path)
+    finding = next(
+        finding for finding in report.findings if finding.rule_id == "PY-PROJ-R011"
+    )
+
+    assert finding.severity.value == "info"
+    assert "parser-visible verification owner candidates" in finding.summary
+    assert finding not in report.blocking_findings()
+
+
+def test_project_policy_accepts_configured_verification_profile_hint(
+    tmp_path: Path,
+) -> None:
+    _write_pyproject(
+        tmp_path,
+        """
+[project]
+name = "example-pkg"
+requires-python = ">=3.12"
+
+[dependency-groups]
+test = [
+    "python-lang-project-harness[pytest]>=0.1.0",
+]
+
+[tool.pytest.ini_options]
+addopts = ["--python-project-harness"]
+
+[tool.python-lang-project-harness.verification]
+profile_hints = [
+  { owner_path = "src/pkg/__init__.py", responsibilities = ["public_api"], task_kinds = ["regression"], rationale = "package facade" },
+]
+""",
+    )
+    package = tmp_path / "src" / "pkg"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text(
+        '"""Package docs."""\nfrom .api import build\n',
+        encoding="utf-8",
+    )
+    (package / "api.py").write_text(
+        '"""API docs."""\n\n\ndef build() -> str:\n    return "ok"\n',
+        encoding="utf-8",
+    )
+
+    report = run_python_project_harness(tmp_path)
+
+    assert not any(finding.rule_id == "PY-PROJ-R011" for finding in report.findings)
+
+
 def _write_pyproject(project_root: Path, content: str) -> None:
     (project_root / "src").mkdir()
     (project_root / "pyproject.toml").write_text(

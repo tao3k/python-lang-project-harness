@@ -63,6 +63,7 @@ _EXPECTED_RULE_SNAPSHOT_FILES = {
     "unit_test__policy_snapshot__py_proj_r008_import_names.snap",
     "unit_test__policy_snapshot__py_proj_r009_entry_point_target.snap",
     "unit_test__policy_snapshot__py_proj_r010_pytest_gate.snap",
+    "unit_test__policy_snapshot__py_proj_r011_verification_profile.snap",
     "unit_test__policy_snapshot__py_test_r001_root_pytest.snap",
     "unit_test__policy_snapshot__py_test_r002_unexpected_root.snap",
     "unit_test__policy_snapshot__py_test_r003_unit_bloat.snap",
@@ -125,6 +126,7 @@ def test_rule_catalogs_expose_stable_rule_ids() -> None:
         "PY-PROJ-R008",
         "PY-PROJ-R009",
         "PY-PROJ-R010",
+        "PY-PROJ-R011",
     ]
     assert [rule.rule_id for rule in python_modern_design_rules()] == [
         "PY-MOD-R001",
@@ -161,9 +163,19 @@ def test_rule_catalogs_keep_default_severities_aligned() -> None:
     assert {rule.severity for rule in python_syntax_rules()} == {
         PythonDiagnosticSeverity.ERROR
     }
-    assert {rule.severity for rule in python_project_policy_rules()} == {
-        PythonDiagnosticSeverity.WARNING
-    }
+    assert [rule.severity for rule in python_project_policy_rules()] == [
+        PythonDiagnosticSeverity.WARNING,
+        PythonDiagnosticSeverity.WARNING,
+        PythonDiagnosticSeverity.WARNING,
+        PythonDiagnosticSeverity.WARNING,
+        PythonDiagnosticSeverity.WARNING,
+        PythonDiagnosticSeverity.WARNING,
+        PythonDiagnosticSeverity.WARNING,
+        PythonDiagnosticSeverity.WARNING,
+        PythonDiagnosticSeverity.WARNING,
+        PythonDiagnosticSeverity.WARNING,
+        PythonDiagnosticSeverity.INFO,
+    ]
     assert {rule.severity for rule in python_modern_design_rules()} == {
         PythonDiagnosticSeverity.WARNING
     }
