@@ -41,7 +41,7 @@ def payload_for_view(
         case "owner":
             return owner_payload(report, facts, project_root, query)
         case "dependency" | "deps":
-            return dependency_payload(report, facts, project_root, query)
+            return dependency_payload(report, facts, project_root, query, options.view)
         case "api":
             hits = api_hits(report, facts, project_root, query)[:MAX_SYMBOL_HITS]
             return generic_hits_payload("api", hits, facts, project_root, query)

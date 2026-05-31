@@ -151,6 +151,47 @@ def test_cli_search_public_external_types_uses_public_api_facts(
     )
 
 
+def test_cli_search_deps_routes_dependency_api_followups(tmp_path: Path) -> None:
+    write_search_fixture(tmp_path)
+    stdout = io.StringIO()
+    json_stdout = io.StringIO()
+
+    exit_code = run_cli(
+        ["search", "deps", "requests@2::Session", str(tmp_path)],
+        stdout=stdout,
+    )
+    json_exit_code = run_cli(
+        ["search", "deps", "requests@2::Session", "--json", str(tmp_path)],
+        stdout=json_stdout,
+    )
+
+    rendered = stdout.getvalue()
+    assert exit_code == 0
+    assert rendered.startswith("[search-deps] q=requests@2::Session")
+    assert "package=requests" in rendered
+    assert "requestedVersion=2" in rendered
+    assert "versionScope=current" in rendered
+    assert "api=Session" in rendered
+    assert (
+        "|next dependency:requests,public-external-types:requests,"
+        "api:requests@2::Session,text:Session,tests:Session"
+    ) in rendered
+
+    packet = json.loads(json_stdout.getvalue())
+    assert json_exit_code == 0
+    assert packet["method"] == "search/deps"
+    assert packet["header"]["kind"] == "search-deps"
+    assert packet["header"]["fields"]["package"] == "requests"
+    assert packet["header"]["fields"]["api"] == "Session"
+    assert {action["kind"] for action in packet["nextActions"]} >= {
+        "dependency",
+        "public-external-types",
+        "api",
+        "text",
+        "tests",
+    }
+
+
 def test_cli_search_ingest_groups_rg_output_by_owner(tmp_path: Path) -> None:
     write_search_fixture(tmp_path)
     stdout = io.StringIO()

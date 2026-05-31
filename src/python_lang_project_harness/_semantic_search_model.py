@@ -7,16 +7,16 @@ from dataclasses import dataclass
 FieldValue = str | int | float | bool | list[str | int | float | bool]
 Fields = dict[str, FieldValue]
 
-MAX_PRIME_OWNERS = 12
+MAX_PRIME_OWNERS = 8
 MAX_PRIME_EDGES = 24
 MAX_WORKSPACE_PACKAGES = 24
-MAX_WORKSPACE_EDGES = 32
+MAX_WORKSPACE_EDGES = 8
 MAX_FINDINGS = 8
-MAX_TEXT_HITS = 20
+MAX_TEXT_HITS = 12
 MAX_SYMBOL_HITS = 20
 MAX_IMPORT_HITS = 30
 MAX_DEPENDENCY_HITS = 24
-MAX_TEST_HITS = 24
+MAX_TEST_HITS = 8
 
 
 @dataclass(frozen=True, slots=True)

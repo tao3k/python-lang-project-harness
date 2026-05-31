@@ -30,6 +30,7 @@ def dependency_payload(
     facts: PythonReasoningTreeFacts,
     project_root: Path,
     query: str,
+    view: str,
 ) -> dict[str, Any]:
     """Build dependency/deps payloads."""
 
@@ -41,24 +42,19 @@ def dependency_payload(
     ]
     usage_hits = dependency_usage_hits(report, project_root, parts["package"])
     nodes = [dependency_node(item, parts=parts) for item in matches]
+    scope = version_scope(parts, matches)
+    hits = usage_hits[:MAX_DEPENDENCY_HITS]
+    owners = owners_for_paths(facts, project_root, [hit["ownerPath"] for hit in hits])
     return {
         "header": header(
-            "dependency",
-            {
-                "q": query,
-                "manifest": len(nodes),
-                "usage": len(usage_hits),
-                "versionScope": version_scope(parts, matches),
-            },
+            view,
+            _dependency_header_fields(query, parts, nodes, usage_hits, scope, view),
         ),
         "nodes": nodes[:MAX_DEPENDENCY_HITS],
-        "hits": usage_hits[:MAX_DEPENDENCY_HITS],
-        "nextActions": [
-            {"kind": "api", "target": parts["apiQuery"] or parts["package"]}
-        ],
-        "notes": []
-        if nodes or usage_hits
-        else [{"kind": "not-found", "message": query}],
+        "owners": owners,
+        "hits": hits,
+        "nextActions": _dependency_next_actions(parts, query, hits, scope, view),
+        "notes": _dependency_notes(query, nodes, usage_hits, scope, view),
     }
 
 
@@ -107,3 +103,83 @@ def _edge_owner_paths(edges: list[dict[str, Any]]) -> list[str]:
     for edge in edges:
         paths.extend((edge["from"].removeprefix("O:"), edge["to"].removeprefix("O:")))
     return paths
+
+
+def _dependency_header_fields(
+    query: str,
+    parts: dict[str, str],
+    nodes: list[dict[str, Any]],
+    usage_hits: list[dict[str, Any]],
+    scope: str,
+    view: str,
+) -> dict[str, Any]:
+    fields: dict[str, Any] = {
+        "q": query,
+        "manifest": len(nodes),
+        "usage": len(usage_hits),
+        "versionScope": scope,
+    }
+    if view == "deps":
+        fields.update(
+            {
+                "dep": 1 if parts["package"] else 0,
+                "package": parts["package"],
+                "api": parts["apiQuery"],
+                "hit": len(nodes) + len(usage_hits),
+                "view": "hits",
+            }
+        )
+        if parts["requestedVersion"]:
+            fields["requestedVersion"] = parts["requestedVersion"]
+    return fields
+
+
+def _dependency_next_actions(
+    parts: dict[str, str],
+    query: str,
+    hits: list[dict[str, Any]],
+    scope: str,
+    view: str,
+) -> list[dict[str, Any]]:
+    package = parts["package"]
+    api_query = parts["apiQuery"]
+    if view == "deps":
+        actions = [
+            {"kind": "dependency", "target": package},
+            {"kind": "public-external-types", "target": package},
+        ]
+        if api_query:
+            actions.append({"kind": "api", "target": query})
+        if api_query and scope == "current":
+            actions.extend(
+                (
+                    {"kind": "text", "target": api_query},
+                    {"kind": "tests", "target": api_query},
+                )
+            )
+        return [action for action in actions if action["target"]]
+    return [
+        *hit_next_actions(hits)[:4],
+        {"kind": "public-external-types", "target": package},
+        {"kind": "import", "target": query or package},
+    ]
+
+
+def _dependency_notes(
+    query: str,
+    nodes: list[dict[str, Any]],
+    usage_hits: list[dict[str, Any]],
+    scope: str,
+    view: str,
+) -> list[dict[str, str]]:
+    notes: list[dict[str, str]] = []
+    if not nodes and not usage_hits:
+        notes.append({"kind": "not-found", "message": query})
+    if view == "deps" and scope == "external":
+        notes.append(
+            {
+                "kind": "fact-scope",
+                "message": "requested dependency version is outside the current workspace metadata; local usage is not attributed to that version",
+            }
+        )
+    return notes

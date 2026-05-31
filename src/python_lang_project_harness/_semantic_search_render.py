@@ -35,8 +35,10 @@ def render_python_semantic_search_packet(packet: dict[str, Any]) -> str:
     lines.extend(_node_lines(packet))
     lines.extend(_owner_lines(packet))
     lines.extend(_hit_lines(packet, owner_by_path))
-    lines.extend(_edge_lines(packet))
-    lines.extend(_finding_lines(packet))
+    if packet["view"] not in {"workspace", "prime"}:
+        lines.extend(_edge_lines(packet))
+    if packet["view"] not in {"workspace", "prime"}:
+        lines.extend(_finding_lines(packet))
     lines.extend(_note_lines(packet))
     if packet["nextActions"]:
         rendered = ",".join(
