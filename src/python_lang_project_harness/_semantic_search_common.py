@@ -156,9 +156,11 @@ def escape_scalar(value: str | int | float | bool) -> str:
 def render_location(search_location: dict[str, Any]) -> str:
     """Render a compact location."""
 
-    path = search_location["path"]
+    fields: Fields = {"path": search_location["path"]}
     if "line" in search_location and "column" in search_location:
-        return f"{path}:{search_location['line']}:{search_location['column']}"
+        fields["line"] = search_location["line"]
+        fields["column"] = search_location["column"]
+        return render_fields(fields)
     if "line" in search_location:
-        return f"{path}:{search_location['line']}"
-    return path
+        fields["line"] = search_location["line"]
+    return render_fields(fields)

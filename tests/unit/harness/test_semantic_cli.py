@@ -103,7 +103,7 @@ def test_cli_search_callsite_uses_parser_call_facts(tmp_path: Path) -> None:
     assert exit_code == 0
     assert rendered.startswith("[search-callsite] q=build hit=1")
     assert "|owner tests/test_service.py" in rendered
-    assert "|hit tests/test_service.py:4" in rendered
+    assert "|hit path=tests/test_service.py line=4" in rendered
     assert "owner=tests/test_service.py kind=callsite" in rendered
     assert "symbol=build" in rendered
 
@@ -128,10 +128,10 @@ def test_cli_search_public_external_types_uses_public_api_facts(
     assert exit_code == 0
     assert rendered.startswith("[search-public-external-types] q=requests")
     assert "package=requests" in rendered
-    assert "|api src/pkg/service.py:6" in rendered
+    assert "|api path=src/pkg/service.py line=6" in rendered
     assert "reason=public-external-type" in rendered
     assert "confidence=direct" in rendered
-    assert "|api src/pkg/service.py:9" in rendered
+    assert "|api path=src/pkg/service.py line=9" in rendered
     assert "reason=possible-public-external-type" in rendered
     assert "confidence=possible" in rendered
 
@@ -209,7 +209,7 @@ def test_cli_search_ingest_groups_rg_output_by_owner(tmp_path: Path) -> None:
     assert exit_code == 0
     assert rendered.startswith("[search-ingest] source=rg-n hit=1")
     assert "|owner src/pkg/service.py" in rendered
-    assert "|hit src/pkg/service.py:3 owner=src/pkg/service.py" in rendered
+    assert "|hit path=src/pkg/service.py line=3 owner=src/pkg/service.py" in rendered
 
 
 def write_search_fixture(project_root: Path) -> None:
