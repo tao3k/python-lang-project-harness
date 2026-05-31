@@ -85,6 +85,9 @@ def test_cli_search_workspace_prime_and_text_pipe(tmp_path: Path) -> None:
     assert prime.startswith("[search-prime]")
     assert '|dependency D:requests requirement="requests>=2"' in prime
     assert "|owner src/pkg/service.py" in prime
+    assert "text:build(owner=" in prime
+    assert prime.count("deps:requests") == 1
+    assert "symbol:build" not in prime
     assert text.startswith("[search-text] q=build")
     assert "|owner src/pkg/service.py" in text
     assert "|edge O:src/pkg/service.py -test-> O:tests/test_service.py" in text

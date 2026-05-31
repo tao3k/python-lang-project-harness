@@ -67,8 +67,8 @@ def owner_record(node: PythonReasoningTreeNode, project_root: Path) -> dict[str,
             {"kind": "owner", "target": path},
             {"kind": "tests", "target": path},
             *(
-                {"kind": "symbol", "target": name, "ownerPath": path}
-                for name in exports[:4]
+                {"kind": "text", "target": name, "ownerPath": path}
+                for name in exports[:2]
             ),
         ],
         "fields": fields,

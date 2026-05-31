@@ -129,12 +129,22 @@ def _prime_next_actions(
     owners: list[dict[str, Any]],
     dep_nodes: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    actions = [{"kind": "owner", "target": owner["path"]} for owner in owners[:4]]
+    actions: list[dict[str, Any]] = []
+    for owner in owners[:3]:
+        actions.append({"kind": "owner", "target": owner["path"]})
+        if owner.get("exports"):
+            actions.append(
+                {
+                    "kind": "text",
+                    "target": owner["exports"][0],
+                    "ownerPath": owner["path"],
+                }
+            )
     actions.extend(
-        {"kind": "deps", "target": node["id"].removeprefix("D:")}
-        for node in dep_nodes[:4]
+        {"kind": "deps", "target": dependency}
+        for dependency in _unique_dependencies(dep_nodes)
     )
-    return actions
+    return actions[:8]
 
 
 def _owner_next_actions(owners: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -142,7 +152,19 @@ def _owner_next_actions(owners: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for owner in owners[:8]:
         actions.append({"kind": "tests", "target": owner["path"]})
         actions.extend(
-            {"kind": "symbol", "target": name, "ownerPath": owner["path"]}
+            {"kind": "text", "target": name, "ownerPath": owner["path"]}
             for name in owner.get("exports", [])[:2]
         )
     return actions
+
+
+def _unique_dependencies(dep_nodes: list[dict[str, Any]]) -> list[str]:
+    dependencies: list[str] = []
+    seen: set[str] = set()
+    for node in dep_nodes:
+        dependency = node["id"].removeprefix("D:")
+        if dependency in seen:
+            continue
+        seen.add(dependency)
+        dependencies.append(dependency)
+    return dependencies

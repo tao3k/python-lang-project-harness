@@ -70,7 +70,7 @@ def _owner_lines(packet: dict[str, Any]) -> list[str]:
         fields: Fields = {
             "role": owner["role"],
             "public": owner["public"],
-            "exp": owner.get("exports", [])[:8],
+            "exp": owner.get("exports", [])[:4],
             **owner["fields"],
         }
         owner_next = _render_owner_next_actions(
