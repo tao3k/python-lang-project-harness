@@ -7,6 +7,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TextIO
 
+from ._agent_hooks import install_python_agent_assets, run_python_agent_hook
 from ._agent_snapshot import render_python_project_harness_agent_snapshot_report
 from ._model import PythonHarnessConfig
 from ._project_config import read_python_project_harness_config
@@ -104,6 +105,8 @@ class _ProtocolArgs:
     command: str
     view: str | None = None
     action: str | None = None
+    client: str | None = None
+    hook_event: str | None = None
     query: str | None = None
     project_root: Path | None = None
     package_path: Path | None = None
@@ -227,24 +230,45 @@ class _ProtocolArgs:
     @classmethod
     def _parse_agent(cls, args: list[str] | tuple[str, ...]) -> _ProtocolArgs:
         action = args[0] if args else "doctor"
-        if action != "doctor":
+        if action not in {"doctor", "install", "hook"}:
             return cls("error", error=f"unknown agent action: {action}")
+        client: str | None = None
+        hook_event: str | None = None
         json_output = False
         positionals: list[str] = []
-        for arg in args[1:]:
+        index = 1
+        while index < len(args):
+            arg = args[index]
             if arg == "--json":
                 json_output = True
+            elif arg == "--client":
+                value = _optional_arg(args, index + 1)
+                if value is None:
+                    return cls("error", error="--client requires a client name")
+                if value != "codex":
+                    return cls("error", error=f"unsupported agent client: {value}")
+                client = value
+                index += 1
             elif arg in {"--help", "-h"}:
                 continue
             elif arg.startswith("-"):
                 return cls("error", error=f"unknown agent option: {arg}")
+            elif action == "hook" and hook_event is None:
+                hook_event = arg
             else:
                 positionals.append(arg)
+            index += 1
         if len(positionals) > 1:
             return cls("error", error="expected at most one PROJECT_ROOT argument")
+        if action in {"install", "hook"} and client != "codex":
+            return cls("error", error="agent action requires --client codex")
+        if action == "hook" and hook_event is None:
+            return cls("error", error="agent hook requires an event")
         return cls(
             "agent",
-            action="doctor",
+            action=action,
+            client=client,
+            hook_event=hook_event,
             project_root=None if not positionals else Path(positionals[0]),
             json=json_output,
         )
@@ -265,13 +289,33 @@ def _run_protocol_cli(
     if args.package_path is not None:
         project_root = (project_root / args.package_path).resolve()
     if args.command == "agent":
-        if args.json:
-            stdout.write(
-                _render_agent_doctor_json(project_root),
-            )
-        else:
-            stdout.write(_render_agent_doctor(project_root))
-        return 0
+        try:
+            if args.action == "install":
+                output = install_python_agent_assets(project_root)
+                if args.json:
+                    stdout.write(
+                        _render_agent_doctor_json(project_root),
+                    )
+                else:
+                    stdout.write(output)
+                return 0
+            if args.action == "hook":
+                return run_python_agent_hook(
+                    args.hook_event,
+                    repo_root=project_root,
+                    stdout=stdout,
+                    stdin=stdin,
+                )
+            if args.json:
+                stdout.write(
+                    _render_agent_doctor_json(project_root),
+                )
+            else:
+                stdout.write(_render_agent_doctor(project_root))
+            return 0
+        except RuntimeError as error:
+            stderr.write(f"{error}\n")
+            return 3
     try:
         report = run_python_project_harness(project_root)
         if args.command == "check":
@@ -511,6 +555,8 @@ def _help_text() -> str:
         "  py-harness search <view> ... [--json] [--package PATH] [PROJECT_ROOT]\n"
         "  py-harness check [--changed | --full] [--json] [PROJECT_ROOT]\n"
         "  py-harness agent doctor [--json] [PROJECT_ROOT]\n"
+        "  py-harness agent install --client codex [PROJECT_ROOT]\n"
+        "  py-harness agent hook --client codex <event> [PROJECT_ROOT]\n"
         "  py-harness [--json | --agent-snapshot] [--no-tests] "
         "[--source-dir DIR] [--test-dir DIR] [--extra-path PATH] "
         "[--disable-rule RULE_ID] [--block-rule RULE_ID] [PROJECT_ROOT]\n\n"
@@ -539,6 +585,10 @@ def _help_text() -> str:
         "AGENT\n"
         "  agent doctor              Print semantic-language provider readiness\n"
         "  agent doctor --json       Semantic language registry document\n\n"
+        "  agent install --client codex\n"
+        "                             Install project-local Codex hook config\n"
+        "  agent hook --client codex <event>\n"
+        "                             Handle a Codex hook callback\n\n"
         "DIRECT CHECK\n"
         "The no-command form still runs the default package-level Python harness.\n\n"
         "Compact text is the default output for humans and repair-oriented agents.\n"
