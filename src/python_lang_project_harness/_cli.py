@@ -131,7 +131,7 @@ class _ProtocolArgs:
                 "error",
                 error=(
                     "usage: py-harness search "
-                    "<workspace|prime|owner|dependency|deps|api|symbol|callsite|import|tests|text|ingest> "
+                    "<workspace|prime|owner|dependency|deps|api|public-external-types|symbol|callsite|import|tests|text|ingest> "
                     "... [--json] [--package PATH] [PROJECT_ROOT]"
                 ),
             )
@@ -522,6 +522,8 @@ def _help_text() -> str:
         "  search deps <pkg[@ver][::api]>\n"
         "                             Versioned dependency API usage evidence\n"
         "  search api <query>        Parser-owned public API facts\n"
+        "  search public-external-types <pkg>\n"
+        "                             Public API type surfaces exposing a dependency\n"
         "  search symbol <name>      Symbol/export definitions\n"
         "  search callsite <name>    Parser-owned function and method callsites\n"
         "  search import <query>     Import owner edges\n"
@@ -548,6 +550,7 @@ def _help_text() -> str:
         "\nEXAMPLES\n"
         "  py-harness search workspace .\n"
         "  py-harness search prime .\n"
+        "  py-harness search public-external-types pytest .\n"
         "  py-harness search callsite PythonSemanticSearchOptions .\n"
         "  py-harness search text PythonSemanticSearchOptions owner tests .\n"
         '  rg -n "PythonSemanticSearchOptions" src tests | py-harness search ingest .\n'

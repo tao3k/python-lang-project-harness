@@ -68,6 +68,15 @@ def python_search_view_descriptors() -> list[dict[str, Any]]:
             ingest_required_for=[_ingest("external-api-docs")],
         ),
         _view(
+            "public-external-types",
+            requires_query=True,
+            capabilities=[
+                _semantic("dependency-manifest-search"),
+                _python("public-external-type-search"),
+                _python("public-api-type-text-search"),
+            ],
+        ),
+        _view(
             "symbol",
             requires_query=True,
             capabilities=[_python("symbol-definition-search")],

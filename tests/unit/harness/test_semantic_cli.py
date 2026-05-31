@@ -27,6 +27,7 @@ def test_cli_agent_doctor_json_advertises_semantic_language_provider(
     )
     assert "search/workspace" in registration["methods"]
     assert "search/callsite" in registration["methods"]
+    assert "search/public-external-types" in registration["methods"]
     assert "search/text" in registration["methods"]
     assert any(
         descriptor["method"] == "search/text"
@@ -104,6 +105,52 @@ def test_cli_search_callsite_uses_parser_call_facts(tmp_path: Path) -> None:
     assert "symbol=build" in rendered
 
 
+def test_cli_search_public_external_types_uses_public_api_facts(
+    tmp_path: Path,
+) -> None:
+    write_search_fixture(tmp_path)
+    stdout = io.StringIO()
+    json_stdout = io.StringIO()
+
+    exit_code = run_cli(
+        ["search", "public-external-types", "requests", str(tmp_path)],
+        stdout=stdout,
+    )
+    json_exit_code = run_cli(
+        ["search", "public-external-types", "requests", "--json", str(tmp_path)],
+        stdout=json_stdout,
+    )
+
+    rendered = stdout.getvalue()
+    assert exit_code == 0
+    assert rendered.startswith("[search-public-external-types] q=requests")
+    assert "package=requests" in rendered
+    assert "|api src/pkg/service.py:6" in rendered
+    assert "reason=public-external-type" in rendered
+    assert "confidence=direct" in rendered
+    assert "|api src/pkg/service.py:9" in rendered
+    assert "reason=possible-public-external-type" in rendered
+    assert "confidence=possible" in rendered
+
+    packet = json.loads(json_stdout.getvalue())
+    assert json_exit_code == 0
+    assert packet["method"] == "search/public-external-types"
+    assert packet["view"] == "public-external-types"
+    assert packet["header"]["fields"]["package"] == "requests"
+    assert any(
+        hit["reason"] == "public-external-type"
+        and hit["fields"]["dependency"] == "requests"
+        and hit["fields"]["confidence"] == "direct"
+        for hit in packet["hits"]
+    )
+    assert any(
+        hit["reason"] == "possible-public-external-type"
+        and hit["fields"]["dependency"] == "requests"
+        and hit["fields"]["confidence"] == "possible"
+        for hit in packet["hits"]
+    )
+
+
 def test_cli_search_ingest_groups_rg_output_by_owner(tmp_path: Path) -> None:
     write_search_fixture(tmp_path)
     stdout = io.StringIO()
@@ -146,6 +193,12 @@ build-backend = "hatchling.build"
     )
     (package / "service.py").write_text(
         '"""Service owner."""\n\n'
+        "import requests\n"
+        "from requests import Response\n\n"
+        "class SessionClient(requests.Session):\n"
+        "    pass\n\n"
+        "def fetch() -> Response:\n"
+        "    return Response()\n\n"
         "def build(value: str) -> str:\n"
         "    return value.strip()\n",
         encoding="utf-8",
