@@ -73,6 +73,11 @@ def python_search_view_descriptors() -> list[dict[str, Any]]:
             capabilities=[_python("symbol-definition-search")],
         ),
         _view(
+            "callsite",
+            requires_query=True,
+            capabilities=[_python("owner-callsite-search")],
+        ),
+        _view(
             "import",
             requires_query=True,
             capabilities=[_python("import-edge-search")],

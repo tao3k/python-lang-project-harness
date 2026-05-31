@@ -19,23 +19,13 @@ PYTHON_PROVIDER_ID = "py-harness"
 PYTHON_BINARY = "py-harness"
 PYTHON_PROVIDER_NAMESPACE = "agent.semantic-protocols.languages.python.py-harness"
 
-PYTHON_SEARCH_VIEWS = (
-    "workspace",
-    "prime",
-    "owner",
-    "dependency",
-    "deps",
-    "api",
-    "symbol",
-    "import",
-    "tests",
-    "text",
-    "ingest",
-)
-PYTHON_SEARCH_METHODS = tuple(f"search/{view}" for view in PYTHON_SEARCH_VIEWS)
 PYTHON_CHECK_METHODS = ("check/changed", "check/full")
 PYTHON_AGENT_METHODS = ("agent/doctor",)
 PYTHON_SEARCH_VIEW_DESCRIPTORS = python_search_view_descriptors()
+PYTHON_SEARCH_VIEWS = tuple(
+    descriptor["view"] for descriptor in PYTHON_SEARCH_VIEW_DESCRIPTORS
+)
+PYTHON_SEARCH_METHODS = tuple(f"search/{view}" for view in PYTHON_SEARCH_VIEWS)
 
 
 def semantic_language_registry_document(

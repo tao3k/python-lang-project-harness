@@ -26,6 +26,7 @@ def test_cli_agent_doctor_json_advertises_semantic_language_provider(
         "agent.semantic-protocols.languages.python.py-harness"
     )
     assert "search/workspace" in registration["methods"]
+    assert "search/callsite" in registration["methods"]
     assert "search/text" in registration["methods"]
     assert any(
         descriptor["method"] == "search/text"
@@ -86,6 +87,21 @@ def test_cli_search_workspace_prime_and_text_pipe(tmp_path: Path) -> None:
     assert text.startswith("[search-text] q=build")
     assert "|owner src/pkg/service.py" in text
     assert "|edge O:src/pkg/service.py -test-> O:tests/test_service.py" in text
+
+
+def test_cli_search_callsite_uses_parser_call_facts(tmp_path: Path) -> None:
+    write_search_fixture(tmp_path)
+    stdout = io.StringIO()
+
+    exit_code = run_cli(["search", "callsite", "build", str(tmp_path)], stdout=stdout)
+
+    rendered = stdout.getvalue()
+    assert exit_code == 0
+    assert rendered.startswith("[search-callsite] q=build hit=1")
+    assert "|owner tests/test_service.py" in rendered
+    assert "|hit tests/test_service.py:4" in rendered
+    assert "owner=tests/test_service.py kind=callsite" in rendered
+    assert "symbol=build" in rendered
 
 
 def test_cli_search_ingest_groups_rg_output_by_owner(tmp_path: Path) -> None:

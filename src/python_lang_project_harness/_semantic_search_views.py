@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from ._semantic_search_common import header
-from ._semantic_search_hits import api_hits, symbol_hits
+from ._semantic_search_hits import api_hits, callsite_hits, symbol_hits
 from ._semantic_search_model import MAX_SYMBOL_HITS, PythonSemanticSearchOptions
 from ._semantic_search_view_core import owner_payload, prime_payload, workspace_payload
 from ._semantic_search_view_deps_imports import dependency_payload, import_payload
@@ -47,6 +47,9 @@ def payload_for_view(
         case "symbol":
             hits = symbol_hits(report, project_root, query)[:MAX_SYMBOL_HITS]
             return generic_hits_payload("symbol", hits, facts, project_root, query)
+        case "callsite":
+            hits = callsite_hits(report, project_root, query)[:MAX_SYMBOL_HITS]
+            return generic_hits_payload("callsite", hits, facts, project_root, query)
         case "import":
             return import_payload(report, facts, project_root, query)
         case "tests":
