@@ -6,6 +6,8 @@ import ast
 
 from ._name_policy import python_name_is_public
 
+_ast_splitlines_no_ff = getattr(ast, "_splitlines_no_ff", None)
+
 
 def unparse(node: ast.AST) -> str:
     """Return a compact Python expression for an AST node."""
@@ -40,6 +42,52 @@ def source_segment(source: str, node: ast.AST) -> str | None:
         return ast.get_source_segment(source, node)
     except Exception:  # pragma: no cover - defensive fallback for exotic AST nodes.
         return None
+
+
+class SourceSegmentLookup:
+    """Cache parser-style source lines for repeated AST source slices."""
+
+    def __init__(self, source: str) -> None:
+        self._lines = _splitlines_no_form_feed(source)
+
+    def segment(self, node: ast.AST) -> str | None:
+        """Return the source segment for an AST node from cached source lines."""
+
+        try:
+            if node.end_lineno is None or node.end_col_offset is None:
+                return None
+            lineno = node.lineno - 1
+            end_lineno = node.end_lineno - 1
+            col_offset = node.col_offset
+            end_col_offset = node.end_col_offset
+        except AttributeError:
+            return None
+        if lineno < 0 or end_lineno >= len(self._lines):
+            return None
+        try:
+            if end_lineno == lineno:
+                return _slice_parser_columns(
+                    self._lines[lineno], col_offset, end_col_offset
+                )
+            first = _slice_parser_columns(self._lines[lineno], col_offset, None)
+            last = _slice_parser_columns(self._lines[end_lineno], None, end_col_offset)
+            return "".join((first, *self._lines[lineno + 1 : end_lineno], last))
+        except UnicodeDecodeError:  # pragma: no cover - mirrors ast fallback behavior.
+            return None
+
+
+def _splitlines_no_form_feed(source: str) -> list[str]:
+    if callable(_ast_splitlines_no_ff):
+        return _ast_splitlines_no_ff(source, None)
+    return source.splitlines(keepends=True)
+
+
+def _slice_parser_columns(
+    line: str,
+    start: int | None,
+    end: int | None,
+) -> str:
+    return line.encode()[start:end].decode()
 
 
 def iter_assignment_target_nodes(target: ast.AST) -> tuple[ast.AST, ...]:

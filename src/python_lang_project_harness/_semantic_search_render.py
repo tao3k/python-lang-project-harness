@@ -14,6 +14,10 @@ from ._semantic_search_common import (
 from ._semantic_search_model import Fields
 from .verification.facts import is_test_path
 
+COMPACT_PIPE_OWNER_LINES = 4
+COMPACT_PIPE_HIT_LINES = 8
+COMPACT_PIPE_EDGE_LINES = 4
+
 
 def render_python_semantic_search_packet_json(packet: dict[str, Any]) -> str:
     """Render a semantic-search packet as pretty JSON."""
@@ -66,7 +70,7 @@ def _node_lines(packet: dict[str, Any]) -> list[str]:
 
 def _owner_lines(packet: dict[str, Any]) -> list[str]:
     lines = []
-    for owner in packet["owners"]:
+    for owner in _compact_items(packet, packet["owners"], COMPACT_PIPE_OWNER_LINES):
         fields: Fields = {
             "role": owner["role"],
             "public": owner["public"],
@@ -88,7 +92,7 @@ def _hit_lines(
     owner_by_path: dict[str, dict[str, Any]],
 ) -> list[str]:
     lines = []
-    for hit in packet["hits"]:
+    for hit in _compact_hits(packet):
         owner_role = owner_by_path.get(hit["ownerPath"], {}).get("role")
         fields: Fields = {
             "owner": hit["ownerPath"],
@@ -108,12 +112,40 @@ def _hit_lines(
 
 def _edge_lines(packet: dict[str, Any]) -> list[str]:
     lines = []
-    for edge in packet["edges"]:
+    for edge in _compact_items(packet, packet["edges"], COMPACT_PIPE_EDGE_LINES):
         fields = (
             f" {render_fields(edge.get('fields', {}))}" if edge.get("fields") else ""
         )
         lines.append(f"|edge {edge['from']} -{edge['kind']}-> {edge['to']}{fields}")
     return lines
+
+
+def _compact_hits(packet: dict[str, Any]) -> list[dict[str, Any]]:
+    hits = packet["hits"]
+    if packet["view"] != "text":
+        return _compact_items(packet, hits, COMPACT_PIPE_HIT_LINES)
+    return sorted(hits, key=_text_hit_compact_rank)[:COMPACT_PIPE_HIT_LINES]
+
+
+def _text_hit_compact_rank(hit: dict[str, Any]) -> tuple[int, int]:
+    fields = hit.get("fields", {})
+    if fields.get("source") == "parser-visible-source":
+        return (0, -int(hit.get("score", 0)))
+    if hit.get("kind") == "symbol":
+        return (1, -int(hit.get("score", 0)))
+    if hit.get("kind") == "export":
+        return (2, -int(hit.get("score", 0)))
+    return (3, -int(hit.get("score", 0)))
+
+
+def _compact_items(
+    packet: dict[str, Any],
+    items: list[dict[str, Any]],
+    limit: int,
+) -> list[dict[str, Any]]:
+    if packet["view"] in {"text", "ingest"}:
+        return items[:limit]
+    return items
 
 
 def _finding_lines(packet: dict[str, Any]) -> list[str]:
