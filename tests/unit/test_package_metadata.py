@@ -47,9 +47,7 @@ def test_distribution_exposes_console_script() -> None:
         for entry_point in metadata.entry_points(group="console_scripts")
     }
 
-    assert scripts["python-project-harness"] == (
-        "python_lang_project_harness:run_cli_from_env"
-    )
+    assert scripts["py-harness"] == ("python_lang_project_harness:run_cli_from_env")
 
 
 def test_distribution_exposes_pytest_optional_dependency() -> None:
