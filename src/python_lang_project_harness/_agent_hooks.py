@@ -7,9 +7,11 @@ from typing import TextIO
 
 from ._agent_hook_install import (
     install_python_agent_assets,
+    run_python_agent_hook_event,
+)
+from ._agent_hook_profile import (
     python_agent_profile_registry,
     python_agent_profile_registry_path,
-    run_python_agent_hook_event,
     write_python_agent_profile_registry,
 )
 
