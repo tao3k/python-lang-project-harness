@@ -100,6 +100,9 @@ def python_search_view_descriptors() -> list[dict[str, Any]]:
             "text",
             requires_query=True,
             accepted_pipes=["owner", "tests"],
+            supports_query_set=True,
+            accepted_query_set_selectors=["exact-set"],
+            query_set_scopes=["project", "owner"],
             capabilities=[
                 _semantic("owner-path-text-search"),
                 _python("export-text-search"),
@@ -131,6 +134,9 @@ def _view(
     requires_query: bool = False,
     accepts_stdin: bool = False,
     accepted_pipes: Sequence[str] = (),
+    supports_query_set: bool = False,
+    accepted_query_set_selectors: Sequence[str] = (),
+    query_set_scopes: Sequence[str] = (),
     ingest_required_for: Sequence[dict[str, str]] = (),
 ) -> dict[str, Any]:
     descriptor: dict[str, Any] = {
@@ -144,6 +150,12 @@ def _view(
     }
     if accepted_pipes:
         descriptor["acceptedPipes"] = list(accepted_pipes)
+    if supports_query_set:
+        descriptor["supportsQuerySet"] = True
+    if accepted_query_set_selectors:
+        descriptor["acceptedQuerySetSelectors"] = list(accepted_query_set_selectors)
+    if query_set_scopes:
+        descriptor["querySetScopes"] = list(query_set_scopes)
     if ingest_required_for:
         descriptor["ingestRequiredFor"] = list(ingest_required_for)
     return descriptor

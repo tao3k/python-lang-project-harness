@@ -6,6 +6,8 @@ import io
 import json
 from pathlib import Path
 
+from semantic_search_fixture import write_search_fixture
+
 from python_lang_project_harness import python_semantic_language_registration, run_cli
 
 
@@ -30,17 +32,43 @@ def test_cli_agent_doctor_json_advertises_semantic_language_provider(
     assert "search/public-external-types" in registration["methods"]
     assert "search/text" in registration["methods"]
     assert "agent/doctor" in registration["methods"]
+    assert "agent/guide" in registration["methods"]
     assert "agent/install" not in registration["methods"]
     assert "agent/hook" not in registration["methods"]
     assert any(
         descriptor["method"] == "search/text"
         and descriptor["acceptedPipes"] == ["owner", "tests"]
+        and descriptor["supportsQuerySet"] is True
+        and descriptor["acceptedQuerySetSelectors"] == ["exact-set"]
+        and descriptor["querySetScopes"] == ["project", "owner"]
         for descriptor in registration["methodDescriptors"]
     )
     assert not any(
         descriptor["method"] in {"agent/install", "agent/hook"}
         for descriptor in registration["methodDescriptors"]
     )
+    assert any(
+        descriptor["method"] == "agent/guide"
+        and descriptor["command"] == "agent"
+        and descriptor["supportsCompact"] is True
+        and descriptor["supportsJson"] is False
+        for descriptor in registration["methodDescriptors"]
+    )
+
+
+def test_cli_agent_guide_prints_provider_owned_searchflow(tmp_path: Path) -> None:
+    stdout = io.StringIO()
+
+    exit_code = run_cli(["agent", "guide", str(tmp_path)], stdout=stdout)
+
+    rendered = stdout.getvalue()
+    assert exit_code == 0
+    assert rendered.startswith(f"[py-harness-guide] project={tmp_path}")
+    assert f"|cmd py-harness search prime --view seeds {tmp_path}" in rendered
+    assert (
+        f"|cmd py-harness search owner <owner-path> --view seeds {tmp_path}" in rendered
+    )
+    assert "|rule use installed py-harness binary" in rendered
 
 
 def test_python_capability_schema_covers_registry_descriptors() -> None:
@@ -217,46 +245,3 @@ def test_cli_search_ingest_groups_rg_output_by_owner(tmp_path: Path) -> None:
     assert rendered.startswith("[search-ingest] source=rg-n hit=1")
     assert "|owner src/pkg/service.py" in rendered
     assert "|hit path=src/pkg/service.py line=3 owner=src/pkg/service.py" in rendered
-
-
-def write_search_fixture(project_root: Path) -> None:
-    package = project_root / "src" / "pkg"
-    tests = project_root / "tests"
-    package.mkdir(parents=True)
-    tests.mkdir()
-    (project_root / "pyproject.toml").write_text(
-        """
-[project]
-name = "demo-python"
-version = "0.1.0"
-import-names = ["pkg"]
-dependencies = ["requests>=2"]
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-""".lstrip(),
-        encoding="utf-8",
-    )
-    (package / "__init__.py").write_text(
-        '"""Package owner."""\n\nfrom .service import build\n\n__all__ = ("build",)\n',
-        encoding="utf-8",
-    )
-    (package / "service.py").write_text(
-        '"""Service owner."""\n\n'
-        "import requests\n"
-        "from requests import Response\n\n"
-        "class SessionClient(requests.Session):\n"
-        "    pass\n\n"
-        "def fetch() -> Response:\n"
-        "    return Response()\n\n"
-        "def build(value: str) -> str:\n"
-        "    return value.strip()\n",
-        encoding="utf-8",
-    )
-    (tests / "test_service.py").write_text(
-        "from pkg.service import build\n\n"
-        "def test_build() -> None:\n"
-        "    assert build(' ok ') == 'ok'\n",
-        encoding="utf-8",
-    )

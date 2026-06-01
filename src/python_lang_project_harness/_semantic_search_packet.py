@@ -57,9 +57,58 @@ def build_python_semantic_search_packet(
     }
     if options.query is not None:
         packet["query"] = options.query
+    query_terms = [
+        {"value": term, "kind": "text", "selector": "exact"}
+        for term in _normalized_query_set(options.query_set)
+    ]
+    if query_terms:
+        packet["querySet"] = query_terms
+        scope = (
+            {"ownerPath": options.owner_path}
+            if options.owner_path is not None
+            else None
+        )
+        packet["queryComposition"] = {
+            "mode": "query-set",
+            "view": options.view,
+            "selector": "exact-set",
+            **({} if scope is None else {"scope": scope}),
+            "merge": ["nodes", "edges", "owners", "hits", "nextActions", "notes"],
+        }
     if facts.project_metadata is not None and facts.project_metadata.project_name:
         packet["packageName"] = facts.project_metadata.project_name
-    for optional_key in ("inputDetection", "packages", "items"):
-        if optional_key in payload:
+    if options.runtime_cost is not None:
+        packet["runtimeCost"] = options.runtime_cost
+        packet["notes"] = [
+            *packet["notes"],
+            {
+                "kind": "runtime-prefilter",
+                "message": str(options.runtime_cost.get("reason", "")),
+                "fields": options.runtime_cost.get("fields", {}),
+            },
+        ]
+    for optional_key in (
+        "inputDetection",
+        "packages",
+        "items",
+        "queryCoverage",
+        "ownerResolution",
+        "runtimeCost",
+        "searchSynthesis",
+        "avoidNextActions",
+    ):
+        if payload.get(optional_key) is not None:
             packet[optional_key] = payload[optional_key]
     return packet
+
+
+def _normalized_query_set(query_set: tuple[str, ...]) -> list[str]:
+    terms: list[str] = []
+    seen: set[str] = set()
+    for raw_term in query_set:
+        term = raw_term.strip()
+        if not term or term in seen:
+            continue
+        seen.add(term)
+        terms.append(term)
+    return terms

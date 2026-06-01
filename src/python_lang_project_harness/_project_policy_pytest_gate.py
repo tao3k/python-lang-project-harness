@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from ._model import PythonHarnessFinding
 from ._project_policy_catalog import PY_PROJ_R010, project_policy_rule
 from ._source import path_location, source_line
-from ._version import DISTRIBUTION_NAME
+from ._version import _DISTRIBUTION_NAME
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -52,7 +52,7 @@ def project_pytest_gate_findings(
 def declares_python_harness_surface(metadata: PythonProjectMetadata) -> bool:
     """Return whether project metadata declares this harness as a dev surface."""
 
-    distribution_name = _canonical_distribution_name(DISTRIBUTION_NAME)
+    distribution_name = _canonical_distribution_name(_DISTRIBUTION_NAME)
     if _canonical_distribution_name(metadata.project_name or "") == distribution_name:
         return True
     if any(

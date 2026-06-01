@@ -314,8 +314,8 @@ def test_agent_snapshot_includes_active_verification_tasks(
         config,
     )
 
-    assert "[agent-snapshot] . python" in rendered
-    assert "[tree] . python" in rendered
+    assert "[agent-snapshot] src python" in rendered
+    assert "[tree] src python" in rendered
     assert "[verify-profile]" in rendered
     assert "[verify]" in rendered
     assert "src/pkg/api.py: security pending" in rendered

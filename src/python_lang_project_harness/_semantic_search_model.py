@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 FieldValue = str | int | float | bool | list[str | int | float | bool]
 Fields = dict[str, FieldValue]
@@ -25,6 +26,9 @@ class PythonSemanticSearchOptions:
 
     view: str
     query: str | None = None
+    query_set: tuple[str, ...] = ()
+    owner_path: str | None = None
     pipes: tuple[str, ...] = ()
     render_mode: str | None = None
     stdin: str = ""
+    runtime_cost: dict[str, Any] | None = None

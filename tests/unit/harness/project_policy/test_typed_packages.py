@@ -84,6 +84,23 @@ def test_project_policy_accepts_src_package_with_py_typed(tmp_path: Path) -> Non
     assert report.is_clean
 
 
+def test_project_policy_accepts_nested_src_package_with_py_typed(
+    tmp_path: Path,
+) -> None:
+    package = tmp_path / "packages" / "python" / "src" / "example_pkg"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text(
+        '"""Package public API."""\n\n\ndef build(value: int) -> int:\n    return value\n',
+        encoding="utf-8",
+    )
+    (package / "py.typed").write_text("", encoding="utf-8")
+    _write_pyproject(tmp_path, packages='["packages/python/src/example_pkg"]')
+
+    report = run_python_project_harness(tmp_path)
+
+    assert report.is_clean
+
+
 def test_project_policy_blocks_unannotated_public_callable_in_typed_package(
     tmp_path: Path,
 ) -> None:

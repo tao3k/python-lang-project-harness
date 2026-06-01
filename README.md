@@ -89,10 +89,12 @@ surfaces aligned with the Rust and TypeScript harnesses:
 py-harness search workspace .
 py-harness search prime .
 py-harness search text PythonHarnessReport owner tests .
+py-harness search text --query-set PythonHarnessReport --query-set PythonSemanticSearchOptions owner tests .
 py-harness search public-external-types pytest .
 py-harness search callsite PythonHarnessReport .
 py-harness search deps pytest .
 py-harness agent doctor --json .
+py-harness agent guide .
 py-harness check --full .
 py-harness .
 py-harness --json .

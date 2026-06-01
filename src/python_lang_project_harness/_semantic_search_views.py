@@ -58,7 +58,7 @@ def payload_for_view(
         case "tests":
             return tests_payload(report, facts, project_root, query)
         case "text":
-            return text_payload(report, facts, project_root, query, options.pipes)
+            return text_payload(report, facts, project_root, options)
         case "ingest":
             return ingest_payload(facts, project_root, options.stdin)
         case _:

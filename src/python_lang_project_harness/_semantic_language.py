@@ -20,7 +20,7 @@ PYTHON_BINARY = "py-harness"
 PYTHON_PROVIDER_NAMESPACE = "agent.semantic-protocols.languages.python.py-harness"
 
 PYTHON_CHECK_METHODS = ("check/changed", "check/full")
-PYTHON_AGENT_METHODS = ("agent/doctor",)
+PYTHON_AGENT_METHODS = ("agent/doctor", "agent/guide")
 PYTHON_SEARCH_VIEW_DESCRIPTORS = python_search_view_descriptors()
 PYTHON_SEARCH_VIEWS = tuple(
     descriptor["view"] for descriptor in PYTHON_SEARCH_VIEW_DESCRIPTORS
@@ -101,14 +101,22 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
         }
         for method in PYTHON_CHECK_METHODS
     )
-    descriptors.append(
-        {
-            "method": "agent/doctor",
-            "command": "agent",
-            "outputSchemaIds": [SEMANTIC_LANGUAGE_REGISTRY_ID],
-            "supportsJson": True,
-            "supportsCompact": True,
-        }
+    descriptors.extend(
+        [
+            {
+                "method": "agent/doctor",
+                "command": "agent",
+                "outputSchemaIds": [SEMANTIC_LANGUAGE_REGISTRY_ID],
+                "supportsJson": True,
+                "supportsCompact": True,
+            },
+            {
+                "method": "agent/guide",
+                "command": "agent",
+                "supportsJson": False,
+                "supportsCompact": True,
+            },
+        ]
     )
     return descriptors
 

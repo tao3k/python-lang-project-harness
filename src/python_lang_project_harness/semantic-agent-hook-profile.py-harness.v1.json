@@ -46,6 +46,9 @@
         },
         "checkChanged": {
           "argv": ["py-harness", "check", "--changed", "."]
+        },
+        "guide": {
+          "argv": ["py-harness", "agent", "guide", "."]
         }
       }
     }

@@ -6,17 +6,29 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from ._semantic_search_common import dedupe, header, path_hit
-from ._semantic_search_hits import test_path_hits, text_hits
+from ._semantic_search_hits import test_path_hits
 from ._semantic_search_ingest import ingest_hits
 from ._semantic_search_model import (
     MAX_TEST_HITS,
     MAX_TEXT_HITS,
+    PythonSemanticSearchOptions,
 )
 from ._semantic_search_owners import (
     matching_owner_nodes,
     owner_record,
     owners_for_paths,
     test_edges,
+)
+from ._semantic_search_view_text_queries import (
+    fair_merged_text_hits,
+    normalized_query_terms,
+    text_query_hits_by_term,
+)
+from ._semantic_search_view_text_synthesis import (
+    avoid_next_actions,
+    owner_resolution,
+    query_coverage,
+    search_synthesis,
 )
 
 if TYPE_CHECKING:
@@ -64,35 +76,56 @@ def text_payload(
     report: PythonHarnessReport,
     facts: PythonReasoningTreeFacts,
     project_root: Path,
-    query: str,
-    pipes: tuple[str, ...],
+    options: PythonSemanticSearchOptions,
 ) -> dict[str, Any]:
     """Build parser-visible text search payloads."""
 
-    hits = text_hits(report, facts, project_root, query)[:MAX_TEXT_HITS]
-    owner_paths = dedupe(hit["ownerPath"] for hit in hits)
+    query_terms = normalized_query_terms(options)
+    hits_by_term = text_query_hits_by_term(
+        report, facts, project_root, query_terms, options.owner_path
+    )
+    hits = fair_merged_text_hits(hits_by_term)
+    owner_paths = dedupe(
+        [
+            *(hit["ownerPath"] for hit in hits),
+            *([] if options.owner_path is None else [options.owner_path]),
+        ]
+    )
     owners = (
-        owners_for_paths(facts, project_root, owner_paths) if "owner" in pipes else []
+        owners_for_paths(facts, project_root, owner_paths)
+        if "owner" in options.pipes
+        else []
     )
     edges = (
-        test_edges(facts, project_root, set(owner_paths)) if "tests" in pipes else []
+        test_edges(facts, project_root, set(owner_paths))
+        if "tests" in options.pipes
+        else []
     )
     return {
         "header": header(
             "text",
             {
-                "q": query,
+                "q": options.query or ",".join(query_terms),
+                "querySet": len(query_terms) if options.query_set else None,
+                "selector": "exact-set" if options.query_set else None,
+                "scopeOwner": options.owner_path,
                 "own": len(owner_paths),
                 "hit": len(hits),
                 "view": "hits",
-                "pipes": list(pipes),
+                "pipes": list(options.pipes),
             },
         ),
         "owners": owners,
         "edges": edges[:MAX_TEST_HITS],
         "hits": hits,
         "nextActions": hit_next_actions(hits),
-        "notes": [] if hits else [{"kind": "not-found", "message": query}],
+        "queryCoverage": query_coverage(hits_by_term, hits),
+        "ownerResolution": owner_resolution(owner_paths),
+        "searchSynthesis": search_synthesis(query_terms, hits, owner_paths),
+        "avoidNextActions": avoid_next_actions(query_terms, owner_paths),
+        "notes": []
+        if hits
+        else [{"kind": "not-found", "message": options.query or ",".join(query_terms)}],
     }
 
 
