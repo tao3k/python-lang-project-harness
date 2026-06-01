@@ -29,9 +29,16 @@ def test_cli_agent_doctor_json_advertises_semantic_language_provider(
     assert "search/callsite" in registration["methods"]
     assert "search/public-external-types" in registration["methods"]
     assert "search/text" in registration["methods"]
+    assert "agent/doctor" in registration["methods"]
+    assert "agent/install" not in registration["methods"]
+    assert "agent/hook" not in registration["methods"]
     assert any(
         descriptor["method"] == "search/text"
         and descriptor["acceptedPipes"] == ["owner", "tests"]
+        for descriptor in registration["methodDescriptors"]
+    )
+    assert not any(
+        descriptor["method"] in {"agent/install", "agent/hook"}
         for descriptor in registration["methodDescriptors"]
     )
 

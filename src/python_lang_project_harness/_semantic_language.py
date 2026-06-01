@@ -101,15 +101,14 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
         }
         for method in PYTHON_CHECK_METHODS
     )
-    descriptors.extend(
+    descriptors.append(
         {
-            "method": method,
+            "method": "agent/doctor",
             "command": "agent",
             "outputSchemaIds": [SEMANTIC_LANGUAGE_REGISTRY_ID],
             "supportsJson": True,
             "supportsCompact": True,
         }
-        for method in PYTHON_AGENT_METHODS
     )
     return descriptors
 
