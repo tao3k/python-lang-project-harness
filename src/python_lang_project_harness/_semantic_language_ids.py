@@ -12,6 +12,7 @@ SEMANTIC_TYPE_SURFACE_SCHEMA_ID = "agent.semantic-protocols.semantic-type-surfac
 SEMANTIC_DETERMINISM_READINESS_SCHEMA_ID = (
     "agent.semantic-protocols.semantic-determinism-readiness"
 )
+SEMANTIC_DEV_COMMAND_LOG_SCHEMA_ID = "agent.semantic-protocols.dev-command-log"
 SEMANTIC_FORMAL_PROOF_PILOT_SCHEMA_ID = (
     "agent.semantic-protocols.semantic-formal-proof-pilot"
 )

@@ -92,6 +92,11 @@ def _python_semantic_language_schemas() -> list[dict[str, str]]:
             "path": "schemas/semantic-determinism-readiness.v1.schema.json",
         },
         {
+            "schemaId": ids.SEMANTIC_DEV_COMMAND_LOG_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-dev-command-log.v1.schema.json",
+        },
+        {
             "schemaId": ids.SEMANTIC_FORMAL_PROOF_PILOT_SCHEMA_ID,
             "schemaVersion": "1",
             "path": "schemas/semantic-formal-proof-pilot.v1.schema.json",

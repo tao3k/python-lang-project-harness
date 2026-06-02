@@ -103,7 +103,7 @@ def test_cli_search_text_query_set_and_flag_like_literal_query(
             "status": "workspace-owner",
             "realOwner": True,
             "ownerPath": "src/pkg/service.py",
-            "reason": "parser-visible owner selected by text search",
+            "reason": "parser-visible owner selected by fzf search",
         }
     ]
     assert packet["searchSynthesis"]["seeds"][:2] == [

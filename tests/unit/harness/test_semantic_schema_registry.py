@@ -15,6 +15,8 @@ def test_package_local_semantic_schemas_stay_synchronized() -> None:
         "semantic-read-packet.v1.schema.json",
         "semantic-graph.v1.schema.json",
         "semantic-type-surface.v1.schema.json",
+        "semantic-dev-command-log.v1.schema.json",
+        "semantic-dev-active-context.v1.schema.json",
     ):
         package_schema = json.loads(
             (package_root / "schemas" / schema_file_name).read_text(encoding="utf-8")

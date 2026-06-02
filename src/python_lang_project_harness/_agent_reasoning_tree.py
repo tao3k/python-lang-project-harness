@@ -108,8 +108,10 @@ def _broad_branch_findings(
         effective_lines=effective_lines,
     ):
         return ()
-    rule = agent_policy_rule(rule_id)
     module = modules_by_path.get(branch.path)
+    if _module_documents_owner_map(module):
+        return ()
+    rule = agent_policy_rule(rule_id)
     namespace = ".".join(branch.namespace)
     return (
         PythonHarnessFinding(
@@ -143,6 +145,31 @@ def _branch_child_nodes(
     )
 
 
+def _module_documents_owner_map(module: object) -> bool:
+    text_candidates: list[str] = []
+    for attr in ("docstring", "module_docstring", "source", "source_text", "content"):
+        value = getattr(module, attr, None)
+        if isinstance(value, str):
+            text_candidates.append(value)
+
+    for attr in ("path", "source_path"):
+        path = getattr(module, attr, None)
+        if path is None:
+            continue
+        try:
+            with open(path, encoding="utf-8") as handle:
+                text_candidates.append(handle.read(8192))
+        except (OSError, TypeError):
+            continue
+
+    return any(_text_documents_owner_map(text) for text in text_candidates)
+
+
+def _text_documents_owner_map(text: str) -> bool:
+    lowered = text.lower()
+    return any(marker in lowered for marker in ("owner map", "owner-map", "owner_map"))
+
+
 def _branch_needs_owner_map(
     branch: PythonReasoningTreeBranch,
     *,
@@ -157,6 +184,13 @@ def _branch_needs_owner_map(
         public_child_count >= _MIN_AGENT_BRANCH_PUBLIC_CHILDREN
         or effective_lines >= _MIN_AGENT_BRANCH_EFFECTIVE_LINES
     )
+
+
+def _module_documents_owner_map(module: PythonModuleReport | None) -> bool:
+    if module is None or module.module_docstring is None:
+        return False
+    normalized = module.module_docstring.lower().replace("-", " ")
+    return "owner map" in normalized
 
 
 def _reasoning_tree_import_roots(scope: PythonProjectHarnessScope) -> tuple[Path, ...]:

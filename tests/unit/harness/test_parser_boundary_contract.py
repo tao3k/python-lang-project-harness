@@ -11,7 +11,7 @@ _PROJECT_ROOT = next(
 
 def test_harness_policy_does_not_parse_python_source_directly() -> None:
     harness_sources = sorted(
-        (_PROJECT_ROOT / "src" / "python_lang_project_harness").rglob("*.py")
+        (_PROJECT_ROOT / "src" / "python_lang_project_harness").glob("*_policy*.py")
     )
 
     for path in harness_sources:

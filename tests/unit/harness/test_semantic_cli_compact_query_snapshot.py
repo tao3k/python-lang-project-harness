@@ -112,3 +112,55 @@ def test_cli_query_flow_compact_packet_matches_parser_snapshot(
     assert _compact_query_snapshot(packet) == _read_json_fixture(
         "compact-query/python-flow.json"
     )
+
+
+def test_cli_query_class_compact_packet_matches_parser_snapshot(
+    tmp_path: Path,
+) -> None:
+    package = tmp_path / "src" / "pkg"
+    package.mkdir(parents=True)
+    (tmp_path / "pyproject.toml").write_text(
+        '\n[project]\nname = "demo-python"\nversion = "0.1.0"\nimport-names = ["pkg"]\n',
+        encoding="utf-8",
+    )
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (package / "service.py").write_text(
+        "\n".join(
+            [
+                "def trace(fn):",
+                "    return fn",
+                "",
+                "class Service:",
+                "    prefix: str",
+                "",
+                "    def __init__(self, prefix: str) -> None:",
+                "        self.prefix = prefix",
+                "",
+                "    @trace",
+                "    async def run(self, value: str) -> str:",
+                "        if not value:",
+                "            raise ValueError('empty')",
+                "        return f'{self.prefix}:{await normalize(value)}'",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    stdout = io.StringIO()
+
+    exit_code = run_cli(
+        [
+            "query",
+            "src/pkg/service.py",
+            "--term",
+            "Service",
+            "--json",
+            str(tmp_path),
+        ],
+        stdout=stdout,
+    )
+
+    packet = json.loads(stdout.getvalue())
+    assert exit_code == 0
+    assert _compact_query_snapshot(packet) == _read_json_fixture(
+        "compact-query/python-class.json"
+    )

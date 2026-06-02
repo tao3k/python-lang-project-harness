@@ -37,6 +37,11 @@ def test_cli_agent_doctor_json_advertises_semantic_language_provider(
         and schema["path"] == "schemas/semantic-type-surface.v1.schema.json"
         for schema in registration["schemas"]
     )
+    assert any(
+        schema["schemaId"] == "agent.semantic-protocols.dev-command-log"
+        and schema["path"] == "schemas/semantic-dev-command-log.v1.schema.json"
+        for schema in registration["schemas"]
+    )
     assert "search/workspace" in registration["methods"]
     assert "search/callsite" in registration["methods"]
     assert "search/public-external-types" in registration["methods"]
@@ -211,7 +216,7 @@ def test_cli_search_callsite_uses_parser_call_facts(tmp_path: Path) -> None:
     assert rendered.startswith("[search-callsite] q=build hit=1")
     assert "|owner tests/test_service.py" in rendered
     assert "|hit path=tests/test_service.py line=4" in rendered
-    assert "owner=tests/test_service.py kind=callsite" in rendered
+    assert "kind=callsite" in rendered
     assert "symbol=build" in rendered
 
 
@@ -270,4 +275,4 @@ def test_cli_search_ingest_groups_rg_output_by_owner(tmp_path: Path) -> None:
     assert exit_code == 0
     assert rendered.startswith("[search-ingest] source=rg-n hit=1")
     assert "|owner src/pkg/service.py" in rendered
-    assert "|hit path=src/pkg/service.py line=3 owner=src/pkg/service.py" in rendered
+    assert "|hit path=src/pkg/service.py line=3" in rendered

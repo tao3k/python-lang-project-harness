@@ -13,8 +13,18 @@ from ._cli_protocol import run_protocol_cli
 def run_cli_from_env() -> int:
     """Run the CLI using process environment arguments."""
 
-    stdin = "" if sys.stdin.isatty() else sys.stdin.read()
-    return run_cli(sys.argv[1:], stdin=stdin)
+    from ._dev_command_log import start_dev_command_log
+
+    args = sys.argv[1:]
+    log = start_dev_command_log(args, Path.cwd())
+    try:
+        stdin = "" if sys.stdin.isatty() else sys.stdin.read()
+        exit_code = run_cli(args, stdin=stdin)
+        log.finish(exit_code)
+        return exit_code
+    except Exception:
+        log.finish(2)
+        raise
 
 
 def run_cli(

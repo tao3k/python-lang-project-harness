@@ -256,7 +256,7 @@ def test_cli_query_direct_source_read_selector_strips_line_range(
         ]
     )
     target_start = source.splitlines().index("def target() -> int:") + 1
-    selector = f"src/pkg/service.py:{target_start}-{target_start + 1}"
+    selector = f"src/pkg/service.py:{target_start}:{target_start + 1}"
     (package / "service.py").write_text(source, encoding="utf-8")
     stdout = io.StringIO()
 

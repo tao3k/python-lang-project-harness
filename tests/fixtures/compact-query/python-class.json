@@ -1,0 +1,241 @@
+{
+  "matches": [
+    {
+      "name": "Service",
+      "kind": "class",
+      "read": "src/pkg/service.py:4:14",
+      "code": "class Service:\n  prefix: str\n  def __init__(self, prefix: str) -> None:\n    self.prefix = prefix\n  @trace\n  async def run(self, value: str) -> str:\n    if not value:\n      raise ValueError('empty')\n    return f'{self.prefix}:{await normalize(value)}'",
+      "projection": {
+        "mode": "outline",
+        "syntax": "semantic-outline",
+        "sourceAuthority": "native-parser",
+        "sourceFingerprint": "src/pkg/service.py:4:14:250:157a363d",
+        "losslessStructure": true,
+        "exactRead": "src/pkg/service.py:4:14",
+        "nodes": [
+          {
+            "id": "Service",
+            "kind": "class",
+            "role": "declaration",
+            "label": "class Service",
+            "depth": 0,
+            "read": "src/pkg/service.py:4:14"
+          },
+          {
+            "id": "Service:1",
+            "kind": "assign",
+            "role": "mutation",
+            "label": "assign prefix",
+            "depth": 1,
+            "read": "src/pkg/service.py:5:5",
+            "parentId": "Service",
+            "flags": [
+              "mutation"
+            ]
+          },
+          {
+            "id": "Service:2",
+            "kind": "function",
+            "role": "declaration",
+            "label": "def __init__",
+            "depth": 1,
+            "read": "src/pkg/service.py:7:8",
+            "parentId": "Service"
+          },
+          {
+            "id": "Service:3",
+            "kind": "assign",
+            "role": "mutation",
+            "label": "assign self.prefix",
+            "depth": 2,
+            "read": "src/pkg/service.py:8:8",
+            "parentId": "Service:2",
+            "flags": [
+              "mutation"
+            ]
+          },
+          {
+            "id": "Service:4",
+            "kind": "async_function",
+            "role": "declaration",
+            "label": "async def run",
+            "depth": 1,
+            "read": "src/pkg/service.py:11:14",
+            "parentId": "Service",
+            "flags": [
+              "async"
+            ]
+          },
+          {
+            "id": "Service:5",
+            "kind": "decorator",
+            "role": "declaration",
+            "label": "@trace",
+            "depth": 2,
+            "read": "src/pkg/service.py:10:10",
+            "parentId": "Service:4",
+            "flags": [
+              "decorator"
+            ]
+          },
+          {
+            "id": "Service:6",
+            "kind": "if",
+            "role": "control-flow",
+            "label": "if not value",
+            "depth": 2,
+            "read": "src/pkg/service.py:12:13",
+            "parentId": "Service:4",
+            "flags": [
+              "branch"
+            ]
+          },
+          {
+            "id": "Service:7",
+            "kind": "raise",
+            "role": "terminal",
+            "label": "raise ValueError('empty')",
+            "depth": 3,
+            "read": "src/pkg/service.py:13:13",
+            "parentId": "Service:6",
+            "flags": [
+              "raise"
+            ]
+          },
+          {
+            "id": "Service:8",
+            "kind": "return",
+            "role": "terminal",
+            "label": "return f'{self.prefix}:{await normalize(value)}'",
+            "depth": 2,
+            "read": "src/pkg/service.py:14:14",
+            "parentId": "Service:4",
+            "flags": [
+              "return",
+              "await"
+            ]
+          },
+          {
+            "id": "Service:9",
+            "kind": "await",
+            "role": "effect",
+            "label": "await normalize(value)",
+            "depth": 3,
+            "read": "src/pkg/service.py:14:14",
+            "parentId": "Service:8",
+            "flags": [
+              "await"
+            ]
+          }
+        ],
+        "omitted": [],
+        "expandActions": [
+          {
+            "kind": "exact-read",
+            "target": "Service",
+            "read": "src/pkg/service.py:4:14",
+            "argv": [
+              "py-harness",
+              "query",
+              "--from-hook",
+              "direct-source-read",
+              "--selector",
+              "src/pkg/service.py:4:14",
+              "."
+            ],
+            "reason": "read exact source before editing"
+          },
+          {
+            "kind": "exact-read",
+            "target": "Service:1",
+            "read": "src/pkg/service.py:5:5",
+            "argv": [
+              "py-harness",
+              "query",
+              "--from-hook",
+              "direct-source-read",
+              "--selector",
+              "src/pkg/service.py:5:5",
+              "."
+            ],
+            "reason": "expand assign node before editing"
+          },
+          {
+            "kind": "exact-read",
+            "target": "Service:3",
+            "read": "src/pkg/service.py:8:8",
+            "argv": [
+              "py-harness",
+              "query",
+              "--from-hook",
+              "direct-source-read",
+              "--selector",
+              "src/pkg/service.py:8:8",
+              "."
+            ],
+            "reason": "expand assign node before editing"
+          },
+          {
+            "kind": "exact-read",
+            "target": "Service:6",
+            "read": "src/pkg/service.py:12:13",
+            "argv": [
+              "py-harness",
+              "query",
+              "--from-hook",
+              "direct-source-read",
+              "--selector",
+              "src/pkg/service.py:12:13",
+              "."
+            ],
+            "reason": "expand if node before editing"
+          },
+          {
+            "kind": "exact-read",
+            "target": "Service:7",
+            "read": "src/pkg/service.py:13:13",
+            "argv": [
+              "py-harness",
+              "query",
+              "--from-hook",
+              "direct-source-read",
+              "--selector",
+              "src/pkg/service.py:13:13",
+              "."
+            ],
+            "reason": "expand raise node before editing"
+          },
+          {
+            "kind": "exact-read",
+            "target": "Service:8",
+            "read": "src/pkg/service.py:14:14",
+            "argv": [
+              "py-harness",
+              "query",
+              "--from-hook",
+              "direct-source-read",
+              "--selector",
+              "src/pkg/service.py:14:14",
+              "."
+            ],
+            "reason": "expand return node before editing"
+          },
+          {
+            "kind": "owner-names",
+            "target": "src/pkg/service.py",
+            "argv": [
+              "py-harness",
+              "query",
+              "--from-hook",
+              "direct-source-read",
+              "--selector",
+              "src/pkg/service.py",
+              "."
+            ],
+            "reason": "return owner-local item names without code windows"
+          }
+        ]
+      }
+    }
+  ]
+}

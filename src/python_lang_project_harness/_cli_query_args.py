@@ -6,6 +6,12 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from ._cli_query_hook_args import (
+    is_broad_hook_query,
+    normalize_query_surfaces,
+    normalize_query_view,
+)
+
 if TYPE_CHECKING:
     from ._cli_args import ProtocolArgs
 
@@ -40,11 +46,14 @@ class _QueryParseState:
     package_path: Path | None = None
     from_hook: str | None = None
     selector: str | None = None
+    render_mode: str | None = None
     terms: list[str]
+    surfaces: list[str]
     positionals: list[str]
 
     def __init__(self) -> None:
         self.terms = []
+        self.surfaces = []
         self.positionals = []
 
 
@@ -61,6 +70,20 @@ def _consume_query_arg(
     if arg in {"--names-only", "--code", "--json"}:
         _set_query_flag(state, arg)
         return index + 1
+    if arg == "--surface":
+        value = _optional_arg(args, index + 1)
+        surfaces, error = normalize_query_surfaces(value)
+        if error is not None:
+            return ProtocolArgError(error)
+        state.surfaces.extend(surfaces)
+        return index + 2
+    if arg == "--view":
+        value = _optional_arg(args, index + 1)
+        render_mode, error = normalize_query_view(value)
+        if error is not None:
+            return ProtocolArgError(error)
+        state.render_mode = render_mode
+        return index + 2
     if arg in {"--from-hook", "--selector", "--package"}:
         return _consume_query_option(state, args, index, arg)
     if arg in {"--help", "-h"}:
@@ -113,7 +136,6 @@ def _consume_query_option(
         state.package_path = Path(value)
     return index + 2
 
-
 def _query_args_result(
     args_type: type[ProtocolArgs],
     state: _QueryParseState,
@@ -121,6 +143,17 @@ def _query_args_result(
     error = _query_args_error(state)
     if error is not None:
         return args_type("error", error=error)
+    if is_broad_hook_query(state.from_hook, state.selector, state.terms):
+        return args_type(
+            "search",
+            view="fzf",
+            query=",".join(state.terms),
+            query_set=tuple(state.terms),
+            project_root=_query_project_root(state),
+            package_path=state.package_path,
+            pipes=tuple(state.surfaces),
+            render_mode=state.render_mode,
+        )
     owner_path = (
         _owner_path_from_query_selector(state.selector)
         if state.selector is not None
@@ -139,7 +172,6 @@ def _query_args_result(
         code_only=state.code_only,
     )
 
-
 def _query_args_error(state: _QueryParseState) -> str | None:
     if state.from_hook is not None and state.from_hook != "direct-source-read":
         return f"unsupported query hook route: {state.from_hook}"
@@ -153,6 +185,10 @@ def _query_args_error(state: _QueryParseState) -> str | None:
         return "--code cannot be combined with --json"
     if state.names_only and state.code_only:
         return "--code cannot be combined with --names-only"
+    if (state.surfaces or state.render_mode is not None) and not is_broad_hook_query(
+        state.from_hook, state.selector, state.terms
+    ):
+        return 'query --surface/--view requires broad --from-hook direct-source-read --selector and --term'
     return None
 
 
@@ -168,7 +204,7 @@ def _owner_path_from_query_selector(selector: str | None) -> str | None:
     normalized = selector.replace("\\", "/").removeprefix("owner:")
     if any(marker in normalized for marker in ("*", "{", "}")):
         return None
-    return re.sub(r":[1-9][0-9]*(?:-[1-9][0-9]*)?$", "", normalized)
+    return re.sub(r":[1-9][0-9]*(?:[:-][1-9][0-9]*)?$", "", normalized)
 
 
 def _query_names_only(state: _QueryParseState) -> bool:
@@ -189,7 +225,7 @@ def _selector_has_line_range(selector: str | None) -> bool:
     normalized = selector.replace("\\", "/").removeprefix("owner:")
     if any(marker in normalized for marker in ("*", "{", "}")):
         return False
-    return re.search(r":[1-9][0-9]*(?:-[1-9][0-9]*)?$", normalized) is not None
+    return re.search(r":[1-9][0-9]*(?:[:-][1-9][0-9]*)?$", normalized) is not None
 
 
 def _query_option_value_name(arg: str) -> str:

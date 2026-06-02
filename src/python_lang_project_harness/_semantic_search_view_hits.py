@@ -10,7 +10,7 @@ from ._semantic_search_hits import test_path_hits
 from ._semantic_search_ingest import ingest_hits
 from ._semantic_search_model import (
     MAX_TEST_HITS,
-    MAX_TEXT_HITS,
+    MAX_FZF_HITS,
     PythonSemanticSearchOptions,
 )
 from ._semantic_search_owners import (
@@ -19,12 +19,12 @@ from ._semantic_search_owners import (
     owners_for_paths,
     test_edges,
 )
-from ._semantic_search_view_text_queries import (
+from ._semantic_search_view_fzf_queries import (
     fair_merged_text_hits,
     normalized_query_terms,
-    text_query_hits_by_term,
+    fzf_query_hits_by_term,
 )
-from ._semantic_search_view_text_synthesis import (
+from ._semantic_search_view_fzf_synthesis import (
     avoid_next_actions,
     owner_resolution,
     query_coverage,
@@ -78,18 +78,18 @@ def text_payload(
     project_root: Path,
     options: PythonSemanticSearchOptions,
 ) -> dict[str, Any]:
-    """Build parser-visible text search payloads."""
+    """Build parser-visible fzf search payloads."""
 
     is_fzf = options.view == "fzf"
     query_terms = normalized_query_terms(options)
     if is_fzf:
-        from ._semantic_search_view_text_queries import fuzzy_text_query_hits_by_term
+        from ._semantic_search_view_fzf_queries import fuzzy_fzf_query_hits_by_term
 
-        hits_by_term = fuzzy_text_query_hits_by_term(
+        hits_by_term = fuzzy_fzf_query_hits_by_term(
             report, facts, project_root, query_terms, options.owner_path
         )
     else:
-        hits_by_term = text_query_hits_by_term(
+        hits_by_term = fzf_query_hits_by_term(
             report, facts, project_root, query_terms, options.owner_path
         )
     hits = fair_merged_text_hits(hits_by_term)
@@ -149,7 +149,7 @@ def ingest_payload(
     """Build stdin ingest payloads."""
 
     detection, hits = ingest_hits(facts, project_root, stdin)
-    hits = hits[:MAX_TEXT_HITS]
+    hits = hits[:MAX_FZF_HITS]
     return {
         "header": header(
             "ingest",

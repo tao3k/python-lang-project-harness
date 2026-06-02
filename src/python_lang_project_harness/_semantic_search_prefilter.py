@@ -1,4 +1,4 @@
-"""Fast candidate-file pruning for Python semantic text search."""
+"""Fast candidate-file pruning for Python semantic fzf search."""
 
 from __future__ import annotations
 
@@ -118,7 +118,7 @@ def _prefilter_with_rg(
             matched_files=len(selected),
             elapsed_ms=elapsed_ms,
             tool="rg",
-            reason="rg source prefilter selected parser input files for text query",
+            reason="rg source prefilter selected parser input files for fzf query",
             query_terms=len(terms),
             source_search_passes=1 if terms else 0,
             file_list_passes=0,
@@ -143,7 +143,7 @@ def _prefilter_with_rg(
         matched_files=len(selected),
         elapsed_ms=elapsed_ms,
         tool=path_match_scan.tool,
-        reason="rg/fd prefilter selected parser input files for text query",
+        reason="rg/fd prefilter selected parser input files for fzf query",
         query_terms=len(terms),
         source_search_passes=1 if terms else 0,
         file_list_passes=1,

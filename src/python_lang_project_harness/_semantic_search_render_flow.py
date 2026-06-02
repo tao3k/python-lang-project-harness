@@ -13,12 +13,22 @@ from ._semantic_search_render_lines import (
 
 
 def finding_lines(packet: dict[str, Any]) -> list[str]:
-    return [
-        "|find "
-        f"{finding['ruleId']} x{finding['count']} "
-        f"at=O:{finding['location']['path']} severity={finding['severity']}"
-        for finding in packet["findings"]
-    ]
+    lines: list[str] = []
+    for finding in packet["findings"]:
+        location = finding["location"]
+        fields: dict[str, Any] = {
+            "path": location["path"],
+        }
+        if "line" in location:
+            fields["line"] = location["line"]
+        if "column" in location:
+            fields["column"] = location["column"]
+        fields["node"] = f"O:{location['path']}"
+        fields["severity"] = finding["severity"]
+        lines.append(
+            f"|find {finding['ruleId']} x{finding['count']} {render_fields(fields)}".rstrip()
+        )
+    return lines
 
 
 def note_lines(packet: dict[str, Any]) -> list[str]:
@@ -69,7 +79,7 @@ def seed_packet_text(packet: dict[str, Any]) -> str:
         f"[{packet['header']['kind']}] {render_fields(packet['header']['fields'])}"
     ]
     lines.append(
-        "|flow prime->owner|deps|symbol|tests pipe=text:owner,tests ingest=stdin"
+        "|flow prime->owner|deps|symbol|tests pipe=fzf:owner,tests ingest=stdin"
     )
     lines.extend(query_coverage_lines(packet))
     lines.extend(handle_lines(packet))

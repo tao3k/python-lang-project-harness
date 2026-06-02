@@ -6,11 +6,9 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TextIO
 
-from ._semantic_search_items import (
-    owner_item_direct_read_lines,
-    owner_item_query_lines,
-    owner_item_semantic_query_packet,
-)
+from ._semantic_search_item_direct_read import owner_item_direct_read_lines
+from ._semantic_search_item_lines import owner_item_query_lines
+from ._semantic_search_items import owner_item_semantic_query_packet
 
 if TYPE_CHECKING:
     from ._cli_args import ProtocolArgs
@@ -38,15 +36,6 @@ def run_query_command(
     if args.json:
         stdout.write(json.dumps(packet, separators=(",", ":")))
         stdout.write("\n")
-    elif args.code_only:
-        stdout.write(
-            "\n".join(
-                str(match["code"])
-                for match in packet["matches"]
-                if isinstance(match.get("code"), str)
-            )
-        )
-        stdout.write("\n")
     elif _selector_has_line_range(args.selector, owner_path):
         stdout.write(
             owner_item_direct_read_lines(
@@ -55,6 +44,15 @@ def run_query_command(
                 owner_path,
                 item_query,
                 args.selector or owner_path,
+            )
+        )
+        stdout.write("\n")
+    elif args.code_only:
+        stdout.write(
+            "\n".join(
+                str(match["code"])
+                for match in packet["matches"]
+                if isinstance(match.get("code"), str)
             )
         )
         stdout.write("\n")

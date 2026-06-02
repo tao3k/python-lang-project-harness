@@ -3,23 +3,26 @@
     {
       "name": "collect",
       "kind": "async_function",
-      "read": "src/pkg/flow.py:1-7",
-      "code": "async def collect(values: list[str], normalize) -> list[str]:\n  assign results: list[str] = []\n  for value in values:\n    if not value:\n      continue\n    call results.append(await normalize(value))\n  return results",
+      "read": "src/pkg/flow.py:1:7",
+      "code": "async def collect(values: list[str], normalize) -> list[str]:\n  results: list[str] = []\n  for value in values:\n    if not value:\n      continue\n    results.append(await normalize(value))\n  return results",
       "projection": {
         "mode": "outline",
         "syntax": "semantic-outline",
         "sourceAuthority": "native-parser",
-        "sourceFingerprint": "src/pkg/flow.py:1-7:215:9eabdf21",
+        "sourceFingerprint": "src/pkg/flow.py:1:7:203:df6c662",
         "losslessStructure": true,
-        "exactRead": "src/pkg/flow.py:1-7",
+        "exactRead": "src/pkg/flow.py:1:7",
         "nodes": [
           {
             "id": "collect",
-            "kind": "declaration",
+            "kind": "async_function",
             "role": "declaration",
             "label": "async def collect",
             "depth": 0,
-            "read": "src/pkg/flow.py:1-7"
+            "read": "src/pkg/flow.py:1:7",
+            "flags": [
+              "async"
+            ]
           },
           {
             "id": "collect:1",
@@ -27,7 +30,7 @@
             "role": "mutation",
             "label": "assign results",
             "depth": 1,
-            "read": "src/pkg/flow.py:2-2",
+            "read": "src/pkg/flow.py:2:2",
             "parentId": "collect",
             "flags": [
               "mutation"
@@ -39,7 +42,7 @@
             "role": "control-flow",
             "label": "for value in values",
             "depth": 1,
-            "read": "src/pkg/flow.py:3-6",
+            "read": "src/pkg/flow.py:3:6",
             "parentId": "collect",
             "flags": [
               "loop"
@@ -51,7 +54,7 @@
             "role": "control-flow",
             "label": "if not value",
             "depth": 2,
-            "read": "src/pkg/flow.py:4-5",
+            "read": "src/pkg/flow.py:4:5",
             "parentId": "collect:2",
             "flags": [
               "branch"
@@ -63,7 +66,7 @@
             "role": "terminal",
             "label": "continue",
             "depth": 3,
-            "read": "src/pkg/flow.py:5-5",
+            "read": "src/pkg/flow.py:5:5",
             "parentId": "collect:3",
             "flags": [
               "continue"
@@ -75,11 +78,10 @@
             "role": "call",
             "label": "call results.append(await normalize(value))",
             "depth": 2,
-            "read": "src/pkg/flow.py:6-6",
+            "read": "src/pkg/flow.py:6:6",
             "parentId": "collect:2",
             "flags": [
-              "call",
-              "await"
+              "call"
             ]
           },
           {
@@ -88,7 +90,7 @@
             "role": "effect",
             "label": "await normalize(value)",
             "depth": 3,
-            "read": "src/pkg/flow.py:6-6",
+            "read": "src/pkg/flow.py:6:6",
             "parentId": "collect:5",
             "flags": [
               "await"
@@ -100,7 +102,7 @@
             "role": "terminal",
             "label": "return results",
             "depth": 1,
-            "read": "src/pkg/flow.py:7-7",
+            "read": "src/pkg/flow.py:7:7",
             "parentId": "collect",
             "flags": [
               "return"
@@ -112,14 +114,14 @@
           {
             "kind": "exact-read",
             "target": "collect",
-            "read": "src/pkg/flow.py:1-7",
+            "read": "src/pkg/flow.py:1:7",
             "argv": [
               "py-harness",
               "query",
               "--from-hook",
               "direct-source-read",
               "--selector",
-              "src/pkg/flow.py:1-7",
+              "src/pkg/flow.py:1:7",
               "."
             ],
             "reason": "read exact source before editing"
@@ -127,14 +129,14 @@
           {
             "kind": "exact-read",
             "target": "collect:1",
-            "read": "src/pkg/flow.py:2-2",
+            "read": "src/pkg/flow.py:2:2",
             "argv": [
               "py-harness",
               "query",
               "--from-hook",
               "direct-source-read",
               "--selector",
-              "src/pkg/flow.py:2-2",
+              "src/pkg/flow.py:2:2",
               "."
             ],
             "reason": "expand assign node before editing"
@@ -142,14 +144,14 @@
           {
             "kind": "exact-read",
             "target": "collect:2",
-            "read": "src/pkg/flow.py:3-6",
+            "read": "src/pkg/flow.py:3:6",
             "argv": [
               "py-harness",
               "query",
               "--from-hook",
               "direct-source-read",
               "--selector",
-              "src/pkg/flow.py:3-6",
+              "src/pkg/flow.py:3:6",
               "."
             ],
             "reason": "expand for node before editing"
@@ -157,14 +159,14 @@
           {
             "kind": "exact-read",
             "target": "collect:3",
-            "read": "src/pkg/flow.py:4-5",
+            "read": "src/pkg/flow.py:4:5",
             "argv": [
               "py-harness",
               "query",
               "--from-hook",
               "direct-source-read",
               "--selector",
-              "src/pkg/flow.py:4-5",
+              "src/pkg/flow.py:4:5",
               "."
             ],
             "reason": "expand if node before editing"
@@ -172,14 +174,14 @@
           {
             "kind": "exact-read",
             "target": "collect:4",
-            "read": "src/pkg/flow.py:5-5",
+            "read": "src/pkg/flow.py:5:5",
             "argv": [
               "py-harness",
               "query",
               "--from-hook",
               "direct-source-read",
               "--selector",
-              "src/pkg/flow.py:5-5",
+              "src/pkg/flow.py:5:5",
               "."
             ],
             "reason": "expand continue node before editing"
@@ -187,14 +189,14 @@
           {
             "kind": "exact-read",
             "target": "collect:5",
-            "read": "src/pkg/flow.py:6-6",
+            "read": "src/pkg/flow.py:6:6",
             "argv": [
               "py-harness",
               "query",
               "--from-hook",
               "direct-source-read",
               "--selector",
-              "src/pkg/flow.py:6-6",
+              "src/pkg/flow.py:6:6",
               "."
             ],
             "reason": "expand call node before editing"
@@ -202,14 +204,14 @@
           {
             "kind": "exact-read",
             "target": "collect:7",
-            "read": "src/pkg/flow.py:7-7",
+            "read": "src/pkg/flow.py:7:7",
             "argv": [
               "py-harness",
               "query",
               "--from-hook",
               "direct-source-read",
               "--selector",
-              "src/pkg/flow.py:7-7",
+              "src/pkg/flow.py:7:7",
               "."
             ],
             "reason": "expand return node before editing"

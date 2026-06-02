@@ -25,7 +25,7 @@ def owner_resolution(owner_paths: list[str]) -> list[dict[str, Any]]:
             "status": "workspace-owner",
             "realOwner": True,
             "ownerPath": owner_path,
-            "reason": "parser-visible owner selected by text search",
+            "reason": "parser-visible owner selected by fzf search",
         }
         for owner_path in owner_paths[:8]
     ]
@@ -61,7 +61,7 @@ def search_synthesis(
         "algorithm": "query-set-owner-resolution",
         "scope": "query-set",
         "summary": (
-            f"query-set compressed {len(query_terms)} text terms into "
+            f"query-set compressed {len(query_terms)} query terms into "
             f"{len(owner_paths)} parser-visible owners"
         ),
         "selectedOwners": len(ranked_owners),

@@ -30,12 +30,55 @@ def render_compact_packet(packet: dict[str, Any]) -> str:
 
 
 def _compact_packet_lines(packet: dict[str, Any]) -> list[str]:
+    if _is_item_inventory_packet(packet):
+        return _item_inventory_packet_lines(packet)
     owner_by_path = {owner["path"]: owner for owner in packet["owners"]}
     lines = [
         f"[{packet['header']['kind']}] {render_fields(packet['header']['fields'])}"
     ]
     _extend_payload_lines(packet, owner_by_path, lines)
     _extend_flow_lines(packet, lines)
+    return lines
+
+
+def _is_item_inventory_packet(packet: dict[str, Any]) -> bool:
+    fields = packet['header']['fields']
+    return (
+        fields.get('itemQuery') is None
+        and (bool(packet.get('items')) or fields.get('itemStatus') is not None)
+    )
+
+
+def _item_inventory_packet_lines(packet: dict[str, Any]) -> list[str]:
+    fields = packet['header']['fields']
+    header_fields = compact_fields(
+        {
+            'q': fields.get('q'),
+            'owner': fields.get('owner'),
+            'item': len(packet.get('items', [])),
+            'pipes': fields.get('pipes'),
+        }
+    )
+    lines = [f"[{packet['header']['kind']}] {render_fields(header_fields)}"]
+    lines.extend(_item_inventory_owner_lines(packet))
+    lines.extend(item_lines(packet))
+    lines.extend(
+        line for line in note_lines(packet) if 'kind=item-not-found' not in line
+    )
+    lines.extend(runtime_cost_lines(packet))
+    return lines
+
+
+def _item_inventory_owner_lines(packet: dict[str, Any]) -> list[str]:
+    lines: list[str] = []
+    for owner in packet['owners']:
+        fields = {
+            'role': owner['role'],
+            'public': owner['public'],
+            'exp': owner.get('exports', [])[:4],
+            **owner['fields'],
+        }
+        lines.append(f"|owner {owner['path']} {render_fields(fields)}".rstrip())
     return lines
 
 
@@ -103,7 +146,8 @@ def item_query_lines(packet: dict[str, Any]) -> list[str]:
             "match": fields.get("itemMatch"),
             "item": fields.get("item"),
             "reason": "parser-item-query",
-            "next": "code" if fields.get("item") else "revise-query",
+            "output": "names" if _item_query_names_only(fields) else None,
+            "next": _item_query_next(fields),
         }
     )
     return [f"|query {render_fields(rendered)}"]
@@ -126,6 +170,8 @@ def item_lines(packet: dict[str, Any]) -> list[str]:
 
 
 def code_lines(packet: dict[str, Any]) -> list[str]:
+    if _item_query_names_only(packet["header"]["fields"]):
+        return []
     lines: list[str] = []
     for item in packet.get("items", []):
         item_fields = item.get("fields", {})
@@ -133,11 +179,13 @@ def code_lines(packet: dict[str, Any]) -> list[str]:
         if not isinstance(code, str) or not code:
             continue
         location = item.get("location", {})
+        line_range = location.get("lineRange")
+        if not isinstance(line_range, str) and location.get("line") is not None:
+            line_range = f"{location['line']}:{location['line']}"
         fields = compact_fields(
             {
                 "path": location.get("path"),
-                "startLine": location.get("line"),
-                "endLine": location.get("endLine"),
+                "lineRange": line_range,
                 "reason": item_fields.get("reason"),
                 "truncated": item_fields.get("truncated"),
                 "text": code,
@@ -145,3 +193,21 @@ def code_lines(packet: dict[str, Any]) -> list[str]:
         )
         lines.append(f"|code {render_fields(fields)}")
     return lines
+
+
+def _item_query_names_only(fields: dict[str, Any]) -> bool:
+    if fields.get("itemQuery") is None:
+        return False
+    item = fields.get("item")
+    item_count = item if isinstance(item, int) else 0
+    if fields.get("itemStatus") == "miss":
+        return True
+    return item_count > 1 and fields.get("itemMatch") != "exact"
+
+
+def _item_query_next(fields: dict[str, Any]) -> str:
+    if fields.get("itemStatus") == "miss":
+        return "revise-query"
+    if _item_query_names_only(fields):
+        return "select-item"
+    return "code" if fields.get("item") else "revise-query"
