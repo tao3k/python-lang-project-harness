@@ -40,6 +40,28 @@ def text_query_hits_by_term(
             ),
             key=_text_hit_rank,
         )
+    for term in query_terms
+}
+
+
+def fuzzy_text_query_hits_by_term(
+    report: PythonHarnessReport,
+    facts: PythonReasoningTreeFacts,
+    project_root: Path,
+    query_terms: list[str],
+    owner_path: str | None,
+) -> dict[str, list[dict[str, Any]]]:
+    from ._semantic_search_text_hits import fuzzy_text_hits
+
+    return {
+        term: sorted(
+            (
+                _with_owner_surface(hit)
+                for hit in fuzzy_text_hits(report, facts, project_root, term)
+                if owner_path is None or hit["ownerPath"] == owner_path
+            ),
+            key=_text_hit_rank,
+        )
         for term in query_terms
     }
 

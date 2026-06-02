@@ -39,6 +39,16 @@ def search_synthesis(
     if not query_terms:
         return None
     ranked_owners = _rank_synthesis_owners(hits, owner_paths)
+    edit_frontier = [
+        owner_path for owner_path in ranked_owners if not _is_test_owner_path(owner_path)
+    ][:4]
+    test_frontier = [
+        owner_path for owner_path in ranked_owners if _is_test_owner_path(owner_path)
+    ][:4]
+    window_set = [
+        *({"kind": "owner", "target": owner_path} for owner_path in edit_frontier),
+        *({"kind": "tests", "target": owner_path} for owner_path in test_frontier),
+    ][:8]
     seeds = [
         seed
         for owner_path in ranked_owners[:4]
@@ -54,6 +64,10 @@ def search_synthesis(
             f"query-set compressed {len(query_terms)} text terms into "
             f"{len(owner_paths)} parser-visible owners"
         ),
+        "selectedOwners": len(ranked_owners),
+        **({"editFrontier": edit_frontier} if edit_frontier else {}),
+        **({"testFrontier": test_frontier} if test_frontier else {}),
+        **({"windowSet": window_set} if window_set else {}),
         "seeds": seeds[:8],
         "fields": {
             "querySet": len(query_terms),
@@ -134,6 +148,20 @@ def _rank_synthesis_owners(
             -best_scores.get(owner_path, 0),
             owner_path,
         ),
+    )
+
+
+def _is_test_owner_path(owner_path: str) -> bool:
+    return (
+        owner_path.startswith("tests/")
+        or owner_path.startswith("test/")
+        or "/tests/" in owner_path
+        or "/test/" in owner_path
+        or "/__tests__/" in owner_path
+        or owner_path.endswith("_test.py")
+        or owner_path.endswith("_test.pyi")
+        or owner_path.endswith(".test.py")
+        or owner_path.endswith(".spec.py")
     )
 
 

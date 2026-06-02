@@ -54,19 +54,21 @@ def hit_lines(
 ) -> list[str]:
     lines = []
     for hit in _compact_hits(packet):
-        owner_role = owner_by_path.get(hit["ownerPath"], {}).get("role")
+        owner_path = hit["ownerPath"]
+        location = hit["location"]
+        owner_role = owner_by_path.get(owner_path, {}).get("role")
         fields: Fields = {
-            "owner": hit["ownerPath"],
             "kind": hit["kind"],
             "score": hit["score"],
             "reason": hit["reason"],
             **({"symbol": hit["symbol"]} if "symbol" in hit else {}),
+            **({"owner": owner_path} if owner_path != location.get("path") else {}),
             **_hit_evidence_fields(packet, owner_role, hit),
             **hit.get("fields", {}),
         }
         line_kind = "api" if hit["kind"] == "api" else "hit"
         lines.append(
-            f"|{line_kind} {render_location(hit['location'])} {render_fields(fields)}".rstrip()
+            f"|{line_kind} {render_location(location)} {render_fields(fields)}".rstrip()
         )
     return lines
 
@@ -82,6 +84,29 @@ def query_coverage_lines(packet: dict[str, Any]) -> list[str]:
             **({"owner": query["ownerPaths"][:4]} if query.get("ownerPaths") else {}),
         }
         lines.append(f"|query {escape_scalar(query['value'])} {render_fields(fields)}")
+    return lines
+
+
+def handle_lines(packet: dict[str, Any]) -> list[str]:
+    lines = []
+    for handle in packet.get("semanticHandles", []):
+        raw_fields = {
+            "kind": handle["kind"],
+            "source": handle["source"],
+            "title": handle["title"],
+            "owner": handle.get("ownerPath"),
+            "implementation": handle.get("implementationOwnerPath"),
+            "tests": handle.get("testPaths", [])[:4],
+            **handle.get("fields", {}),
+        }
+        fields = {
+            key: value
+            for key, value in raw_fields.items()
+            if value is not None and value != [] and value != ""
+        }
+        lines.append(
+            f"|handle {handle['id']} {render_fields(fields)}".rstrip()
+        )
     return lines
 
 

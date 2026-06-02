@@ -7,12 +7,13 @@ from typing import TYPE_CHECKING
 from ._model import PythonHarnessFinding
 from ._project_policy_catalog import PY_PROJ_R010, project_policy_rule
 from ._source import path_location, source_line
-from ._version import _DISTRIBUTION_NAME
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from python_lang_parser import PythonModuleReport, PythonProjectMetadata
+
+_DISTRIBUTION_NAME = "python-lang-project-harness"
 
 
 def project_pytest_gate_findings(

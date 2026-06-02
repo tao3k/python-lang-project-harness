@@ -18,12 +18,16 @@ class ProtocolArgs:
     client: str | None = None
     hook_event: str | None = None
     query: str | None = None
+    item_query: str | None = None
     project_root: Path | None = None
     package_path: Path | None = None
     owner_path: str | None = None
+    selector: str | None = None
     query_set: tuple[str, ...] = ()
     pipes: tuple[str, ...] = ()
     json: bool = False
+    names_only: bool = False
+    code_only: bool = False
     render_mode: str | None = None
     error: str | None = None
 
@@ -32,6 +36,8 @@ class ProtocolArgs:
         command = args[0] if args else None
         if command == "search":
             return cls._parse_search(args[1:])
+        if command == "query":
+            return cls._parse_query(args[1:])
         if command == "check":
             return cls._parse_check(args[1:])
         if command == "agent":
@@ -40,6 +46,8 @@ class ProtocolArgs:
 
     @classmethod
     def _parse_search(cls, args: list[str] | tuple[str, ...]) -> ProtocolArgs:
+        if args and args[0] in {"--help", "-h"}:
+            return cls("help")
         from ._semantic_search_cli import parse_semantic_search_args
 
         parsed = parse_semantic_search_args(args)
@@ -49,14 +57,22 @@ class ProtocolArgs:
             "search",
             view=parsed.view,
             query=parsed.query,
+            item_query=parsed.item_query,
             owner_path=parsed.owner_path,
             query_set=parsed.query_set,
             project_root=parsed.project_root,
             package_path=parsed.package_path,
             pipes=parsed.pipes,
             json=parsed.json,
+            code_only=parsed.code_only,
             render_mode=parsed.render_mode,
         )
+
+    @classmethod
+    def _parse_query(cls, args: list[str] | tuple[str, ...]) -> ProtocolArgs:
+        from ._cli_query_args import parse_query_args
+
+        return parse_query_args(cls, args)
 
     @classmethod
     def _parse_check(cls, args: list[str] | tuple[str, ...]) -> ProtocolArgs:
@@ -293,7 +309,8 @@ def help_text() -> str:
     return (
         "py-harness — Python semantic search and project harness\n\n"
         "Usage:\n"
-        "  py-harness search <view> ... [--json] [--package PATH] [PROJECT_ROOT]\n"
+        "  py-harness search <view> ... [--json] [--code] [--package PATH] [PROJECT_ROOT]\n"
+        "  py-harness query <owner-path> --term <symbol> [--term <symbol>] [--names-only | --code] [PROJECT_ROOT]\n"
         "  py-harness check [--changed | --full] [--json] [PROJECT_ROOT]\n"
         "  py-harness agent doctor [--json] [PROJECT_ROOT]\n"
         "  py-harness agent guide [PROJECT_ROOT]\n"
@@ -304,6 +321,8 @@ def help_text() -> str:
         "  search workspace          Workspace package/router index\n"
         "  search prime              Project reasoning-tree map\n"
         "  search owner <path>       Owner graph slice\n"
+        "  search owner <path> items --query <symbol|a|b> [--names-only | --code]\n"
+        "                             Parser-owned item query and compact code extraction\n"
         "  search dependency <pkg>   Dependency manifest and local import usage\n"
         "  search deps <pkg[@ver][::api]>\n"
         "                             Versioned dependency API usage evidence\n"
@@ -314,10 +333,17 @@ def help_text() -> str:
         "  search callsite <name>    Parser-owned function and method callsites\n"
         "  search import <query>     Import owner edges\n"
         "  search tests <owner>      Tests that import an owner\n"
-        "  search text <query>       Owner-grouped path/export/source-text search\n"
-        "  search text <query> owner tests\n"
-        "                             Minimal final-only text -> owner -> tests pipe\n"
+        "  search fzf <query>        Fuzzy lexical owner/source-text candidates\n"
+        "  search fzf <query> owner tests\n"
+        "                             Minimal final-only fuzzy -> owner -> tests pipe\n"
         "  search ingest             Detect stdin shape and group hits by owner\n\n"
+        "QUERY\n"
+        "  query <owner-path> --term <symbol>\n"
+        "                             Parser-owned owner item query\n"
+        "  query <owner-path> --term <a> --term <b> --names-only\n"
+        "                             Owner-local item discovery without code windows\n"
+        "  query <owner-path> --term <symbol> --code\n"
+        "                             Pure compact parser-owned code output\n\n"
         "CHECK\n"
         "  check --changed           Fast lane alias; currently delegates to project check\n"
         "  check --full              Full project harness check\n"
@@ -340,7 +366,9 @@ def help_text() -> str:
         "  py-harness search prime .\n"
         "  py-harness search public-external-types pytest .\n"
         "  py-harness search callsite PythonSemanticSearchOptions .\n"
-        "  py-harness search text PythonSemanticSearchOptions owner tests .\n"
+        "  py-harness search fzf PythonSemanticSearchOptions owner tests .\n"
+        "  py-harness query src/python_lang_project_harness/_cli.py --term run_cli --names-only .\n"
+        "  py-harness query src/python_lang_project_harness/_cli.py --term run_cli --code .\n"
         '  rg -n "PythonSemanticSearchOptions" src tests | py-harness search ingest .\n'
         "  py-harness check --full .\n"
         "  py-harness agent doctor --json .\n"

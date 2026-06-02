@@ -39,7 +39,14 @@ def payload_for_view(
         case "prime":
             return prime_payload(report, facts, project_root)
         case "owner":
-            return owner_payload(report, facts, project_root, query)
+            return owner_payload(
+                report,
+                facts,
+                project_root,
+                query,
+                pipes=options.pipes,
+                item_query=options.item_query,
+            )
         case "dependency" | "deps":
             return dependency_payload(report, facts, project_root, query, options.view)
         case "api":
@@ -47,6 +54,16 @@ def payload_for_view(
             return generic_hits_payload("api", hits, facts, project_root, query)
         case "public-external-types":
             return public_external_types_payload(report, facts, project_root, query)
+        case "policy":
+            from ._semantic_search_policy import policy_payload
+
+            return policy_payload(
+                report,
+                facts,
+                project_root,
+                query,
+                pipes=options.pipes,
+            )
         case "symbol":
             hits = symbol_hits(report, project_root, query)[:MAX_SYMBOL_HITS]
             return generic_hits_payload("symbol", hits, facts, project_root, query)
@@ -57,7 +74,7 @@ def payload_for_view(
             return import_payload(report, facts, project_root, query)
         case "tests":
             return tests_payload(report, facts, project_root, query)
-        case "text":
+        case "fzf":
             return text_payload(report, facts, project_root, options)
         case "ingest":
             return ingest_payload(facts, project_root, options.stdin)

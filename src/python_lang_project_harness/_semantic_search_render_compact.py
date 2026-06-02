@@ -44,10 +44,16 @@ def _extend_payload_lines(
     owner_by_path: dict[str, dict[str, Any]],
     lines: list[str],
 ) -> None:
+    from ._semantic_search_render_lines import handle_lines
+
+    lines.extend(item_query_lines(packet))
     lines.extend(query_coverage_lines(packet))
     lines.extend(package_lines(packet))
     lines.extend(node_lines(packet))
     lines.extend(owner_lines(packet))
+    lines.extend(handle_lines(packet))
+    lines.extend(item_lines(packet))
+    lines.extend(code_lines(packet))
     lines.extend(hit_lines(packet, owner_by_path))
     if packet["view"] not in {"workspace", "prime"}:
         lines.extend(edge_lines(packet))
@@ -83,3 +89,59 @@ def runtime_cost_lines(packet: dict[str, Any]) -> list[str]:
         }
     )
     return [f"|runtime {render_fields(fields)}"]
+
+
+def item_query_lines(packet: dict[str, Any]) -> list[str]:
+    fields = packet["header"]["fields"]
+    item_query = fields.get("itemQuery")
+    if item_query is None:
+        return []
+    rendered = compact_fields(
+        {
+            "itemQuery": item_query,
+            "status": fields.get("itemStatus"),
+            "match": fields.get("itemMatch"),
+            "item": fields.get("item"),
+            "reason": "parser-item-query",
+            "next": "code" if fields.get("item") else "revise-query",
+        }
+    )
+    return [f"|query {render_fields(rendered)}"]
+
+
+def item_lines(packet: dict[str, Any]) -> list[str]:
+    lines: list[str] = []
+    for item in packet.get("items", []):
+        item_fields = item.get("fields", {})
+        fields = compact_fields(
+            {
+                "kind": item.get("kind"),
+                "public": True if item_fields.get("public") is True else None,
+                "doc": True if item_fields.get("doc") is True else None,
+                "read": item_fields.get("read"),
+            }
+        )
+        lines.append(f"|item {item['name']} {render_fields(fields)}")
+    return lines
+
+
+def code_lines(packet: dict[str, Any]) -> list[str]:
+    lines: list[str] = []
+    for item in packet.get("items", []):
+        item_fields = item.get("fields", {})
+        code = item_fields.get("code")
+        if not isinstance(code, str) or not code:
+            continue
+        location = item.get("location", {})
+        fields = compact_fields(
+            {
+                "path": location.get("path"),
+                "startLine": location.get("line"),
+                "endLine": location.get("endLine"),
+                "reason": item_fields.get("reason"),
+                "truncated": item_fields.get("truncated"),
+                "text": code,
+            }
+        )
+        lines.append(f"|code {render_fields(fields)}")
+    return lines

@@ -4,28 +4,17 @@ from __future__ import annotations
 
 from typing import Any
 
+from . import _semantic_language_ids as ids
 from ._semantic_language_catalog import python_search_view_descriptors
 
-SEMANTIC_LANGUAGE_REGISTRY_ID = "agent.semantic-protocols.semantic-language-registry"
-SEMANTIC_LANGUAGE_REGISTRY_VERSION = "1"
-SEMANTIC_LANGUAGE_PROTOCOL_ID = "agent.semantic-protocols.semantic-language"
-SEMANTIC_LANGUAGE_PROTOCOL_VERSION = "1"
-SEMANTIC_SEARCH_PACKET_SCHEMA_ID = "agent.semantic-protocols.semantic-search-packet"
-PYTHON_CAPABILITIES_SCHEMA_ID = (
-    "agent.semantic-protocols.languages.python.py-harness.capabilities"
+_PYTHON_CHECK_METHODS = ("check/changed", "check/full")
+_PYTHON_QUERY_METHODS = ("query/owner-items", "query/direct-source-read")
+_PYTHON_AGENT_METHODS = ("agent/doctor", "agent/guide")
+_PYTHON_SEARCH_VIEW_DESCRIPTORS = python_search_view_descriptors()
+_PYTHON_SEARCH_VIEWS = tuple(
+    descriptor["view"] for descriptor in _PYTHON_SEARCH_VIEW_DESCRIPTORS
 )
-PYTHON_LANGUAGE_ID = "python"
-PYTHON_PROVIDER_ID = "py-harness"
-PYTHON_BINARY = "py-harness"
-PYTHON_PROVIDER_NAMESPACE = "agent.semantic-protocols.languages.python.py-harness"
-
-PYTHON_CHECK_METHODS = ("check/changed", "check/full")
-PYTHON_AGENT_METHODS = ("agent/doctor", "agent/guide")
-PYTHON_SEARCH_VIEW_DESCRIPTORS = python_search_view_descriptors()
-PYTHON_SEARCH_VIEWS = tuple(
-    descriptor["view"] for descriptor in PYTHON_SEARCH_VIEW_DESCRIPTORS
-)
-PYTHON_SEARCH_METHODS = tuple(f"search/{view}" for view in PYTHON_SEARCH_VIEWS)
+_PYTHON_SEARCH_METHODS = tuple(f"search/{view}" for view in _PYTHON_SEARCH_VIEWS)
 
 
 def semantic_language_registry_document(
@@ -34,10 +23,10 @@ def semantic_language_registry_document(
     """Return the provider registry document advertised by agent doctor."""
 
     payload: dict[str, Any] = {
-        "registryId": SEMANTIC_LANGUAGE_REGISTRY_ID,
-        "registryVersion": SEMANTIC_LANGUAGE_REGISTRY_VERSION,
-        "protocolId": SEMANTIC_LANGUAGE_PROTOCOL_ID,
-        "protocolVersion": SEMANTIC_LANGUAGE_PROTOCOL_VERSION,
+        "registryId": ids.SEMANTIC_LANGUAGE_REGISTRY_ID,
+        "registryVersion": ids.SEMANTIC_LANGUAGE_REGISTRY_VERSION,
+        "protocolId": ids.SEMANTIC_LANGUAGE_PROTOCOL_ID,
+        "protocolVersion": ids.SEMANTIC_LANGUAGE_PROTOCOL_VERSION,
         "languages": [python_semantic_language_registration()],
     }
     if project_root is not None:
@@ -49,35 +38,100 @@ def python_semantic_language_registration() -> dict[str, Any]:
     """Return the Python semantic-language provider registration."""
 
     return {
-        "languageId": PYTHON_LANGUAGE_ID,
-        "providerId": PYTHON_PROVIDER_ID,
-        "binary": PYTHON_BINARY,
-        "namespace": PYTHON_PROVIDER_NAMESPACE,
+        "languageId": ids.PYTHON_LANGUAGE_ID,
+        "providerId": ids.PYTHON_PROVIDER_ID,
+        "binary": ids.PYTHON_BINARY,
+        "namespace": ids.PYTHON_PROVIDER_NAMESPACE,
         "displayName": "Python",
         "methods": [
-            *PYTHON_SEARCH_METHODS,
-            *PYTHON_CHECK_METHODS,
-            *PYTHON_AGENT_METHODS,
+            *_PYTHON_SEARCH_METHODS,
+            *_PYTHON_QUERY_METHODS,
+            *_PYTHON_CHECK_METHODS,
+            *_PYTHON_AGENT_METHODS,
         ],
         "methodDescriptors": python_semantic_language_method_descriptors(),
-        "schemas": [
-            {
-                "schemaId": SEMANTIC_SEARCH_PACKET_SCHEMA_ID,
-                "schemaVersion": "1",
-                "path": "schemas/semantic-search-packet.v1.schema.json",
-            },
-            {
-                "schemaId": SEMANTIC_LANGUAGE_REGISTRY_ID,
-                "schemaVersion": SEMANTIC_LANGUAGE_REGISTRY_VERSION,
-                "path": "schemas/semantic-language-registry.v1.schema.json",
-            },
-            {
-                "schemaId": PYTHON_CAPABILITIES_SCHEMA_ID,
-                "schemaVersion": "1",
-                "path": "schemas/python-semantic-capabilities.v1.schema.json",
-            },
-        ],
+        "schemas": _python_semantic_language_schemas(),
     }
+
+
+def _python_semantic_language_schemas() -> list[dict[str, str]]:
+    return [
+        {
+            "schemaId": ids.SEMANTIC_SEARCH_PACKET_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-search-packet.v1.schema.json",
+        },
+        {
+            "schemaId": ids.SEMANTIC_QUERY_PACKET_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-query-packet.v1.schema.json",
+        },
+        {
+            "schemaId": ids.SEMANTIC_READ_PACKET_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-read-packet.v1.schema.json",
+        },
+        {
+            "schemaId": ids.SEMANTIC_GRAPH_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-graph.v1.schema.json",
+        },
+        {
+            "schemaId": "agent.semantic-protocols.semantic-verification-receipt",
+            "schemaVersion": "1",
+            "path": "schemas/semantic-verification-receipt.v1.schema.json",
+        },
+        {
+            "schemaId": "agent.semantic-protocols.semantic-behavior-snapshot",
+            "schemaVersion": "1",
+            "path": "schemas/semantic-behavior-snapshot.v1.schema.json",
+        },
+        {
+            "schemaId": ids.SEMANTIC_DETERMINISM_READINESS_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-determinism-readiness.v1.schema.json",
+        },
+        {
+            "schemaId": ids.SEMANTIC_FORMAL_PROOF_PILOT_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-formal-proof-pilot.v1.schema.json",
+        },
+        {
+            "schemaId": ids.SEMANTIC_REVIEW_PACKET_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-review-packet.v1.schema.json",
+        },
+        {
+            "schemaId": ids.SEMANTIC_EVIDENCE_GRAPH_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-evidence-graph.v1.schema.json",
+        },
+        {
+            "schemaId": ids.SEMANTIC_ASSURANCE_CASE_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-assurance-case.v1.schema.json",
+        },
+        {
+            "schemaId": ids.SEMANTIC_TYPE_SURFACE_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-type-surface.v1.schema.json",
+        },
+        {
+            "schemaId": "agent.semantic-protocols.semantic-handle",
+            "schemaVersion": "1",
+            "path": "schemas/semantic-handle.v1.schema.json",
+        },
+        {
+            "schemaId": ids.SEMANTIC_LANGUAGE_REGISTRY_ID,
+            "schemaVersion": ids.SEMANTIC_LANGUAGE_REGISTRY_VERSION,
+            "path": "schemas/semantic-language-registry.v1.schema.json",
+        },
+        {
+            "schemaId": ids.PYTHON_CAPABILITIES_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/python-semantic-capabilities.v1.schema.json",
+        },
+    ]
 
 
 def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
@@ -86,12 +140,39 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
     descriptors = [
         {
             **descriptor,
-            "outputSchemaIds": [SEMANTIC_SEARCH_PACKET_SCHEMA_ID],
+            "outputSchemaIds": _search_output_schema_ids(descriptor["view"]),
             "supportsJson": True,
             "supportsCompact": True,
         }
-        for descriptor in PYTHON_SEARCH_VIEW_DESCRIPTORS
+        for descriptor in _PYTHON_SEARCH_VIEW_DESCRIPTORS
     ]
+    descriptors.extend(
+        [
+            {
+                "method": "query/owner-items",
+                "command": "query",
+                "input": "owner-path",
+                "requiredOptions": ["--term"],
+                "outputSchemaIds": [ids.SEMANTIC_QUERY_PACKET_SCHEMA_ID],
+                "supportsJson": True,
+                "supportsCompact": True,
+                "supportsQuerySet": True,
+                "acceptedQuerySetSelectors": ["exact-set"],
+                "querySetScopes": ["owner"],
+                "outputModes": ["compact", "json", "code", "names"],
+            },
+            {
+                "method": "query/direct-source-read",
+                "command": "query",
+                "input": "owner-path",
+                "requiredOptions": ["--from-hook", "--selector"],
+                "outputSchemaIds": [ids.SEMANTIC_QUERY_PACKET_SCHEMA_ID],
+                "supportsJson": True,
+                "supportsCompact": True,
+                "outputModes": ["compact", "json", "names"],
+            },
+        ]
+    )
     descriptors.extend(
         {
             "method": method,
@@ -99,14 +180,14 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
             "supportsJson": True,
             "supportsCompact": True,
         }
-        for method in PYTHON_CHECK_METHODS
+        for method in _PYTHON_CHECK_METHODS
     )
     descriptors.extend(
         [
             {
                 "method": "agent/doctor",
                 "command": "agent",
-                "outputSchemaIds": [SEMANTIC_LANGUAGE_REGISTRY_ID],
+                "outputSchemaIds": [ids.SEMANTIC_LANGUAGE_REGISTRY_ID],
                 "supportsJson": True,
                 "supportsCompact": True,
             },
@@ -121,13 +202,22 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
     return descriptors
 
 
+def _search_output_schema_ids(view: str) -> list[str]:
+    schema_ids = [ids.SEMANTIC_SEARCH_PACKET_SCHEMA_ID]
+    if view == "public-external-types":
+        schema_ids.append(ids.SEMANTIC_TYPE_SURFACE_SCHEMA_ID)
+    if view == "policy":
+        schema_ids.append("agent.semantic-protocols.semantic-handle")
+    return schema_ids
+
+
 def python_semantic_search_view_descriptor(view: str) -> dict[str, Any] | None:
     """Return the registry descriptor for one search view."""
 
     return next(
         (
             descriptor
-            for descriptor in PYTHON_SEARCH_VIEW_DESCRIPTORS
+            for descriptor in _PYTHON_SEARCH_VIEW_DESCRIPTORS
             if descriptor["view"] == view
         ),
         None,

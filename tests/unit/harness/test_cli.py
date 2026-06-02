@@ -10,6 +10,46 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
+def test_cli_help_advertises_code_flag() -> None:
+    stdout = io.StringIO()
+    exit_code = run_cli(["--help"], stdout=stdout)
+    rendered = stdout.getvalue()
+    assert exit_code == 0
+    assert "py-harness search <view> ... [--json] [--code]" in rendered
+    assert (
+        "py-harness query <owner-path> --term <symbol> [--term <symbol>] [--names-only | --code]"
+        in rendered
+    )
+    assert (
+        "search owner <path> items --query <symbol|a|b> [--names-only | --code]"
+        in rendered
+    )
+    assert "query <owner-path> --term <symbol> --code" in rendered
+
+
+def test_cli_subcommand_help_advertises_code_flag() -> None:
+    for args in (["search", "--help"], ["query", "--help"]):
+        stdout = io.StringIO()
+        exit_code = run_cli(args, stdout=stdout)
+        rendered = stdout.getvalue()
+        assert exit_code == 0
+        assert "--code" in rendered
+
+
+def test_cli_agent_guide_advertises_code_route(tmp_path: Path) -> None:
+    stdout = io.StringIO()
+
+    exit_code = run_cli(["agent", "guide", str(tmp_path)], stdout=stdout)
+    rendered = stdout.getvalue()
+
+    assert exit_code == 0
+    assert "py-harness query <owner-path> --term <symbol> --code" in rendered
+    assert (
+        "py-harness search owner <owner-path> items --query <symbol|a|b> --code"
+        in rendered
+    )
+
+
 def test_cli_renders_compact_text_by_default(tmp_path: Path) -> None:
     package = tmp_path / "src" / "pkg"
     package.mkdir(parents=True)
@@ -133,6 +173,54 @@ disabled_rule_ids = ["PY-MOD-R002"]
 
     assert exit_code == 0
     assert "PY-MOD-R002" not in stdout.getvalue()
+
+
+def test_cli_uses_pyproject_declared_package_source_scope(tmp_path: Path) -> None:
+    default_src = tmp_path / "src"
+    package_source = tmp_path / "packages" / "python" / "src"
+    package = package_source / "tools"
+    tests = tmp_path / "tests" / "unit"
+    default_src.mkdir()
+    package.mkdir(parents=True)
+    tests.mkdir(parents=True)
+    (default_src / "ignored.py").write_text("def broken(:\n    pass\n", encoding="utf-8")
+    (package / "__init__.py").write_text(
+        '"""Package public API."""\n\n\ndef build(value: int) -> int:\n    return value\n',
+        encoding="utf-8",
+    )
+    (package / "py.typed").write_text("", encoding="utf-8")
+    (tests / "test_tools.py").write_text(
+        "def test_tools() -> None:\n    assert True\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "example-pkg"
+requires-python = ">=3.12"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["packages/python/src/tools"]
+""".lstrip(),
+        encoding="utf-8",
+    )
+    stdout = io.StringIO()
+
+    exit_code = run_cli(["--json", str(tmp_path)], stdout=stdout)
+    payload = json.loads(stdout.getvalue())
+
+    assert exit_code == 0
+    assert payload["is_clean"] is True
+    assert [finding["rule_id"] for finding in payload["findings"]] == []
+    assert payload["project_scope"]["source_paths"] == [str(package_source)]
+    assert payload["project_scope"]["project_paths"] == [
+        str(package_source),
+        str(tmp_path / "tests"),
+    ]
 
 
 def test_cli_can_promote_policy_rule_ids(tmp_path: Path) -> None:

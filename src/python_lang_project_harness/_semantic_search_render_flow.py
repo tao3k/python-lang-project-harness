@@ -5,7 +5,11 @@ from __future__ import annotations
 from typing import Any
 
 from ._semantic_search_common import escape_field_value, escape_scalar, render_fields
-from ._semantic_search_render_lines import query_coverage_lines, render_next_action
+from ._semantic_search_render_lines import (
+    handle_lines,
+    query_coverage_lines,
+    render_next_action,
+)
 
 
 def finding_lines(packet: dict[str, Any]) -> list[str]:
@@ -28,9 +32,25 @@ def synthesis_lines(packet: dict[str, Any]) -> list[str]:
     synthesis = packet.get("searchSynthesis")
     if not synthesis:
         return []
-    lines = [
-        f"|synthesis summary={escape_field_value(synthesis.get('summary', ''))}".rstrip()
-    ]
+    fields = {
+        "algorithm": synthesis.get("algorithm", ""),
+        "scope": synthesis.get("scope", ""),
+        "summary": synthesis.get("summary", ""),
+        "ownerPath": synthesis.get("ownerPath", ""),
+        "selectedOwners": synthesis.get("selectedOwners", ""),
+        "selectedEdges": synthesis.get("selectedEdges", ""),
+        "incomingOwners": synthesis.get("incomingOwners", ""),
+        "outgoingOwners": synthesis.get("outgoingOwners", ""),
+        "highImpactOwners": synthesis.get("highImpactOwners", []),
+        "frontierOwners": synthesis.get("frontierOwners", []),
+        "editFrontier": synthesis.get("editFrontier", []),
+        "testFrontier": synthesis.get("testFrontier", []),
+        "windowSet": [
+            render_next_action(action) for action in synthesis.get("windowSet", [])
+        ],
+        "findingOwners": synthesis.get("findingOwners", []),
+    }
+    lines = [f"|synthesis {render_fields(fields)}".rstrip()]
     seeds = synthesis.get("seeds", [])
     if seeds:
         lines.append(f"|seed {','.join(render_next_action(seed) for seed in seeds)}")
@@ -52,6 +72,7 @@ def seed_packet_text(packet: dict[str, Any]) -> str:
         "|flow prime->owner|deps|symbol|tests pipe=text:owner,tests ingest=stdin"
     )
     lines.extend(query_coverage_lines(packet))
+    lines.extend(handle_lines(packet))
     lines.extend(_seed_lines(packet))
     lines.extend(note_lines(packet))
     lines.extend(synthesis_lines(packet))
@@ -74,6 +95,12 @@ def _seed_groups(packet: dict[str, Any]) -> dict[str, list[str]]:
         _add_seed(groups, "owner", hit["ownerPath"])
         if "symbol" in hit:
             _add_seed(groups, "symbol", hit["symbol"])
+    for handle in packet.get("semanticHandles", []):
+        owner_path = handle.get("implementationOwnerPath") or handle.get("ownerPath")
+        if isinstance(owner_path, str):
+            _add_seed(groups, "owner", owner_path)
+        for test_path in handle.get("testPaths", [])[:4]:
+            _add_seed(groups, "tests", test_path)
     for action in packet["nextActions"]:
         _add_seed(groups, action["kind"], action["target"])
     return groups

@@ -8,16 +8,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from ._semantic_search_prefilter_file_scan import python_file_path_matches_by_term
 from ._semantic_search_prefilter_rank import (
     MAX_PREFILTER_FILES_PER_TERM,
     MAX_PREFILTER_FILES_TOTAL,
-    path_matches,
-    path_rank,
+    path_key_rank,
     ranked_capped_matches,
     ranked_term_matches,
 )
 from ._semantic_search_prefilter_tools import (
-    list_python_files,
     source_match_scores_by_term,
 )
 
@@ -40,6 +39,8 @@ class PythonSearchPrefilterResult:
     reason: str
     query_terms: int
     source_search_passes: int
+    file_list_passes: int
+    candidate_file_basis: str
 
     def runtime_cost(self) -> dict[str, object]:
         """Return schema-owned runtime-cost metadata for the search packet."""
@@ -60,6 +61,8 @@ class PythonSearchPrefilterResult:
                 "mode": "text-query-prefilter",
                 "queryTerms": self.query_terms,
                 "sourceSearchPasses": self.source_search_passes,
+                "fileListPasses": self.file_list_passes,
+                "candidateFileBasis": self.candidate_file_basis,
             },
         }
 
@@ -92,43 +95,100 @@ def _prefilter_with_rg(
     owner_path: str | None,
 ) -> PythonSearchPrefilterResult | None:
     started = time.perf_counter()
-    all_python_files = list_python_files(project_root)
-    if len(all_python_files) <= MIN_PREFILTER_FILES:
-        return None
     source_scores_by_term = source_match_scores_by_term(project_root, rg, terms)
+    source_matched_files = _source_matched_files(source_scores_by_term)
+    source_only_term_capped = _source_only_term_capped_matches(
+        project_root,
+        terms,
+        source_scores_by_term,
+        source_matched_files,
+    )
+    if source_only_term_capped is not None:
+        selected = _selected_paths(
+            project_root,
+            source_only_term_capped,
+            terms,
+            owner_path,
+        )
+        elapsed_ms = round((time.perf_counter() - started) * 1000)
+        return PythonSearchPrefilterResult(
+            paths=selected,
+            total_files=len(source_matched_files),
+            term_capped_files=len(set(source_only_term_capped)),
+            matched_files=len(selected),
+            elapsed_ms=elapsed_ms,
+            tool="rg",
+            reason="rg source prefilter selected parser input files for text query",
+            query_terms=len(terms),
+            source_search_passes=1 if terms else 0,
+            file_list_passes=0,
+            candidate_file_basis="source-matched-files",
+        )
+
+    path_match_scan = python_file_path_matches_by_term(project_root, terms, rg=rg)
+    if path_match_scan.total_files <= MIN_PREFILTER_FILES:
+        return None
     term_capped = _term_capped_matches(
         project_root,
-        all_python_files,
         terms,
+        path_match_scan.matches_by_term,
         source_scores_by_term,
     )
     selected = _selected_paths(project_root, term_capped, terms, owner_path)
     elapsed_ms = round((time.perf_counter() - started) * 1000)
     return PythonSearchPrefilterResult(
         paths=selected,
-        total_files=len(all_python_files),
+        total_files=path_match_scan.total_files,
         term_capped_files=len(set(term_capped)),
         matched_files=len(selected),
         elapsed_ms=elapsed_ms,
-        tool="fd+rg" if _fd_available() else "rg",
+        tool=path_match_scan.tool,
         reason="rg/fd prefilter selected parser input files for text query",
         query_terms=len(terms),
         source_search_passes=1 if terms else 0,
+        file_list_passes=1,
+        candidate_file_basis="all-python-files",
     )
 
 
-def _term_capped_matches(
+def _source_only_term_capped_matches(
     project_root: Path,
-    all_python_files: tuple[Path, ...],
     terms: tuple[str, ...],
-    source_scores_by_term: dict[str, dict[Path, int]],
-) -> tuple[Path, ...]:
-    matched: list[Path] = []
+    source_scores_by_term: dict[str, dict[str, int]],
+    source_matched_files: frozenset[str],
+) -> tuple[str, ...] | None:
+    if not _source_only_prefilter_is_sufficient(
+        terms,
+        source_scores_by_term,
+        source_matched_files,
+    ):
+        return None
+    matched: list[str] = []
     for term in terms:
         term_matches = ranked_term_matches(
             project_root,
             term,
-            path_matches(project_root, all_python_files, (term,)),
+            set(),
+            source_scores_by_term.get(term, {}),
+        )
+        matched.extend(
+            path for path, _score in term_matches[:MAX_PREFILTER_FILES_PER_TERM]
+        )
+    return tuple(matched)
+
+
+def _term_capped_matches(
+    project_root: Path,
+    terms: tuple[str, ...],
+    path_matches_by_term: dict[str, set[str]],
+    source_scores_by_term: dict[str, dict[str, int]],
+) -> tuple[str, ...]:
+    matched: list[str] = []
+    for term in terms:
+        term_matches = ranked_term_matches(
+            project_root,
+            term,
+            path_matches_by_term.get(term, set()),
             source_scores_by_term.get(term, {}),
         )
         matched.extend(
@@ -139,7 +199,7 @@ def _term_capped_matches(
 
 def _selected_paths(
     project_root: Path,
-    term_capped: tuple[Path, ...],
+    term_capped: tuple[str, ...],
     terms: tuple[str, ...],
     owner_path: str | None,
 ) -> tuple[Path, ...]:
@@ -147,9 +207,10 @@ def _selected_paths(
     if owner_path is not None:
         owner_candidate = (project_root / owner_path).resolve()
         if owner_candidate.is_file() and owner_candidate.suffix == ".py":
-            matched = (*matched, owner_candidate)
+            matched = (*matched, owner_path)
     return tuple(
-        sorted(set(matched), key=lambda path: path_rank(project_root, path, terms))
+        project_root / path
+        for path in sorted(set(matched), key=lambda path: path_key_rank(path, terms))
     )
 
 
@@ -157,5 +218,24 @@ def _normalized_terms(query_terms: Sequence[str]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(term.strip() for term in query_terms if term.strip()))
 
 
-def _fd_available() -> bool:
-    return shutil.which("fd") is not None or shutil.which("fdfind") is not None
+def _source_only_prefilter_is_sufficient(
+    terms: tuple[str, ...],
+    source_scores_by_term: dict[str, dict[str, int]],
+    source_matched_files: frozenset[str],
+) -> bool:
+    return (
+        bool(terms)
+        and len(source_matched_files) > MIN_PREFILTER_FILES
+        and all(
+            len(source_scores_by_term.get(term, {})) >= MAX_PREFILTER_FILES_PER_TERM
+            for term in terms
+        )
+    )
+
+
+def _source_matched_files(
+    source_scores_by_term: dict[str, dict[str, int]],
+) -> frozenset[str]:
+    return frozenset(
+        path for source_scores in source_scores_by_term.values() for path in source_scores
+    )

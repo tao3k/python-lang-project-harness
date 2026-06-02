@@ -80,10 +80,18 @@ def text_payload(
 ) -> dict[str, Any]:
     """Build parser-visible text search payloads."""
 
+    is_fzf = options.view == "fzf"
     query_terms = normalized_query_terms(options)
-    hits_by_term = text_query_hits_by_term(
-        report, facts, project_root, query_terms, options.owner_path
-    )
+    if is_fzf:
+        from ._semantic_search_view_text_queries import fuzzy_text_query_hits_by_term
+
+        hits_by_term = fuzzy_text_query_hits_by_term(
+            report, facts, project_root, query_terms, options.owner_path
+        )
+    else:
+        hits_by_term = text_query_hits_by_term(
+            report, facts, project_root, query_terms, options.owner_path
+        )
     hits = fair_merged_text_hits(hits_by_term)
     owner_paths = dedupe(
         [
@@ -103,11 +111,15 @@ def text_payload(
     )
     return {
         "header": header(
-            "text",
+            "fzf",
             {
                 "q": options.query or ",".join(query_terms),
                 "querySet": len(query_terms) if options.query_set else None,
-                "selector": "exact-set" if options.query_set else None,
+                "selector": ("fuzzy-set" if is_fzf else "exact-set")
+                if options.query_set
+                else None,
+                "mode": "fuzzy" if is_fzf else None,
+                "backend": "provider" if is_fzf else None,
                 "scopeOwner": options.owner_path,
                 "own": len(owner_paths),
                 "hit": len(hits),

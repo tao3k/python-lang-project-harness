@@ -30,11 +30,21 @@ def python_search_view_descriptors() -> list[dict[str, Any]]:
         _view(
             "owner",
             requires_query=True,
+            accepted_pipes=["items"],
             capabilities=[
                 _semantic("reasoning-owner-search"),
                 _python("parser-visible-module-owner-search"),
+                _python("python-owner-item-query"),
                 _python("pytest-test-owner-search"),
                 _semantic("path-owner-fallback"),
+            ],
+            fallbacks=[
+                {
+                    "name": "owner-top-items",
+                    "trigger": "item-query-miss",
+                    "appliesToPipes": ["items"],
+                    "maxItems": 4,
+                }
             ],
             ingest_required_for=[_ingest("non-parser-path")],
         ),
@@ -77,6 +87,16 @@ def python_search_view_descriptors() -> list[dict[str, Any]]:
             ],
         ),
         _view(
+            "policy",
+            requires_query=True,
+            accepted_pipes=["owner", "tests"],
+            capabilities=[
+                _semantic("policy-rule-handle-search"),
+                _python("python-project-policy-rule-handle-search"),
+                _python("python-agent-policy-rule-handle-search"),
+            ],
+        ),
+        _view(
             "symbol",
             requires_query=True,
             capabilities=[_python("symbol-definition-search")],
@@ -97,16 +117,15 @@ def python_search_view_descriptors() -> list[dict[str, Any]]:
             capabilities=[_python("pytest-test-owner-search")],
         ),
         _view(
-            "text",
+            "fzf",
             requires_query=True,
             accepted_pipes=["owner", "tests"],
             supports_query_set=True,
-            accepted_query_set_selectors=["exact-set"],
+            accepted_query_set_selectors=["fuzzy-set"],
             query_set_scopes=["project", "owner"],
             capabilities=[
-                _semantic("owner-path-text-search"),
-                _python("export-text-search"),
-                _python("parser-visible-source-text-search"),
+                _semantic("finder-fuzzy-candidate-search"),
+                _python("parser-visible-source-fuzzy-search"),
             ],
             ingest_required_for=[
                 _ingest("non-parser-text"),
@@ -137,6 +156,7 @@ def _view(
     supports_query_set: bool = False,
     accepted_query_set_selectors: Sequence[str] = (),
     query_set_scopes: Sequence[str] = (),
+    fallbacks: Sequence[dict[str, object]] = (),
     ingest_required_for: Sequence[dict[str, str]] = (),
 ) -> dict[str, Any]:
     descriptor: dict[str, Any] = {
@@ -156,6 +176,8 @@ def _view(
         descriptor["acceptedQuerySetSelectors"] = list(accepted_query_set_selectors)
     if query_set_scopes:
         descriptor["querySetScopes"] = list(query_set_scopes)
+    if fallbacks:
+        descriptor["fallbacks"] = list(fallbacks)
     if ingest_required_for:
         descriptor["ingestRequiredFor"] = list(ingest_required_for)
     return descriptor

@@ -18,6 +18,7 @@ MAX_SYMBOL_HITS = 20
 MAX_IMPORT_HITS = 30
 MAX_DEPENDENCY_HITS = 24
 MAX_TEST_HITS = 8
+MAX_OWNER_QUERY_ITEMS = 4
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,6 +27,7 @@ class PythonSemanticSearchOptions:
 
     view: str
     query: str | None = None
+    item_query: str | None = None
     query_set: tuple[str, ...] = ()
     owner_path: str | None = None
     pipes: tuple[str, ...] = ()

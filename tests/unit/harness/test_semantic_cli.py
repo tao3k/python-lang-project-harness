@@ -27,20 +27,49 @@ def test_cli_agent_doctor_json_advertises_semantic_language_provider(
     assert registration["namespace"] == (
         "agent.semantic-protocols.languages.python.py-harness"
     )
+    assert any(
+        schema["schemaId"] == "agent.semantic-protocols.semantic-graph"
+        and schema["path"] == "schemas/semantic-graph.v1.schema.json"
+        for schema in registration["schemas"]
+    )
+    assert any(
+        schema["schemaId"] == "agent.semantic-protocols.semantic-type-surface"
+        and schema["path"] == "schemas/semantic-type-surface.v1.schema.json"
+        for schema in registration["schemas"]
+    )
     assert "search/workspace" in registration["methods"]
     assert "search/callsite" in registration["methods"]
     assert "search/public-external-types" in registration["methods"]
-    assert "search/text" in registration["methods"]
+    assert "search/fzf" in registration["methods"]
     assert "agent/doctor" in registration["methods"]
     assert "agent/guide" in registration["methods"]
     assert "agent/install" not in registration["methods"]
     assert "agent/hook" not in registration["methods"]
     assert any(
-        descriptor["method"] == "search/text"
+        descriptor["method"] == "search/public-external-types"
+        and descriptor["outputSchemaIds"]
+        == [
+            "agent.semantic-protocols.semantic-search-packet",
+            "agent.semantic-protocols.semantic-type-surface",
+        ]
+        for descriptor in registration["methodDescriptors"]
+    )
+    assert any(
+        descriptor["method"] == "search/fzf"
         and descriptor["acceptedPipes"] == ["owner", "tests"]
         and descriptor["supportsQuerySet"] is True
-        and descriptor["acceptedQuerySetSelectors"] == ["exact-set"]
+        and descriptor["acceptedQuerySetSelectors"] == ["fuzzy-set"]
         and descriptor["querySetScopes"] == ["project", "owner"]
+        for descriptor in registration["methodDescriptors"]
+    )
+    assert any(
+        descriptor["method"] == "search/owner"
+        and descriptor["acceptedPipes"] == ["items"]
+        and any(
+            capability["name"] == "python-owner-item-query"
+            for capability in descriptor["capabilities"]
+        )
+        and descriptor["fallbacks"][0]["name"] == "owner-top-items"
         for descriptor in registration["methodDescriptors"]
     )
     assert not any(
@@ -68,6 +97,9 @@ def test_cli_agent_guide_prints_provider_owned_searchflow(tmp_path: Path) -> Non
     assert (
         f"|cmd py-harness search owner <owner-path> --view seeds {tmp_path}" in rendered
     )
+    assert "py-harness search owner <owner-path> items --query <symbol|a|b>" in rendered
+    assert "py-harness search fzf <query> owner tests --view seeds" in rendered
+    assert "py-harness search fzf <query> owner tests --view seeds" in rendered
     assert "|rule use installed py-harness binary" in rendered
 
 
@@ -97,13 +129,37 @@ def test_cli_search_workspace_prime_and_text_pipe(tmp_path: Path) -> None:
 
     workspace_stdout = io.StringIO()
     prime_stdout = io.StringIO()
+    prime_json_stdout = io.StringIO()
+    owner_stdout = io.StringIO()
+    owner_json_stdout = io.StringIO()
     text_stdout = io.StringIO()
 
     assert run_cli(["search", "workspace", str(tmp_path)], stdout=workspace_stdout) == 0
     assert run_cli(["search", "prime", str(tmp_path)], stdout=prime_stdout) == 0
     assert (
         run_cli(
-            ["search", "text", "build", "owner", "tests", str(tmp_path)],
+            ["search", "prime", "--json", str(tmp_path)],
+            stdout=prime_json_stdout,
+        )
+        == 0
+    )
+    assert (
+        run_cli(
+            ["search", "owner", "src/pkg/service.py", str(tmp_path)],
+            stdout=owner_stdout,
+        )
+        == 0
+    )
+    assert (
+        run_cli(
+            ["search", "owner", "src/pkg/service.py", "--json", str(tmp_path)],
+            stdout=owner_json_stdout,
+        )
+        == 0
+    )
+    assert (
+        run_cli(
+            ["search", "fzf", "build", "owner", "tests", str(tmp_path)],
             stdout=text_stdout,
         )
         == 0
@@ -111,6 +167,7 @@ def test_cli_search_workspace_prime_and_text_pipe(tmp_path: Path) -> None:
 
     workspace = workspace_stdout.getvalue()
     prime = prime_stdout.getvalue()
+    owner = owner_stdout.getvalue()
     text = text_stdout.getvalue()
     assert workspace.startswith("[search-workspace]")
     assert "|package . name=demo-python role=workspace-root" in workspace
@@ -120,10 +177,25 @@ def test_cli_search_workspace_prime_and_text_pipe(tmp_path: Path) -> None:
     assert prime.startswith("[search-prime]")
     assert '|dependency D:requests requirement="requests>=2"' in prime
     assert "|owner src/pkg/service.py" in prime
+    assert "|synthesis algorithm=owner-rank-frontier scope=prime" in prime
+    assert "highImpactOwners=" in prime
+    assert "src/pkg/service.py" in prime
     assert "text:build(owner=" in prime
     assert prime.count("deps:requests") == 1
     assert "symbol:build" not in prime
-    assert text.startswith("[search-text] q=build")
+    prime_packet = json.loads(prime_json_stdout.getvalue())
+    assert prime_packet["searchSynthesis"]["algorithm"] == "owner-rank-frontier"
+    assert prime_packet["searchSynthesis"]["scope"] == "prime"
+    assert "src/pkg/service.py" in prime_packet["searchSynthesis"]["highImpactOwners"]
+    assert owner.startswith("[search-owner] q=src/pkg/service.py")
+    assert "|synthesis algorithm=bounded-reachability-depth1 scope=owner" in owner
+    assert "ownerPath=src/pkg/service.py" in owner
+    owner_packet = json.loads(owner_json_stdout.getvalue())
+    assert owner_packet["searchSynthesis"]["algorithm"] == "bounded-reachability-depth1"
+    assert owner_packet["searchSynthesis"]["scope"] == "owner"
+    assert owner_packet["searchSynthesis"]["ownerPath"] == "src/pkg/service.py"
+    assert owner_packet["searchSynthesis"]["incomingOwners"] >= 1
+    assert text.startswith("[search-fzf] q=build")
     assert "|owner src/pkg/service.py" in text
     assert "|edge O:src/pkg/service.py -test-> O:tests/test_service.py" in text
 
@@ -141,52 +213,6 @@ def test_cli_search_callsite_uses_parser_call_facts(tmp_path: Path) -> None:
     assert "|hit path=tests/test_service.py line=4" in rendered
     assert "owner=tests/test_service.py kind=callsite" in rendered
     assert "symbol=build" in rendered
-
-
-def test_cli_search_public_external_types_uses_public_api_facts(
-    tmp_path: Path,
-) -> None:
-    write_search_fixture(tmp_path)
-    stdout = io.StringIO()
-    json_stdout = io.StringIO()
-
-    exit_code = run_cli(
-        ["search", "public-external-types", "requests", str(tmp_path)],
-        stdout=stdout,
-    )
-    json_exit_code = run_cli(
-        ["search", "public-external-types", "requests", "--json", str(tmp_path)],
-        stdout=json_stdout,
-    )
-
-    rendered = stdout.getvalue()
-    assert exit_code == 0
-    assert rendered.startswith("[search-public-external-types] q=requests")
-    assert "package=requests" in rendered
-    assert "|api path=src/pkg/service.py line=6" in rendered
-    assert "reason=public-external-type" in rendered
-    assert "confidence=direct" in rendered
-    assert "|api path=src/pkg/service.py line=9" in rendered
-    assert "reason=possible-public-external-type" in rendered
-    assert "confidence=possible" in rendered
-
-    packet = json.loads(json_stdout.getvalue())
-    assert json_exit_code == 0
-    assert packet["method"] == "search/public-external-types"
-    assert packet["view"] == "public-external-types"
-    assert packet["header"]["fields"]["package"] == "requests"
-    assert any(
-        hit["reason"] == "public-external-type"
-        and hit["fields"]["dependency"] == "requests"
-        and hit["fields"]["confidence"] == "direct"
-        for hit in packet["hits"]
-    )
-    assert any(
-        hit["reason"] == "possible-public-external-type"
-        and hit["fields"]["dependency"] == "requests"
-        and hit["fields"]["confidence"] == "possible"
-        for hit in packet["hits"]
-    )
 
 
 def test_cli_search_deps_routes_dependency_api_followups(tmp_path: Path) -> None:

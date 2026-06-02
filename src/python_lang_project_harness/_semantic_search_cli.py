@@ -12,12 +12,14 @@ from ._semantic_language import python_semantic_search_view_descriptor
 class ParsedSemanticSearchArgs:
     view: str | None = None
     query: str | None = None
+    item_query: str | None = None
     project_root: Path | None = None
     package_path: Path | None = None
     owner_path: str | None = None
     query_set: tuple[str, ...] = ()
     pipes: tuple[str, ...] = ()
     json: bool = False
+    code_only: bool = False
     render_mode: str | None = None
     error: str | None = None
 
@@ -26,7 +28,9 @@ class ParsedSemanticSearchArgs:
 class _SearchOptionState:
     positionals: list[str] = field(default_factory=list)
     query_set: list[str] = field(default_factory=list)
+    item_query: str | None = None
     json: bool = False
+    code_only: bool = False
     render_mode: str | None = None
     package_path: Path | None = None
     owner_path: str | None = None
@@ -46,8 +50,8 @@ def parse_semantic_search_args(
         return ParsedSemanticSearchArgs(
             error=(
                 "usage: py-harness search "
-                "<workspace|prime|owner|dependency|deps|api|public-external-types|symbol|callsite|import|tests|text|ingest> "
-                "... [--json] [--package PATH] [PROJECT_ROOT]"
+                "<workspace|prime|owner|dependency|deps|api|public-external-types|policy|symbol|callsite|import|tests|fzf|text|ingest> "
+                "... [--json] [--code] [--package PATH] [PROJECT_ROOT]"
             ),
         )
     descriptor = python_semantic_search_view_descriptor(view)
@@ -61,9 +65,21 @@ def parse_semantic_search_args(
         return ParsedSemanticSearchArgs(
             error=f"search {view} does not support --query-set"
         )
-    if state.owner_path is not None and not (view == "text" and state.query_set):
+    if state.item_query is not None and view != "owner":
         return ParsedSemanticSearchArgs(
-            error="--owner is only supported by search text --query-set",
+            error="--query is only supported by search owner items",
+        )
+    if state.code_only and state.json:
+        return ParsedSemanticSearchArgs(error="--code cannot be combined with --json")
+    if state.code_only and not (view == "owner" and state.item_query is not None):
+        return ParsedSemanticSearchArgs(
+            error="--code requires search owner <path> items --query <symbol>",
+        )
+    if state.owner_path is not None and not (
+        view == "fzf" and state.query_set
+    ):
+        return ParsedSemanticSearchArgs(
+            error="--owner is only supported by search fzf --query-set",
         )
     if descriptor["requiresQuery"]:
         return _required_query_args(view, descriptor, state)
@@ -100,6 +116,8 @@ def _consume_search_option(
     match arg:
         case "--json":
             state.json = True
+        case "--code":
+            state.code_only = True
         case "--view":
             value = _optional_arg(args, index + 1)
             if value not in {"graph", "hits", "both", "seeds"}:
@@ -125,6 +143,12 @@ def _consume_search_option(
             if value is None:
                 return _ConsumedOption(error="--query-set requires a query term")
             state.query_set.append(value)
+            return _ConsumedOption(advance=2)
+        case "--query":
+            value = _literal_arg(args, index + 1)
+            if value is None:
+                return _ConsumedOption(error="--query requires an item query")
+            state.item_query = value
             return _ConsumedOption(advance=2)
         case _ if arg.startswith("-"):
             return _ConsumedOption(error=f"unknown search option: {arg}")
@@ -156,12 +180,14 @@ def _required_query_args(
     return ParsedSemanticSearchArgs(
         view=view,
         query=query,
+        item_query=state.item_query,
         owner_path=state.owner_path,
         query_set=tuple(state.query_set),
         project_root=None if project_root is None else Path(project_root),
         package_path=state.package_path,
         pipes=tuple(pipes),
         json=state.json,
+        code_only=state.code_only,
         render_mode=state.render_mode,
     )
 
@@ -179,6 +205,7 @@ def _project_only_args(
         project_root=None if not state.positionals else Path(state.positionals[0]),
         package_path=state.package_path,
         json=state.json,
+        code_only=state.code_only,
         render_mode=state.render_mode,
     )
 
@@ -226,7 +253,7 @@ def _is_flag_like_literal_search_query(
     arg: str,
 ) -> bool:
     return (
-        view == "text"
+        view == "fzf"
         and not positionals
         and not query_set
         and arg.startswith("-")
@@ -235,7 +262,9 @@ def _is_flag_like_literal_search_query(
             "--view",
             "--package",
             "--owner",
+            "--query",
             "--query-set",
+            "--code",
             "--help",
             "-h",
         }
@@ -243,4 +272,4 @@ def _is_flag_like_literal_search_query(
 
 
 def _search_view_supports_query_set(view: str) -> bool:
-    return view == "text"
+    return view == "fzf"

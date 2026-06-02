@@ -29,11 +29,11 @@ def path_matches(
 
 
 def ranked_term_matches(
-    project_root: Path,
+    _project_root: Path,
     term: str,
-    path_match_set: set[Path],
-    source_scores: dict[Path, int],
-) -> list[tuple[Path, int]]:
+    path_match_set: set[str],
+    source_scores: dict[str, int],
+) -> list[tuple[str, int]]:
     """Return one term's candidates ranked before parser parsing."""
 
     best_scores = {path: 1 for path in path_match_set}
@@ -41,18 +41,18 @@ def ranked_term_matches(
         best_scores[path] = min(best_scores.get(path, score), score)
     return sorted(
         best_scores.items(),
-        key=lambda item: (item[1], path_rank(project_root, item[0], (term,))),
+        key=lambda item: (item[1], path_key_rank(item[0], (term,))),
     )
 
 
 def ranked_capped_matches(
-    project_root: Path,
-    paths: Sequence[Path],
-) -> tuple[Path, ...]:
+    _project_root: Path,
+    paths: Sequence[str],
+) -> tuple[str, ...]:
     """Return globally capped candidate paths."""
 
     return tuple(
-        sorted(set(paths), key=lambda path: path_rank(project_root, path, ()))
+        sorted(set(paths), key=lambda path: path_key_rank(path, ()))
     )[:MAX_PREFILTER_FILES_TOTAL]
 
 
@@ -64,6 +64,15 @@ def path_rank(
     """Rank source owners before tests, shallow files, and long paths."""
 
     relative = relative_posix(path, project_root)
+    return path_key_rank(relative, terms)
+
+
+def path_key_rank(
+    relative: str,
+    terms: Sequence[str],
+) -> tuple[int, int, int, int, str]:
+    """Rank project-relative source keys before path objects are needed."""
+
     folded = relative.casefold()
     folded_terms = tuple(term.casefold() for term in terms)
     return (

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from python_lang_parser import PythonDiagnosticSeverity
+from python_lang_parser._diagnostic_model import PythonDiagnosticSeverity
 
 from ._model import PythonHarnessRule
 

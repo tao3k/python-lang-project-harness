@@ -2,67 +2,91 @@
 
 from __future__ import annotations
 
-from ._module_identity import (
-    python_module_is_package_init,
-    python_module_name_from_path,
-    python_module_namespace_parts,
+from importlib import import_module
+from typing import Any
+
+_MODULE_IDENTITY_EXPORTS = frozenset(
+    {
+        "python_module_is_package_init",
+        "python_module_name_from_path",
+        "python_module_namespace_parts",
+    }
 )
-from ._module_policy import (
-    python_module_has_public_surface,
-    python_module_has_public_symbol_surface,
+_MODULE_POLICY_EXPORTS = frozenset(
+    {
+        "python_module_has_public_surface",
+        "python_module_has_public_symbol_surface",
+    }
 )
-from ._name_policy import python_name_is_public, python_scope_is_public
-from ._project_model import (
-    PythonProjectDependency,
-    PythonProjectEntryPoint,
-    PythonProjectImportName,
-    PythonProjectMetadata,
-    PythonProjectScript,
-    PythonPytestOptions,
+_NAME_POLICY_EXPORTS = frozenset(
+    {
+        "python_name_is_public",
+        "python_scope_is_public",
+    }
 )
-from ._pyproject_metadata import parse_python_project_metadata
-from ._reasoning_tree import (
-    PythonReasoningTreeBranch,
-    PythonReasoningTreeFacts,
-    PythonReasoningTreeImportEdge,
-    PythonReasoningTreeNode,
-    PythonReasoningTreeShadow,
-    python_reasoning_tree_facts,
+_PROJECT_MODEL_EXPORTS = frozenset(
+    {
+        "PythonProjectDependency",
+        "PythonProjectEntryPoint",
+        "PythonProjectImportName",
+        "PythonProjectMetadata",
+        "PythonProjectScript",
+        "PythonPytestOptions",
+    }
 )
-from ._symbol_policy import (
-    python_assignment_is_public_top_level,
-    python_symbol_is_callable,
-    python_symbol_is_class,
-    python_symbol_is_public_callable,
-    python_symbol_is_public_callable_boundary,
-    python_symbol_is_public_class,
-    python_symbol_is_public_top_level,
-    python_symbol_is_test_function,
-    python_symbol_is_top_level_callable,
+_PYPROJECT_EXPORTS = frozenset({"parse_python_project_metadata"})
+_REASONING_TREE_EXPORTS = frozenset(
+    {
+        "PythonReasoningTreeBranch",
+        "PythonReasoningTreeFacts",
+        "PythonReasoningTreeImportEdge",
+        "PythonReasoningTreeNode",
+        "PythonReasoningTreeShadow",
+        "python_reasoning_tree_facts",
+    }
 )
-from ._version import __version__
-from .model import (
-    PythonAssignmentTarget,
-    PythonCall,
-    PythonCallEffect,
-    PythonClassShape,
-    PythonDiagnostic,
-    PythonDiagnosticSeverity,
-    PythonExportContract,
-    PythonExportContractKind,
-    PythonFunctionControlFlow,
-    PythonImport,
-    PythonModuleReport,
-    PythonModuleShape,
-    PythonNameBinding,
-    PythonReference,
-    PythonReferenceKind,
-    PythonScope,
-    PythonSymbol,
-    PythonSymbolKind,
-    SourceLocation,
+_SYMBOL_POLICY_EXPORTS = frozenset(
+    {
+        "python_assignment_is_public_top_level",
+        "python_symbol_is_callable",
+        "python_symbol_is_class",
+        "python_symbol_is_public_callable",
+        "python_symbol_is_public_callable_boundary",
+        "python_symbol_is_public_class",
+        "python_symbol_is_public_top_level",
+        "python_symbol_is_test_function",
+        "python_symbol_is_top_level_callable",
+    }
 )
-from .parser import parse_python_file, parse_python_source
+_MODEL_EXPORTS = frozenset(
+    {
+        "PythonAssignmentTarget",
+        "PythonCall",
+        "PythonCallEffect",
+        "PythonClassShape",
+        "PythonDiagnostic",
+        "PythonDiagnosticSeverity",
+        "PythonExportContract",
+        "PythonExportContractKind",
+        "PythonFunctionControlFlow",
+        "PythonImport",
+        "PythonModuleReport",
+        "PythonModuleShape",
+        "PythonNameBinding",
+        "PythonReference",
+        "PythonReferenceKind",
+        "PythonScope",
+        "PythonSymbol",
+        "PythonSymbolKind",
+        "SourceLocation",
+    }
+)
+_PARSER_EXPORTS = frozenset(
+    {
+        "parse_python_file",
+        "parse_python_source",
+    }
+)
 
 __all__ = [
     "PythonAssignmentTarget",
@@ -117,3 +141,42 @@ __all__ = [
     "python_symbol_is_test_function",
     "python_symbol_is_top_level_callable",
 ]
+
+
+def __getattr__(name: str) -> Any:
+    """Resolve public facade symbols lazily so CLI startup stays small."""
+
+    if name == "__version__":
+        return _load_export("._version", name)
+    if name in _MODULE_IDENTITY_EXPORTS:
+        return _load_export("._module_identity", name)
+    if name in _MODULE_POLICY_EXPORTS:
+        return _load_export("._module_policy", name)
+    if name in _NAME_POLICY_EXPORTS:
+        return _load_export("._name_policy", name)
+    if name in _PROJECT_MODEL_EXPORTS:
+        return _load_export("._project_model", name)
+    if name in _PYPROJECT_EXPORTS:
+        return _load_export("._pyproject_metadata", name)
+    if name in _REASONING_TREE_EXPORTS:
+        return _load_export("._reasoning_tree", name)
+    if name in _SYMBOL_POLICY_EXPORTS:
+        return _load_export("._symbol_policy", name)
+    if name in _MODEL_EXPORTS:
+        return _load_export(".model", name)
+    if name in _PARSER_EXPORTS:
+        return _load_export(".parser", name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    """Return public lazy exports alongside initialized module globals."""
+
+    return sorted({*globals(), *__all__})
+
+
+def _load_export(module_name: str, name: str) -> Any:
+    module = import_module(module_name, __name__)
+    value = getattr(module, name)
+    globals()[name] = value
+    return value

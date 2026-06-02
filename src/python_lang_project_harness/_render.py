@@ -7,7 +7,8 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from python_lang_parser import PythonDiagnosticSeverity, python_reasoning_tree_facts
+from python_lang_parser._diagnostic_model import PythonDiagnosticSeverity
+from python_lang_parser._reasoning_tree import python_reasoning_tree_facts
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

@@ -9,7 +9,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from python_lang_parser import python_reasoning_tree_facts
+from python_lang_parser._reasoning_tree import python_reasoning_tree_facts
 
 from .._render import _render_display_path
 from .model import (

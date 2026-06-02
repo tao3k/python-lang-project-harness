@@ -1,0 +1,141 @@
+{
+  "matches": [
+    {
+      "name": "decide",
+      "kind": "function",
+      "read": "src/pkg/service.py:1-4",
+      "code": "def decide(value: int) -> int:\n  if value > 0:\n    return value\n  return 0",
+      "projection": {
+        "mode": "outline",
+        "syntax": "semantic-outline",
+        "sourceAuthority": "native-parser",
+        "sourceFingerprint": "src/pkg/service.py:1-4:74:b16b0190",
+        "losslessStructure": true,
+        "exactRead": "src/pkg/service.py:1-4",
+        "nodes": [
+          {
+            "id": "decide",
+            "kind": "declaration",
+            "role": "declaration",
+            "label": "def decide",
+            "depth": 0,
+            "read": "src/pkg/service.py:1-4"
+          },
+          {
+            "id": "decide:1",
+            "kind": "if",
+            "role": "control-flow",
+            "label": "if value > 0",
+            "depth": 1,
+            "read": "src/pkg/service.py:2-3",
+            "parentId": "decide",
+            "flags": [
+              "branch"
+            ]
+          },
+          {
+            "id": "decide:2",
+            "kind": "return",
+            "role": "terminal",
+            "label": "return value",
+            "depth": 2,
+            "read": "src/pkg/service.py:3-3",
+            "parentId": "decide:1",
+            "flags": [
+              "return"
+            ]
+          },
+          {
+            "id": "decide:3",
+            "kind": "return",
+            "role": "terminal",
+            "label": "return 0",
+            "depth": 1,
+            "read": "src/pkg/service.py:4-4",
+            "parentId": "decide",
+            "flags": [
+              "return"
+            ]
+          }
+        ],
+        "omitted": [],
+        "expandActions": [
+          {
+            "kind": "exact-read",
+            "target": "decide",
+            "read": "src/pkg/service.py:1-4",
+            "argv": [
+              "py-harness",
+              "query",
+              "--from-hook",
+              "direct-source-read",
+              "--selector",
+              "src/pkg/service.py:1-4",
+              "."
+            ],
+            "reason": "read exact source before editing"
+          },
+          {
+            "kind": "exact-read",
+            "target": "decide:1",
+            "read": "src/pkg/service.py:2-3",
+            "argv": [
+              "py-harness",
+              "query",
+              "--from-hook",
+              "direct-source-read",
+              "--selector",
+              "src/pkg/service.py:2-3",
+              "."
+            ],
+            "reason": "expand if node before editing"
+          },
+          {
+            "kind": "exact-read",
+            "target": "decide:2",
+            "read": "src/pkg/service.py:3-3",
+            "argv": [
+              "py-harness",
+              "query",
+              "--from-hook",
+              "direct-source-read",
+              "--selector",
+              "src/pkg/service.py:3-3",
+              "."
+            ],
+            "reason": "expand return node before editing"
+          },
+          {
+            "kind": "exact-read",
+            "target": "decide:3",
+            "read": "src/pkg/service.py:4-4",
+            "argv": [
+              "py-harness",
+              "query",
+              "--from-hook",
+              "direct-source-read",
+              "--selector",
+              "src/pkg/service.py:4-4",
+              "."
+            ],
+            "reason": "expand return node before editing"
+          },
+          {
+            "kind": "owner-names",
+            "target": "src/pkg/service.py",
+            "argv": [
+              "py-harness",
+              "query",
+              "--from-hook",
+              "direct-source-read",
+              "--selector",
+              "src/pkg/service.py",
+              "."
+            ],
+            "reason": "return owner-local item names without code windows"
+          }
+        ]
+      }
+    }
+  ]
+}
