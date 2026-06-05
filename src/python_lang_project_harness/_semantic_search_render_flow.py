@@ -6,8 +6,6 @@ from typing import Any
 
 from ._semantic_search_common import escape_field_value, escape_scalar, render_fields
 from ._semantic_search_render_lines import (
-    handle_lines,
-    query_coverage_lines,
     render_next_action,
 )
 
@@ -63,7 +61,7 @@ def synthesis_lines(packet: dict[str, Any]) -> list[str]:
     lines = [f"|synthesis {render_fields(fields)}".rstrip()]
     seeds = synthesis.get("seeds", [])
     if seeds:
-        lines.append(f"|seed {','.join(render_next_action(seed) for seed in seeds)}")
+        lines.extend(_seed_action_lines(seeds))
     return lines
 
 
@@ -75,23 +73,23 @@ def avoid_next_action_lines(packet: dict[str, Any]) -> list[str]:
 
 
 def seed_packet_text(packet: dict[str, Any]) -> str:
-    lines = [
-        f"[{packet['header']['kind']}] {render_fields(packet['header']['fields'])}"
-    ]
-    lines.append(
-        "|flow prime->owner|deps|symbol|tests pipe=fzf:owner,tests ingest=stdin"
-    )
-    lines.extend(query_coverage_lines(packet))
-    lines.extend(handle_lines(packet))
-    lines.extend(_seed_lines(packet))
-    lines.extend(note_lines(packet))
-    lines.extend(synthesis_lines(packet))
-    lines.extend(avoid_next_action_lines(packet))
-    return "\n".join(lines) + "\n"
+    from ._semantic_search_graph_render import compact_graph_seed_packet_text
+
+    return compact_graph_seed_packet_text(packet, render_fields)
 
 
 def _seed_lines(packet: dict[str, Any]) -> list[str]:
     groups = _seed_groups(packet)
+    return [f"|seed {kind}:{','.join(values)}" for kind, values in groups.items()]
+
+
+def _seed_action_lines(actions: list[dict[str, Any]]) -> list[str]:
+    groups: dict[str, list[str]] = {}
+    for action in actions:
+        kind = action.get("kind")
+        target = action.get("target")
+        if isinstance(kind, str) and isinstance(target, str):
+            _add_seed(groups, kind, target)
     return [f"|seed {kind}:{','.join(values)}" for kind, values in groups.items()]
 
 

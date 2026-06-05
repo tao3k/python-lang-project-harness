@@ -11,25 +11,41 @@ def render_agent_guide(project_root: Path) -> str:
         "\n".join(
             (
                 f"[py-harness-guide] project={root}",
-                f"|cmd py-harness search prime --view seeds {root}",
-                f"|cmd py-harness search owner <owner-path> --view seeds {root}",
-                f"|cmd py-harness query <owner-path> --term <symbol> --names-only {root}",
-                f"|cmd py-harness query <owner-path> --term <symbol> --code {root}",
                 (
-                    f"|cmd py-harness search owner <owner-path> items "
+                    "|catalog reasoningProfiles=owner-query,query-deps,owner-tests,"
+                    "finding-frontier,feature-cfg entries=owner-query,query-deps,"
+                    "owner-tests routes=read-frontier"
+                ),
+                f"|cmd asp python search prime --view seeds {root}",
+                f"|cmd asp python search owner <owner-path> --view seeds {root}",
+                f"|cmd asp python query <owner-path> --term <symbol> --names-only {root}",
+                f"|cmd asp python query <owner-path> --term <symbol> --code {root}",
+                f"|cmd asp python query --catalog declarations --json {root}",
+                (
+                    f"|cmd asp python query --treesitter-query "
+                    f"'<tree-sitter-query>' --json {root}"
+                ),
+                (
+                    f"|cmd asp python search owner <owner-path> items "
                     f"--query <symbol|a|b> --code {root}"
                 ),
                 (
-                    f"|cmd py-harness search policy <rule-id-or-alias> "
+                    f"|cmd asp python search policy <rule-id-or-alias> "
                     f"owner tests --view seeds {root}"
                 ),
-                f"|cmd py-harness search fzf <query> owner tests --view seeds {root}",
-                        f"|cmd py-harness search deps <pkg[@ver][::api]> {root}",
-                f"|pipe <candidate-lines> | py-harness search ingest --view seeds {root}",
-                f"|cmd py-harness check --changed {root}",
-                "|rule agent hook install/runtime is owned by semantic-agent-hook",
                 (
-                    "|rule use installed py-harness binary; run one command at a time; "
+                    f"|cmd asp python query --from-hook direct-source-read "
+                    f"--selector <selector> --term <term> --surface owners,tests "
+                    f"--view seeds {root}"
+                ),
+                f"|cmd asp python search fzf <query> owner tests --view seeds {root}",
+                f"|cmd asp python ast-patch dry-run --packet <semantic-ast-patch.json|-> {root}",
+                f"|cmd asp python search deps <pkg[@ver][::api]> {root}",
+                f"|pipe <candidate-lines> | asp python search ingest --view seeds {root}",
+                f"|cmd asp python check --changed {root}",
+                "|rule agent hook install/runtime is owned by asp",
+                (
+                    "|rule use the asp python facade; run one command at a time; "
                     "no raw Python source reads"
                 ),
                 "|subagent give one |cmd or |pipe line; require evidence/missing/next/risk",

@@ -163,4 +163,8 @@ def render_location(search_location: dict[str, Any]) -> str:
         return render_fields(fields)
     if "line" in search_location:
         fields["line"] = search_location["line"]
+    elif "lineRange" in search_location:
+        line_range = str(search_location["lineRange"])
+        start, _, end = line_range.partition(":")
+        fields["line"] = start if start and (not end or start == end) else line_range
     return render_fields(fields)

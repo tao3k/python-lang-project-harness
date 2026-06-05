@@ -18,7 +18,9 @@ def test_run_python_project_harness_uses_pyproject_package_scope(
     default_src.mkdir()
     package.mkdir(parents=True)
     tests.mkdir(parents=True)
-    (default_src / "ignored.py").write_text("def broken(:\n    pass\n", encoding="utf-8")
+    (default_src / "ignored.py").write_text(
+        "def broken(:\n    pass\n", encoding="utf-8"
+    )
     source_file = package / "__init__.py"
     source_file.write_text(
         '"""Package public API."""\n\n\ndef build(value: int) -> int:\n    return value\n',
@@ -26,7 +28,9 @@ def test_run_python_project_harness_uses_pyproject_package_scope(
     )
     (package / "py.typed").write_text("", encoding="utf-8")
     test_file = tests / "test_tools.py"
-    test_file.write_text("def test_tools() -> None:\n    assert True\n", encoding="utf-8")
+    test_file.write_text(
+        "def test_tools() -> None:\n    assert True\n", encoding="utf-8"
+    )
     (tmp_path / "pyproject.toml").write_text(
         """
 [project]

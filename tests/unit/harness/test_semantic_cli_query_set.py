@@ -70,7 +70,12 @@ def test_cli_search_text_query_set_and_flag_like_literal_query(
     assert "|synthesis " in rendered
     assert "editFrontier=src/pkg/service.py" in rendered
     assert "windowSet=owner:src/pkg/service.py" in rendered
-    assert "|seed owner:src/pkg/service.py,tests:src/pkg/service.py" in rendered
+    assert "|seed owner:src/pkg/service.py" in rendered
+    assert "|next owner:src/pkg/service.py,tests:src/pkg/service.py" in rendered
+    for line in rendered.splitlines():
+        if line.startswith("|seed "):
+            assert ",owner:" not in line
+            assert ",tests:" not in line
     assert "|edge O:src/pkg/service.py -test-> O:tests/test_service.py" in rendered
 
     packet = json.loads(query_set_json_stdout.getvalue())
@@ -106,9 +111,8 @@ def test_cli_search_text_query_set_and_flag_like_literal_query(
             "reason": "parser-visible owner selected by fzf search",
         }
     ]
-    assert packet["searchSynthesis"]["seeds"][:2] == [
-        {"kind": "owner", "target": "src/pkg/service.py"},
-        {"kind": "tests", "target": "src/pkg/service.py"},
+    assert packet["searchSynthesis"]["seeds"] == [
+        {"kind": "owner", "target": "src/pkg/service.py"}
     ]
     assert packet["searchSynthesis"]["windowSet"] == [
         {"kind": "owner", "target": "src/pkg/service.py"}

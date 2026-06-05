@@ -12,7 +12,10 @@ def test_package_local_semantic_schemas_stay_synchronized() -> None:
 
     for schema_file_name in (
         "semantic-search-packet.v1.schema.json",
+        "semantic-query-packet.v1.schema.json",
         "semantic-read-packet.v1.schema.json",
+        "semantic-tree-sitter-query.v1.schema.json",
+        "semantic-tree-sitter-grammar-profile.v1.schema.json",
         "semantic-graph.v1.schema.json",
         "semantic-type-surface.v1.schema.json",
         "semantic-dev-command-log.v1.schema.json",

@@ -32,11 +32,19 @@ def run_protocol_cli(
     project_root = _resolve_project_root(args, cwd)
     if args.command == "agent":
         return _run_agent_command(args, project_root=project_root, stdout=stdout)
+    if args.command == "ast-patch":
+        from ._cli_ast_patch import run_ast_patch_command
+
+        return run_ast_patch_command(
+            args, project_root=project_root, stdout=stdout, stdin=stdin
+        )
 
     try:
         report, runtime_cost = _run_search_harness(project_root, args)
         if args.command == "query":
-            return _run_query_command(args, report=report, project_root=project_root, stdout=stdout)
+            return _run_query_command(
+                args, report=report, project_root=project_root, stdout=stdout
+            )
         if args.command == "check":
             return _run_check_command(args, report=report, stdout=stdout)
         return _run_search_command(
@@ -107,7 +115,7 @@ def _run_check_command(
         stdout.write("\n")
     else:
         stdout.write(render_python_lang_harness(report))
-    return 0 if getattr(report, "is_clean") else 1
+    return 0 if report.is_clean else 1
 
 
 def _run_search_command(

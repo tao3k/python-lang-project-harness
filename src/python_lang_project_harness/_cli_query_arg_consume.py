@@ -1,0 +1,148 @@
+"""Low-level query option consumption for the Python CLI."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from ._cli_query_hook_args import (
+    normalize_query_surfaces,
+    normalize_query_view,
+)
+
+QUERY_USAGE = (
+    "usage: py-harness query <owner-path> --term <symbol> "
+    "[--term <symbol>] [--names-only] [--json] [--package PATH] [PROJECT_ROOT]; "
+    "or py-harness query (--catalog ID | --treesitter-query EXPR) [--json] [PROJECT_ROOT]"
+)
+
+
+class ProtocolArgError:
+    """Small sentinel for parse errors without widening ProtocolArgs."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+@dataclass(slots=True)
+class QueryParseState:
+    json_output: bool = False
+    names_only: bool = False
+    code_only: bool = False
+    package_path: Path | None = None
+    from_hook: str | None = None
+    selector: str | None = None
+    catalog: str | None = None
+    tree_sitter_query: str | None = None
+    render_mode: str | None = None
+    terms: list[str] = field(default_factory=list)
+    surfaces: list[str] = field(default_factory=list)
+    positionals: list[str] = field(default_factory=list)
+
+
+def consume_query_arg(
+    state: QueryParseState,
+    args: list[str] | tuple[str, ...],
+    index: int,
+) -> int | ProtocolArgError:
+    arg = args[index]
+    if arg in {"--term", "--query"}:
+        return _consume_query_term(state, args, index, arg)
+    if arg in {"--names-only", "--code", "--json"}:
+        _set_query_flag(state, arg)
+        return index + 1
+    if arg == "--surface":
+        value = _optional_arg(args, index + 1)
+        surfaces, error = normalize_query_surfaces(value)
+        if error is not None:
+            return ProtocolArgError(error)
+        state.surfaces.extend(surfaces)
+        return index + 2
+    if arg == "--view":
+        value = _optional_arg(args, index + 1)
+        render_mode, error = normalize_query_view(value)
+        if error is not None:
+            return ProtocolArgError(error)
+        state.render_mode = render_mode
+        return index + 2
+    if arg in {
+        "--from-hook",
+        "--selector",
+        "--package",
+        "--catalog",
+        "--treesitter-query",
+    }:
+        return _consume_query_option(state, args, index, arg)
+    if arg in {"--help", "-h"}:
+        return ProtocolArgError(QUERY_USAGE)
+    if arg.startswith("-"):
+        return ProtocolArgError(f"unknown query option: {arg}")
+    state.positionals.append(arg)
+    return index + 1
+
+
+def _consume_query_term(
+    state: QueryParseState,
+    args: list[str] | tuple[str, ...],
+    index: int,
+    arg: str,
+) -> int | ProtocolArgError:
+    value = _optional_arg(args, index + 1)
+    if value is None:
+        return ProtocolArgError(f"{arg} requires a value")
+    if arg == "--query":
+        state.terms.extend(term.strip() for term in value.split("|") if term.strip())
+    else:
+        state.terms.append(value)
+    return index + 2
+
+
+def _set_query_flag(state: QueryParseState, arg: str) -> None:
+    if arg == "--names-only":
+        state.names_only = True
+    elif arg == "--code":
+        state.code_only = True
+    else:
+        state.json_output = True
+
+
+def _consume_query_option(
+    state: QueryParseState,
+    args: list[str] | tuple[str, ...],
+    index: int,
+    arg: str,
+) -> int | ProtocolArgError:
+    value = _optional_arg(args, index + 1)
+    if value is None:
+        return ProtocolArgError(f"{arg} requires {_query_option_value_name(arg)}")
+    match arg:
+        case "--from-hook":
+            state.from_hook = value
+        case "--selector":
+            state.selector = value
+        case "--catalog":
+            state.catalog = value
+        case "--treesitter-query":
+            state.tree_sitter_query = value
+        case _:
+            state.package_path = Path(value)
+    return index + 2
+
+
+def _query_option_value_name(arg: str) -> str:
+    return {
+        "--from-hook": "a hook reason",
+        "--selector": "an owner path",
+        "--package": "a package path",
+        "--catalog": "a catalog id",
+        "--treesitter-query": "a tree-sitter query expression",
+    }[arg]
+
+
+def _optional_arg(args: list[str] | tuple[str, ...], index: int) -> str | None:
+    if index >= len(args):
+        return None
+    value = args[index]
+    if value.startswith("-"):
+        return None
+    return value

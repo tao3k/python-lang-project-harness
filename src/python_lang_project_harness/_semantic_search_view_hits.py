@@ -9,8 +9,8 @@ from ._semantic_search_common import dedupe, header, path_hit
 from ._semantic_search_hits import test_path_hits
 from ._semantic_search_ingest import ingest_hits
 from ._semantic_search_model import (
-    MAX_TEST_HITS,
     MAX_FZF_HITS,
+    MAX_TEST_HITS,
     PythonSemanticSearchOptions,
 )
 from ._semantic_search_owners import (
@@ -21,8 +21,8 @@ from ._semantic_search_owners import (
 )
 from ._semantic_search_view_fzf_queries import (
     fair_merged_text_hits,
-    normalized_query_terms,
     fzf_query_hits_by_term,
+    normalized_query_terms,
 )
 from ._semantic_search_view_fzf_synthesis import (
     avoid_next_actions,

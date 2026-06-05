@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 
 
@@ -23,8 +24,8 @@ def normalize_query_surfaces(value: str | None) -> tuple[tuple[str, ...], str | 
 
 def normalize_query_view(value: str | None) -> tuple[str | None, str | None]:
     """Validate the shared hook query view flag."""
-    if value not in {"graph", "hits", "both", "seeds"}:
-        return None, "--view requires graph, hits, both, or seeds"
+    if value not in {"graph", "hits", "both", "seeds", "read-packet"}:
+        return None, "--view requires graph, hits, both, seeds, or read-packet"
     return value, None
 
 
@@ -44,3 +45,21 @@ def is_broad_hook_query(
 
 def _selector_has_glob(selector: str) -> bool:
     return any(marker in selector for marker in ("*", "?", "[", "]", "{", "}"))
+
+
+def owner_path_from_query_selector(selector: str | None) -> str | None:
+    if selector is None:
+        return None
+    normalized = selector.replace("\\", "/").removeprefix("owner:")
+    if any(marker in normalized for marker in ("*", "{", "}")):
+        return None
+    return re.sub(r":[1-9][0-9]*(?:[:-][1-9][0-9]*)?$", "", normalized)
+
+
+def selector_has_line_range(selector: str | None) -> bool:
+    if selector is None:
+        return False
+    normalized = selector.replace("\\", "/").removeprefix("owner:")
+    if any(marker in normalized for marker in ("*", "{", "}")):
+        return False
+    return re.search(r":[1-9][0-9]*(?:[:-][1-9][0-9]*)?$", normalized) is not None

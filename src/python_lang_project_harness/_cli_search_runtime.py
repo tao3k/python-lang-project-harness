@@ -7,6 +7,7 @@ from pathlib import Path
 
 from ._cli_args import ProtocolArgs
 
+
 def _render_search_code_only(packet: dict[str, object]) -> str:
     items = packet.get("items", ())
     if not isinstance(items, list):

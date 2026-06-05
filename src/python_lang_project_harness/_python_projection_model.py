@@ -8,10 +8,12 @@ from typing import Any, Literal
 
 _PythonCompactRole = Literal[
     "declaration",
+    "field",
     "mutation",
     "control-flow",
     "call",
     "effect",
+    "delimiter",
     "terminal",
 ]
 

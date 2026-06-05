@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import json
 from pathlib import Path
 
 from python_lang_project_harness._cli import run_cli
@@ -46,6 +47,7 @@ import-names = ["pkg"]
             "src/pkg/catalog.py",
             "--term",
             "python_search_view_descriptors",
+            "--code",
             str(tmp_path),
         ],
         stdout=stdout,
@@ -56,3 +58,94 @@ import-names = ["pkg"]
     assert "return list[7] items=_view:workspace,_view:prime,_view:owner" in output
     assert "capabilities=[" not in output
     assert "truncated=true" not in output
+
+
+def test_cli_query_compacts_large_descriptor_return_dict_shapes(
+    tmp_path: Path,
+) -> None:
+    package = tmp_path / "src" / "pkg"
+    package.mkdir(parents=True)
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "demo-python"
+version = "0.1.0"
+import-names = ["pkg"]
+""".strip(),
+        encoding="utf-8",
+    )
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (package / "catalog.py").write_text(
+        "\n".join(
+            [
+                "from typing import Any",
+                "",
+                "def python_view_descriptors() -> list[dict[str, Any]]:",
+                "    return [",
+                "        {'name': 'workspace', 'capabilities': ['workspace-router'], 'requires_query': False},",
+                "        {'name': 'prime', 'capabilities': ['package-prime-map'], 'requires_query': False},",
+                "        {'name': 'owner', 'accepted_pipes': ['items'], 'requires_query': True},",
+                "        {'name': 'dependency', 'accepted_pipes': ['deps'], 'requires_query': True},",
+                "        {'name': 'policy', 'accepted_pipes': ['tests'], 'requires_query': True},",
+                "    ]",
+                "",
+                "def python_view_index() -> dict[str, dict[str, Any]]:",
+                "    return {",
+                "        'workspace': {'capabilities': ['workspace-router']},",
+                "        'prime': {'capabilities': ['package-prime-map']},",
+                "        'owner': {'accepted_pipes': ['items']},",
+                "        'dependency': {'accepted_pipes': ['deps']},",
+                "        'policy': {'accepted_pipes': ['tests']},",
+                "    }",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    stdout = io.StringIO()
+    exit_code = run_cli(
+        [
+            "query",
+            "src/pkg/catalog.py",
+            "--term",
+            "python_view_descriptors|python_view_index",
+            "--code",
+            str(tmp_path),
+        ],
+        stdout=stdout,
+    )
+
+    output = stdout.getvalue()
+    assert exit_code == 0
+    assert "return list[5] items=dict[3] name=workspace" in output
+    assert "return dict[5] workspace=dict[1] prime=dict[1]" in output
+    assert "'capabilities':" not in output
+    assert "truncated=true" not in output
+
+    json_stdout = io.StringIO()
+    json_exit_code = run_cli(
+        [
+            "query",
+            "src/pkg/catalog.py",
+            "--term",
+            "python_view_descriptors|python_view_index",
+            "--json",
+            str(tmp_path),
+        ],
+        stdout=json_stdout,
+    )
+
+    packet = json.loads(json_stdout.getvalue())
+    code_by_name = {match["name"]: match["code"] for match in packet["matches"]}
+    assert json_exit_code == 0
+    assert (
+        "return list[5] items=dict[3] name=workspace"
+        in code_by_name["python_view_descriptors"]
+    )
+    assert (
+        "return dict[5] workspace=dict[1] prime=dict[1]"
+        in code_by_name["python_view_index"]
+    )
+    for match in packet["matches"]:
+        rendered = "\n".join(row["text"] for row in match["projection"]["renderedRows"])
+        assert rendered == match["code"]

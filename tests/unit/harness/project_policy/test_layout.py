@@ -48,7 +48,9 @@ def test_project_policy_accepts_pyproject_declared_nested_src_layout(
     package = tmp_path / "packages" / "python" / "src" / "tools"
     default_src.mkdir()
     package.mkdir(parents=True)
-    (default_src / "ignored.py").write_text("def broken(:\n    pass\n", encoding="utf-8")
+    (default_src / "ignored.py").write_text(
+        "def broken(:\n    pass\n", encoding="utf-8"
+    )
     (package / "__init__.py").write_text(
         '"""Package public API."""\n\n\ndef build(value: int) -> int:\n    return value\n',
         encoding="utf-8",

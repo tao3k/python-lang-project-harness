@@ -40,8 +40,8 @@ def fzf_query_hits_by_term(
             ),
             key=_text_hit_rank,
         )
-    for term in query_terms
-}
+        for term in query_terms
+    }
 
 
 def fuzzy_fzf_query_hits_by_term(

@@ -19,6 +19,16 @@ SEMANTIC_FORMAL_PROOF_PILOT_SCHEMA_ID = (
 SEMANTIC_REVIEW_PACKET_SCHEMA_ID = "agent.semantic-protocols.semantic-review-packet"
 SEMANTIC_EVIDENCE_GRAPH_SCHEMA_ID = "agent.semantic-protocols.semantic-evidence-graph"
 SEMANTIC_ASSURANCE_CASE_SCHEMA_ID = "agent.semantic-protocols.semantic-assurance-case"
+SEMANTIC_AST_PATCH_SCHEMA_ID = "agent.semantic-protocols.semantic-ast-patch"
+SEMANTIC_AST_PATCH_RECEIPT_SCHEMA_ID = (
+    "agent.semantic-protocols.semantic-ast-patch-receipt"
+)
+SEMANTIC_TREE_SITTER_QUERY_SCHEMA_ID = (
+    "agent.semantic-protocols.semantic-tree-sitter-query"
+)
+SEMANTIC_TREE_SITTER_GRAMMAR_PROFILE_SCHEMA_ID = (
+    "agent.semantic-protocols.semantic-tree-sitter-grammar-profile"
+)
 PYTHON_CAPABILITIES_SCHEMA_ID = (
     "agent.semantic-protocols.languages.python.py-harness.capabilities"
 )

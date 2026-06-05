@@ -25,7 +25,6 @@ from ._dev_command_log_context import (
     stable_hash_hex,
 )
 
-
 SCHEMA_ID = "agent.semantic-protocols.dev-command-log"
 SCHEMA_VERSION = "1"
 PROTOCOL_ID = "agent.semantic-protocols.semantic-language"

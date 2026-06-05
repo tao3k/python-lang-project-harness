@@ -7,7 +7,6 @@ from typing import Any
 
 from python_lang_project_harness._python_outline import (
     fallback_python_compact,
-    render_python_outline,
 )
 from python_lang_project_harness._python_projection import (
     CompactPythonProjectionNode,
@@ -22,6 +21,18 @@ class CompactPythonItem:
 
     code: str
     projection_nodes: list[dict[str, Any]]
+
+
+def render_python_projection_outline(
+    nodes: list[CompactPythonProjectionNode],
+) -> str:
+    """Render compact code from parser-owned projection labels."""
+
+    return "\n".join(
+        f"{'  ' * node.depth}{node.label}".rstrip()
+        for node in nodes
+        if node.label.strip()
+    )
 
 
 def compact_python_item(
@@ -47,6 +58,7 @@ def compact_python_item(
             depth=0,
         )
     return CompactPythonItem(
-        code=render_python_outline(tree),
+        code=render_python_projection_outline(projection_nodes)
+        or fallback_python_compact(raw_lines),
         projection_nodes=[node.as_packet_node() for node in projection_nodes[:80]],
     )

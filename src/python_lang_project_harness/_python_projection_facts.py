@@ -5,9 +5,9 @@ from __future__ import annotations
 import ast
 
 from python_lang_project_harness._python_expr import (
+    _args,
     _aug_assign_stmt,
     _expr,
-    _targets,
     _with_items,
 )
 from python_lang_project_harness._python_projection_model import (
@@ -22,18 +22,48 @@ def projection_fact(
     owner_path: str,
     start_line: int,
     depth: int,
+    parent: ast.AST | None = None,
 ) -> CompactPythonProjectionNode | None:
-    for project in (
-        _declaration_projection_fact,
-        _mutation_projection_fact,
-        _control_flow_projection_fact,
-        _terminal_projection_fact,
-        _effect_projection_fact,
+    for fact in (
+        _declaration_projection_fact(node, owner_path, start_line, depth),
+        _mutation_projection_fact(node, owner_path, start_line, depth, parent=parent),
+        _control_flow_projection_fact(node, owner_path, start_line, depth),
+        _terminal_projection_fact(node, owner_path, start_line, depth),
+        _effect_projection_fact(node, owner_path, start_line, depth),
     ):
-        fact = project(node, owner_path, start_line, depth)
         if fact is not None:
             return fact
     return None
+
+
+def _class_header(node: ast.ClassDef) -> str:
+    bases = ", ".join(_expr(base) for base in node.bases)
+    suffix = f"({bases})" if bases else ""
+    return f"class {node.name}{suffix}:"
+
+
+def _function_header(node: ast.FunctionDef | ast.AsyncFunctionDef) -> str:
+    async_prefix = "async " if isinstance(node, ast.AsyncFunctionDef) else ""
+    returns = f" -> {_expr(node.returns)}" if node.returns is not None else ""
+    return f"{async_prefix}def {node.name}({_args(node.args)}){returns}:"
+
+
+def _annotation_label(node: ast.AnnAssign) -> str:
+    value = f" = {_expr(node.value)}" if node.value is not None else ""
+    return f"{_expr(node.target)}: {_expr(node.annotation)}{value}"
+
+
+def _assign_label(node: ast.Assign) -> str:
+    targets = " = ".join(_expr(target) for target in node.targets)
+    return f"{targets} = {_expr(node.value)}"
+
+
+def _return_label(node: ast.Return) -> str:
+    return "return" if node.value is None else f"return {_expr(node.value)}"
+
+
+def _raise_label(node: ast.Raise) -> str:
+    return "raise" if node.exc is None else f"raise {_expr(node.exc)}"
 
 
 def _declaration_projection_fact(
@@ -47,7 +77,7 @@ def _declaration_projection_fact(
             node,
             "class",
             "declaration",
-            f"class {node.name}",
+            _class_header(node),
             depth,
             owner_path,
             start_line,
@@ -57,7 +87,7 @@ def _declaration_projection_fact(
             node,
             "async_function",
             "declaration",
-            f"async def {node.name}",
+            _function_header(node),
             depth,
             owner_path,
             start_line,
@@ -68,7 +98,7 @@ def _declaration_projection_fact(
             node,
             "function",
             "declaration",
-            f"def {node.name}",
+            _function_header(node),
             depth,
             owner_path,
             start_line,
@@ -81,24 +111,37 @@ def _mutation_projection_fact(
     owner_path: str,
     start_line: int,
     depth: int,
+    *,
+    parent: ast.AST | None = None,
 ) -> CompactPythonProjectionNode | None:
     if isinstance(node, ast.Assign):
         return node_fact(
             node,
             "assign",
             "mutation",
-            f"assign {_targets(node.targets)}",
+            _assign_label(node),
             depth,
             owner_path,
             start_line,
             flags=("mutation",),
         )
     if isinstance(node, ast.AnnAssign):
+        if isinstance(parent, ast.ClassDef):
+            return node_fact(
+                node,
+                "field",
+                "field",
+                _annotation_label(node),
+                depth,
+                owner_path,
+                start_line,
+                flags=("field",),
+            )
         return node_fact(
             node,
             "assign",
             "mutation",
-            f"assign {_expr(node.target)}",
+            _annotation_label(node),
             depth,
             owner_path,
             start_line,
@@ -109,7 +152,7 @@ def _mutation_projection_fact(
             node,
             "aug_assign",
             "mutation",
-            f"assign {_aug_assign_stmt(node)}",
+            _aug_assign_stmt(node),
             depth,
             owner_path,
             start_line,
@@ -129,7 +172,7 @@ def _control_flow_projection_fact(
             node,
             "if",
             "control-flow",
-            f"if {_expr(node.test)}",
+            f"if {_expr(node.test)}:",
             depth,
             owner_path,
             start_line,
@@ -137,11 +180,12 @@ def _control_flow_projection_fact(
         )
     if isinstance(node, ast.For | ast.AsyncFor):
         flags = ("loop", "async") if isinstance(node, ast.AsyncFor) else ("loop",)
+        async_prefix = "async " if isinstance(node, ast.AsyncFor) else ""
         return node_fact(
             node,
             "for",
             "control-flow",
-            f"for {_expr(node.target)} in {_expr(node.iter)}",
+            f"{async_prefix}for {_expr(node.target)} in {_expr(node.iter)}:",
             depth,
             owner_path,
             start_line,
@@ -161,7 +205,7 @@ def _compound_control_projection_fact(
             node,
             "while",
             "control-flow",
-            f"while {_expr(node.test)}",
+            f"while {_expr(node.test)}:",
             depth,
             owner_path,
             start_line,
@@ -169,11 +213,12 @@ def _compound_control_projection_fact(
         )
     if isinstance(node, ast.With | ast.AsyncWith):
         flags = ("async",) if isinstance(node, ast.AsyncWith) else ()
+        async_prefix = "async " if isinstance(node, ast.AsyncWith) else ""
         return node_fact(
             node,
             "with",
             "control-flow",
-            f"with {_with_items(node.items)}",
+            f"{async_prefix}with {_with_items(node.items)}:",
             depth,
             owner_path,
             start_line,
@@ -181,14 +226,14 @@ def _compound_control_projection_fact(
         )
     if isinstance(node, ast.Try):
         return node_fact(
-            node, "try", "control-flow", "try", depth, owner_path, start_line
+            node, "try", "control-flow", "try:", depth, owner_path, start_line
         )
     if isinstance(node, ast.Match):
         return node_fact(
             node,
             "match",
             "control-flow",
-            f"match {_expr(node.subject)}",
+            f"match {_expr(node.subject)}:",
             depth,
             owner_path,
             start_line,
@@ -200,7 +245,7 @@ def _compound_control_projection_fact(
             node,
             "case",
             "control-flow",
-            f"case {_expr(node.pattern)}{guard}",
+            f"case {_expr(node.pattern)}{guard}:",
             depth,
             owner_path,
             start_line,
@@ -213,7 +258,7 @@ def _compound_control_projection_fact(
             node,
             "except",
             "control-flow",
-            f"except {label}{suffix}",
+            f"except {label}{suffix}:",
             depth,
             owner_path,
             start_line,
@@ -233,7 +278,7 @@ def _terminal_projection_fact(
             node,
             "return",
             "terminal",
-            f"return {_expr(node.value)}",
+            _return_label(node),
             depth,
             owner_path,
             start_line,
@@ -244,7 +289,7 @@ def _terminal_projection_fact(
             node,
             "raise",
             "terminal",
-            f"raise {_expr(node.exc)}",
+            _raise_label(node),
             depth,
             owner_path,
             start_line,
@@ -295,7 +340,7 @@ def _effect_projection_fact(
             node,
             "call",
             "call",
-            f"call {_expr(node.value)}",
+            _expr(node.value),
             depth,
             owner_path,
             start_line,

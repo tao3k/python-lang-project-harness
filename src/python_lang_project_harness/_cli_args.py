@@ -23,6 +23,9 @@ class ProtocolArgs:
     package_path: Path | None = None
     owner_path: str | None = None
     selector: str | None = None
+    catalog: str | None = None
+    tree_sitter_query: str | None = None
+    packet_path: str | None = None
     query_set: tuple[str, ...] = ()
     pipes: tuple[str, ...] = ()
     json: bool = False
@@ -42,6 +45,8 @@ class ProtocolArgs:
             return cls._parse_check(args[1:])
         if command == "agent":
             return cls._parse_agent(args[1:])
+        if command == "ast-patch":
+            return cls._parse_ast_patch(args[1:])
         return None
 
     @classmethod
@@ -75,6 +80,40 @@ class ProtocolArgs:
         return parse_query_args(cls, args)
 
     @classmethod
+    def _parse_ast_patch(cls, args: list[str] | tuple[str, ...]) -> ProtocolArgs:
+        mode = args[0] if args else None
+        if mode in {"--help", "-h"}:
+            return cls("help")
+        if mode != "dry-run":
+            return cls("error", error="expected ast-patch dry-run")
+
+        packet_path: str | None = None
+        positionals: list[Path] = []
+        index = 1
+        while index < len(args):
+            arg = args[index]
+            if arg == "--packet":
+                value = args[index + 1] if index + 1 < len(args) else None
+                if value is None or (value.startswith("-") and value != "-"):
+                    return cls("error", error="--packet requires a path or -")
+                packet_path = value
+                index += 2
+                continue
+            if arg.startswith("-"):
+                return cls("error", error=f"unknown ast-patch option: {arg}")
+            positionals.append(Path(arg))
+            index += 1
+        if packet_path is None:
+            return cls("error", error="--packet requires a path or -")
+        if len(positionals) > 1:
+            return cls("error", error="expected at most one PROJECT_ROOT argument")
+        return cls(
+            "ast-patch",
+            packet_path=packet_path,
+            project_root=positionals[0] if positionals else None,
+        )
+
+    @classmethod
     def _parse_check(cls, args: list[str] | tuple[str, ...]) -> ProtocolArgs:
         json_output = False
         positionals: list[str] = []
@@ -104,12 +143,14 @@ class ProtocolArgs:
     def _parse_agent(cls, args: list[str] | tuple[str, ...]) -> ProtocolArgs:
         action = args[0] if args else "doctor"
         if action in {"install", "hook"}:
+            replacement = (
+                "asp hook install --client codex"
+                if action == "install"
+                else "asp hook <event> --client codex"
+            )
             return cls(
                 "error",
-                error=(
-                    f"py-harness agent {action} moved to semantic-agent-hook; "
-                    f"use `semantic-agent-hook {action} --client codex`"
-                ),
+                error=f"py-harness agent {action} moved to asp; use `{replacement}`",
             )
         if action == "guide":
             return cls._parse_agent_guide(args[1:])
@@ -312,6 +353,7 @@ def help_text() -> str:
         "  py-harness search <view> ... [--json] [--code] [--package PATH] [PROJECT_ROOT]\n"
         "  py-harness query <owner-path> --term <symbol> [--term <symbol>] [--names-only | --code] [PROJECT_ROOT]\n"
         "  py-harness check [--changed | --full] [--json] [PROJECT_ROOT]\n"
+        "  py-harness ast-patch dry-run --packet <semantic-ast-patch.json|-> [PROJECT_ROOT]\n"
         "  py-harness agent doctor [--json] [PROJECT_ROOT]\n"
         "  py-harness agent guide [PROJECT_ROOT]\n"
         "  py-harness [--json | --agent-snapshot] [--no-tests] "
@@ -348,11 +390,14 @@ def help_text() -> str:
         "  check --changed           Fast lane alias; currently delegates to project check\n"
         "  check --full              Full project harness check\n"
         "  check --json              Structured PythonHarnessReport JSON\n\n"
+        "AST PATCH\n"
+        "  ast-patch dry-run --packet <path|->\n"
+        "                             Provider-native structural patch receipt; never mutates files\n\n"
         "AGENT\n"
         "  agent doctor              Print semantic-language provider readiness\n"
         "  agent doctor --json       Semantic language registry document\n\n"
         "  agent guide               Print command-line search flow guide\n\n"
-        "  Hook install/runtime is owned by semantic-agent-hook in the root toolchain.\n\n"
+        "  Hook install/runtime is owned by asp in the root toolchain.\n\n"
         "DIRECT CHECK\n"
         "The no-command form still runs the default package-level Python harness.\n\n"
         "Compact text is the default output for humans and repair-oriented agents.\n"

@@ -39,9 +39,7 @@ def policy_payload(
     """Build semantic handles for provider-owned Python policy rules."""
     del report, facts, project_root
     handles = [
-        handle
-        for handle in _policy_handles()
-        if _matches_policy_query(handle, query)
+        handle for handle in _policy_handles() if _matches_policy_query(handle, query)
     ]
     owner_paths = _handle_owner_paths(handles)
     test_paths = _handle_test_paths(handles)
@@ -85,9 +83,7 @@ def policy_payload(
             "selectedOwners": len(owner_paths),
             "testFrontier": test_paths,
         },
-        "notes": []
-        if handles
-        else [{"kind": "policy-not-found", "message": query}],
+        "notes": [] if handles else [{"kind": "policy-not-found", "message": query}],
     }
 
 
@@ -219,10 +215,7 @@ def _policy_next_actions(
     owner_paths: list[str],
     test_paths: list[str],
 ) -> list[dict[str, str]]:
-    actions = [
-        {"kind": "owner", "target": path}
-        for path in owner_paths
-    ]
+    actions = [{"kind": "owner", "target": path} for path in owner_paths]
     actions.extend({"kind": "tests", "target": path} for path in test_paths)
     return actions[:8]
 

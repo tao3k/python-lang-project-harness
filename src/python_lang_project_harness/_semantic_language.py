@@ -6,9 +6,17 @@ from typing import Any
 
 from . import _semantic_language_ids as ids
 from ._semantic_language_catalog import python_search_view_descriptors
+from ._semantic_language_schemas import python_semantic_language_schemas
+from ._tree_sitter_query_catalog import (
+    PYTHON_TREE_SITTER_GRAMMAR_ID,
+    PYTHON_TREE_SITTER_GRAMMAR_PROFILE_PATH,
+    PYTHON_TREE_SITTER_GRAMMAR_PROFILE_VERSION,
+    python_tree_sitter_query_catalog_descriptors,
+)
 
 _PYTHON_CHECK_METHODS = ("check/changed", "check/full")
-_PYTHON_QUERY_METHODS = ("query/owner-items", "query/direct-source-read")
+_PYTHON_QUERY_METHODS = ("query", "query/owner-items", "query/direct-source-read")
+_PYTHON_AST_PATCH_METHODS = ("ast-patch/dry-run",)
 _PYTHON_AGENT_METHODS = ("agent/doctor", "agent/guide")
 _PYTHON_SEARCH_VIEW_DESCRIPTORS = python_search_view_descriptors()
 _PYTHON_SEARCH_VIEWS = tuple(
@@ -47,96 +55,12 @@ def python_semantic_language_registration() -> dict[str, Any]:
             *_PYTHON_SEARCH_METHODS,
             *_PYTHON_QUERY_METHODS,
             *_PYTHON_CHECK_METHODS,
+            *_PYTHON_AST_PATCH_METHODS,
             *_PYTHON_AGENT_METHODS,
         ],
         "methodDescriptors": python_semantic_language_method_descriptors(),
-        "schemas": _python_semantic_language_schemas(),
+        "schemas": python_semantic_language_schemas(),
     }
-
-
-def _python_semantic_language_schemas() -> list[dict[str, str]]:
-    return [
-        {
-            "schemaId": ids.SEMANTIC_SEARCH_PACKET_SCHEMA_ID,
-            "schemaVersion": "1",
-            "path": "schemas/semantic-search-packet.v1.schema.json",
-        },
-        {
-            "schemaId": ids.SEMANTIC_QUERY_PACKET_SCHEMA_ID,
-            "schemaVersion": "1",
-            "path": "schemas/semantic-query-packet.v1.schema.json",
-        },
-        {
-            "schemaId": ids.SEMANTIC_READ_PACKET_SCHEMA_ID,
-            "schemaVersion": "1",
-            "path": "schemas/semantic-read-packet.v1.schema.json",
-        },
-        {
-            "schemaId": ids.SEMANTIC_GRAPH_SCHEMA_ID,
-            "schemaVersion": "1",
-            "path": "schemas/semantic-graph.v1.schema.json",
-        },
-        {
-            "schemaId": "agent.semantic-protocols.semantic-verification-receipt",
-            "schemaVersion": "1",
-            "path": "schemas/semantic-verification-receipt.v1.schema.json",
-        },
-        {
-            "schemaId": "agent.semantic-protocols.semantic-behavior-snapshot",
-            "schemaVersion": "1",
-            "path": "schemas/semantic-behavior-snapshot.v1.schema.json",
-        },
-        {
-            "schemaId": ids.SEMANTIC_DETERMINISM_READINESS_SCHEMA_ID,
-            "schemaVersion": "1",
-            "path": "schemas/semantic-determinism-readiness.v1.schema.json",
-        },
-        {
-            "schemaId": ids.SEMANTIC_DEV_COMMAND_LOG_SCHEMA_ID,
-            "schemaVersion": "1",
-            "path": "schemas/semantic-dev-command-log.v1.schema.json",
-        },
-        {
-            "schemaId": ids.SEMANTIC_FORMAL_PROOF_PILOT_SCHEMA_ID,
-            "schemaVersion": "1",
-            "path": "schemas/semantic-formal-proof-pilot.v1.schema.json",
-        },
-        {
-            "schemaId": ids.SEMANTIC_REVIEW_PACKET_SCHEMA_ID,
-            "schemaVersion": "1",
-            "path": "schemas/semantic-review-packet.v1.schema.json",
-        },
-        {
-            "schemaId": ids.SEMANTIC_EVIDENCE_GRAPH_SCHEMA_ID,
-            "schemaVersion": "1",
-            "path": "schemas/semantic-evidence-graph.v1.schema.json",
-        },
-        {
-            "schemaId": ids.SEMANTIC_ASSURANCE_CASE_SCHEMA_ID,
-            "schemaVersion": "1",
-            "path": "schemas/semantic-assurance-case.v1.schema.json",
-        },
-        {
-            "schemaId": ids.SEMANTIC_TYPE_SURFACE_SCHEMA_ID,
-            "schemaVersion": "1",
-            "path": "schemas/semantic-type-surface.v1.schema.json",
-        },
-        {
-            "schemaId": "agent.semantic-protocols.semantic-handle",
-            "schemaVersion": "1",
-            "path": "schemas/semantic-handle.v1.schema.json",
-        },
-        {
-            "schemaId": ids.SEMANTIC_LANGUAGE_REGISTRY_ID,
-            "schemaVersion": ids.SEMANTIC_LANGUAGE_REGISTRY_VERSION,
-            "path": "schemas/semantic-language-registry.v1.schema.json",
-        },
-        {
-            "schemaId": ids.PYTHON_CAPABILITIES_SCHEMA_ID,
-            "schemaVersion": "1",
-            "path": "schemas/python-semantic-capabilities.v1.schema.json",
-        },
-    ]
 
 
 def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
@@ -153,6 +77,24 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
     ]
     descriptors.extend(
         [
+            {
+                "method": "query",
+                "command": "query",
+                "input": "catalog-id",
+                "requiredOptions": ["--catalog|--treesitter-query"],
+                "outputSchemaIds": [ids.SEMANTIC_TREE_SITTER_QUERY_SCHEMA_ID],
+                "packetSchemas": ["semantic-tree-sitter-query.v1"],
+                "supportsJson": True,
+                "supportsCompact": True,
+                "outputModes": ["compact", "json", "code"],
+                "queryInputForms": ["catalog-id", "s-expression"],
+                "grammarId": PYTHON_TREE_SITTER_GRAMMAR_ID,
+                "grammarProfileVersion": PYTHON_TREE_SITTER_GRAMMAR_PROFILE_VERSION,
+                "grammarProfileSchema": "semantic-tree-sitter-grammar-profile.v1",
+                "grammarProfilePath": PYTHON_TREE_SITTER_GRAMMAR_PROFILE_PATH,
+                "queryCatalogs": python_tree_sitter_query_catalog_descriptors(),
+                "cacheReplay": True,
+            },
             {
                 "method": "query/owner-items",
                 "command": "query",
@@ -186,6 +128,19 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
             "supportsCompact": True,
         }
         for method in _PYTHON_CHECK_METHODS
+    )
+    descriptors.extend(
+        {
+            "method": method,
+            "command": "ast-patch",
+            "input": "semantic-ast-patch packet",
+            "requiredOptions": ["--packet"],
+            "outputSchemaIds": ["agent.semantic-protocols.semantic-ast-patch-receipt"],
+            "supportsJson": True,
+            "supportsCompact": False,
+            "mutationAvailable": False,
+        }
+        for method in _PYTHON_AST_PATCH_METHODS
     )
     descriptors.extend(
         [

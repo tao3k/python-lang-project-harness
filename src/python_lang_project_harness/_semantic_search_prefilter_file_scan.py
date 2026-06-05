@@ -196,4 +196,6 @@ def _rg_excludes() -> tuple[str, ...]:
 
 
 def _ignored(path: Path, project_root: Path) -> bool:
-    return any(part in IGNORED_DIR_NAMES for part in path.relative_to(project_root).parts)
+    return any(
+        part in IGNORED_DIR_NAMES for part in path.relative_to(project_root).parts
+    )

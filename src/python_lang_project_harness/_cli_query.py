@@ -6,7 +6,10 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TextIO
 
-from ._semantic_search_item_direct_read import owner_item_direct_read_lines
+from ._semantic_search_item_direct_read import (
+    owner_item_direct_read_lines,
+    owner_item_direct_read_packet,
+)
 from ._semantic_search_item_lines import owner_item_query_lines
 from ._semantic_search_items import owner_item_semantic_query_packet
 
@@ -23,8 +26,83 @@ def run_query_command(
 ) -> int:
     """Run a parsed query command against parser-owned report facts."""
 
-    owner_path = args.owner_path or ""
+    if args.catalog is not None or args.tree_sitter_query is not None:
+        from ._tree_sitter_query import write_tree_sitter_query_response
+
+        write_tree_sitter_query_response(
+            args,
+            report=report,
+            project_root=project_root,
+            stdout=stdout,
+        )
+        return 0
+
+    owner_path = args.owner_path or _selector_owner_path(args.selector) or ""
     item_query = "|".join(args.query_set)
+    if _selector_has_line_range(args.selector, owner_path):
+        _write_direct_read_response(
+            args, report, project_root, stdout, owner_path, item_query
+        )
+    else:
+        _write_item_query_response(
+            args, report, project_root, stdout, owner_path, item_query
+        )
+    return 0
+
+
+def _write_direct_read_response(
+    args: ProtocolArgs,
+    report: Any,
+    project_root: Path,
+    stdout: TextIO,
+    owner_path: str,
+    item_query: str,
+) -> None:
+    if args.json and args.render_mode == "read-packet":
+        stdout.write(
+            json.dumps(
+                owner_item_direct_read_packet(
+                    report,
+                    project_root,
+                    owner_path,
+                    item_query,
+                    args.selector or owner_path,
+                ),
+                separators=(",", ":"),
+            )
+        )
+    elif args.json:
+        packet = owner_item_semantic_query_packet(
+            report,
+            project_root,
+            owner_path,
+            item_query,
+            output_mode="names" if args.names_only else "code",
+            selector=args.selector,
+        )
+        stdout.write(json.dumps(packet, separators=(",", ":")))
+    else:
+        stdout.write(
+            owner_item_direct_read_lines(
+                report,
+                project_root,
+                owner_path,
+                item_query,
+                args.selector or owner_path,
+                code_only=args.code_only,
+            )
+        )
+    stdout.write("\n")
+
+
+def _write_item_query_response(
+    args: ProtocolArgs,
+    report: Any,
+    project_root: Path,
+    stdout: TextIO,
+    owner_path: str,
+    item_query: str,
+) -> None:
     packet = owner_item_semantic_query_packet(
         report,
         project_root,
@@ -35,18 +113,6 @@ def run_query_command(
     )
     if args.json:
         stdout.write(json.dumps(packet, separators=(",", ":")))
-        stdout.write("\n")
-    elif _selector_has_line_range(args.selector, owner_path):
-        stdout.write(
-            owner_item_direct_read_lines(
-                report,
-                project_root,
-                owner_path,
-                item_query,
-                args.selector or owner_path,
-            )
-        )
-        stdout.write("\n")
     elif args.code_only:
         stdout.write(
             "\n".join(
@@ -55,7 +121,6 @@ def run_query_command(
                 if isinstance(match.get("code"), str)
             )
         )
-        stdout.write("\n")
     else:
         stdout.write(
             owner_item_query_lines(
@@ -66,8 +131,7 @@ def run_query_command(
                 names_only=args.names_only,
             )
         )
-        stdout.write("\n")
-    return 0
+    stdout.write("\n")
 
 
 def _selector_has_line_range(selector: str | None, owner_path: str) -> bool:
@@ -76,4 +140,24 @@ def _selector_has_line_range(selector: str | None, owner_path: str) -> bool:
     normalized = selector.replace("\\", "/").removeprefix("owner:")
     if any(marker in normalized for marker in ("*", "{", "}")):
         return False
+    if not owner_path:
+        return _selector_owner_path(selector) is not None
     return normalized.startswith(f"{owner_path}:")
+
+
+def _selector_owner_path(selector: str | None) -> str | None:
+    if selector is None:
+        return None
+    normalized = selector.replace("\\", "/").removeprefix("owner:")
+    if any(marker in normalized for marker in ("*", "{", "}")):
+        return None
+    path_and_start, separator, end_text = normalized.rpartition(":")
+    if not separator:
+        return None
+    path, separator, _start_text = path_and_start.rpartition(":")
+    if separator:
+        return path or None
+    _start_text, separator, _end_text = end_text.partition("-")
+    if not separator:
+        return None
+    return path_and_start or None

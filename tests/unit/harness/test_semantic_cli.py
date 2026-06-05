@@ -98,14 +98,23 @@ def test_cli_agent_guide_prints_provider_owned_searchflow(tmp_path: Path) -> Non
     rendered = stdout.getvalue()
     assert exit_code == 0
     assert rendered.startswith(f"[py-harness-guide] project={tmp_path}")
-    assert f"|cmd py-harness search prime --view seeds {tmp_path}" in rendered
     assert (
-        f"|cmd py-harness search owner <owner-path> --view seeds {tmp_path}" in rendered
+        "|catalog reasoningProfiles=owner-query,query-deps,owner-tests,"
+        "finding-frontier,feature-cfg entries=owner-query,query-deps,owner-tests "
+        "routes=read-frontier"
+    ) in rendered
+    assert f"|cmd asp python search prime --view seeds {tmp_path}" in rendered
+    assert (
+        f"|cmd asp python search owner <owner-path> --view seeds {tmp_path}" in rendered
     )
-    assert "py-harness search owner <owner-path> items --query <symbol|a|b>" in rendered
-    assert "py-harness search fzf <query> owner tests --view seeds" in rendered
-    assert "py-harness search fzf <query> owner tests --view seeds" in rendered
-    assert "|rule use installed py-harness binary" in rendered
+    assert "asp python search owner <owner-path> items --query <symbol|a|b>" in rendered
+    assert (
+        "asp python query --from-hook direct-source-read --selector <selector> "
+        "--term <term> --surface owners,tests --view seeds" in rendered
+    )
+    assert "asp python search fzf <query> owner tests --view seeds" in rendered
+    assert "asp python search fzf <query> owner tests --view seeds" in rendered
+    assert "|rule use the asp python facade" in rendered
 
 
 def test_python_capability_schema_covers_registry_descriptors() -> None:

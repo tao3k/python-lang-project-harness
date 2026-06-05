@@ -42,28 +42,27 @@ def _compact_packet_lines(packet: dict[str, Any]) -> list[str]:
 
 
 def _is_item_inventory_packet(packet: dict[str, Any]) -> bool:
-    fields = packet['header']['fields']
-    return (
-        fields.get('itemQuery') is None
-        and (bool(packet.get('items')) or fields.get('itemStatus') is not None)
+    fields = packet["header"]["fields"]
+    return fields.get("itemQuery") is None and (
+        bool(packet.get("items")) or fields.get("itemStatus") is not None
     )
 
 
 def _item_inventory_packet_lines(packet: dict[str, Any]) -> list[str]:
-    fields = packet['header']['fields']
+    fields = packet["header"]["fields"]
     header_fields = compact_fields(
         {
-            'q': fields.get('q'),
-            'owner': fields.get('owner'),
-            'item': len(packet.get('items', [])),
-            'pipes': fields.get('pipes'),
+            "q": fields.get("q"),
+            "owner": fields.get("owner"),
+            "item": len(packet.get("items", [])),
+            "pipes": fields.get("pipes"),
         }
     )
     lines = [f"[{packet['header']['kind']}] {render_fields(header_fields)}"]
     lines.extend(_item_inventory_owner_lines(packet))
     lines.extend(item_lines(packet))
     lines.extend(
-        line for line in note_lines(packet) if 'kind=item-not-found' not in line
+        line for line in note_lines(packet) if "kind=item-not-found" not in line
     )
     lines.extend(runtime_cost_lines(packet))
     return lines
@@ -71,12 +70,12 @@ def _item_inventory_packet_lines(packet: dict[str, Any]) -> list[str]:
 
 def _item_inventory_owner_lines(packet: dict[str, Any]) -> list[str]:
     lines: list[str] = []
-    for owner in packet['owners']:
+    for owner in packet["owners"]:
         fields = {
-            'role': owner['role'],
-            'public': owner['public'],
-            'exp': owner.get('exports', [])[:4],
-            **owner['fields'],
+            "role": owner["role"],
+            "public": owner["public"],
+            "exp": owner.get("exports", [])[:4],
+            **owner["fields"],
         }
         lines.append(f"|owner {owner['path']} {render_fields(fields)}".rstrip())
     return lines
@@ -170,7 +169,7 @@ def item_lines(packet: dict[str, Any]) -> list[str]:
 
 
 def code_lines(packet: dict[str, Any]) -> list[str]:
-    if _item_query_names_only(packet["header"]["fields"]):
+    if packet["header"]["fields"].get("itemQuery") is not None:
         return []
     lines: list[str] = []
     for item in packet.get("items", []):
@@ -206,8 +205,10 @@ def _item_query_names_only(fields: dict[str, Any]) -> bool:
 
 
 def _item_query_next(fields: dict[str, Any]) -> str:
-    if fields.get("itemStatus") == "miss":
+    item = fields.get("item")
+    item_count = item if isinstance(item, int) else 0
+    if fields.get("itemStatus") == "miss" or item_count == 0:
         return "revise-query"
-    if _item_query_names_only(fields):
+    if _item_query_names_only(fields) and item_count > 1:
         return "select-item"
-    return "code" if fields.get("item") else "revise-query"
+    return "query-code"

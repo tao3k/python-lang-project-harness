@@ -43,9 +43,9 @@ def test_cli_agent_guide_advertises_code_route(tmp_path: Path) -> None:
     rendered = stdout.getvalue()
 
     assert exit_code == 0
-    assert "py-harness query <owner-path> --term <symbol> --code" in rendered
+    assert "asp python query <owner-path> --term <symbol> --code" in rendered
     assert (
-        "py-harness search owner <owner-path> items --query <symbol|a|b> --code"
+        "asp python search owner <owner-path> items --query <symbol|a|b> --code"
         in rendered
     )
 
@@ -183,7 +183,9 @@ def test_cli_uses_pyproject_declared_package_source_scope(tmp_path: Path) -> Non
     default_src.mkdir()
     package.mkdir(parents=True)
     tests.mkdir(parents=True)
-    (default_src / "ignored.py").write_text("def broken(:\n    pass\n", encoding="utf-8")
+    (default_src / "ignored.py").write_text(
+        "def broken(:\n    pass\n", encoding="utf-8"
+    )
     (package / "__init__.py").write_text(
         '"""Package public API."""\n\n\ndef build(value: int) -> int:\n    return value\n',
         encoding="utf-8",

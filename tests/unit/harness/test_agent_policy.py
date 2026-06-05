@@ -210,8 +210,9 @@ def test_agent_policy_reports_broad_branch_package_surface(tmp_path: Path) -> No
     assert "owner map" in report.findings[0].label
 
 
-
-def test_agent_policy_accepts_owner_map_documented_branch_package(tmp_path: Path) -> None:
+def test_agent_policy_accepts_owner_map_documented_branch_package(
+    tmp_path: Path,
+) -> None:
     branch = tmp_path / "src" / "pkg" / "domain"
     branch.mkdir(parents=True)
     (branch / "__init__.py").write_text(
@@ -232,6 +233,7 @@ def test_agent_policy_accepts_owner_map_documented_branch_package(tmp_path: Path
     report = run_python_project_harness(tmp_path)
 
     assert not report.findings
+
 
 def test_agent_policy_advice_can_be_promoted_to_blocking(
     tmp_path: Path,

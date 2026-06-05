@@ -123,7 +123,9 @@ def _node_path_hits(node, owner_path: str, query_folded: str) -> list[dict[str, 
     return [path_hit(owner_path, owner_path, score=3, reason="owner-path")]
 
 
-def _node_fuzzy_path_hits(node, owner_path: str, query_folded: str) -> list[dict[str, Any]]:
+def _node_fuzzy_path_hits(
+    node, owner_path: str, query_folded: str
+) -> list[dict[str, Any]]:
     namespace = ".".join(node.namespace)
     score = max(
         _fuzzy_score(owner_path, query_folded) or 0,
@@ -151,8 +153,8 @@ def _module_source_line_hits(
             "fields": {"source": "parser-visible-source"},
         }
         for line_number, source_line in enumerate(module.source_lines, start=1)
-    if query_folded in source_line.casefold()
-]
+        if query_folded in source_line.casefold()
+    ]
 
 
 def _module_fuzzy_source_line_hits(

@@ -21,9 +21,10 @@ def collect_python_projection_node(
     owner_path: str,
     start_line: int,
     depth: int,
+    parent: ast.AST | None = None,
 ) -> None:
     fact = projection_fact(
-        node, owner_path=owner_path, start_line=start_line, depth=depth
+        node, owner_path=owner_path, start_line=start_line, depth=depth, parent=parent
     )
     if fact is not None:
         nodes.append(fact)
@@ -39,6 +40,7 @@ def collect_python_projection_node(
                 owner_path=owner_path,
                 start_line=start_line,
                 depth=depth + 1,
+                parent=node,
             )
 
 

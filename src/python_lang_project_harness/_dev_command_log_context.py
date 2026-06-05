@@ -8,7 +8,6 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-
 PROJECT_ANCHORS = (
     "Cargo.toml",
     "package.json",
@@ -40,7 +39,9 @@ class _LockFile:
                 return
             except FileExistsError:
                 time.sleep(0.005)
-        raise TimeoutError(f"failed to acquire dev command log counter lock: {self.path}")
+        raise TimeoutError(
+            f"failed to acquire dev command log counter lock: {self.path}"
+        )
 
     def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
         try:
@@ -136,10 +137,14 @@ def resolve_session_context(log_root: Path, project_root_hash: str) -> SessionCo
     marker = read_active_context(log_root, project_root_hash)
     if marker is not None:
         return marker
-    return SessionContext(session_id=f"project-{project_root_hash}", source="project-fallback")
+    return SessionContext(
+        session_id=f"project-{project_root_hash}", source="project-fallback"
+    )
 
 
-def read_active_context(log_root: Path, project_root_hash: str) -> SessionContext | None:
+def read_active_context(
+    log_root: Path, project_root_hash: str
+) -> SessionContext | None:
     marker = log_root / "dev-context" / f"{project_root_hash}.json"
     try:
         stat = marker.stat()
@@ -153,7 +158,8 @@ def read_active_context(log_root: Path, project_root_hash: str) -> SessionContex
     return SessionContext(
         hook_run_id=string_field(data.get("hookRunId")),
         parent_event_id=string_field(data.get("parentEventId")),
-        session_id=string_field(data.get("sessionId")) or f"project-{project_root_hash}",
+        session_id=string_field(data.get("sessionId"))
+        or f"project-{project_root_hash}",
         source="active-context",
     )
 

@@ -38,6 +38,19 @@ def test_modularity_rule_pack_allows_large_single_signal_state_module(
     assert [finding.rule_id for finding in report.findings] == []
 
 
+def test_modularity_rule_pack_allows_large_single_return_literal_fixture(
+    tmp_path: Path,
+) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    source = src / "schema_fixture.py"
+    source.write_text(_large_return_literal_fixture_module_source(), encoding="utf-8")
+
+    report = run_python_project_harness(tmp_path)
+
+    assert [finding.rule_id for finding in report.findings] == []
+
+
 def test_modularity_rule_pack_blocks_large_module_with_long_function(
     tmp_path: Path,
 ) -> None:
@@ -81,6 +94,16 @@ def _large_state_only_module_source() -> str:
     for index in range(240):
         parts.append(f"    {index},\n")
     parts.append("]\n")
+    return "".join(parts)
+
+
+def _large_return_literal_fixture_module_source() -> str:
+    parts = ['"""Large schema fixture module for tests."""\n\n']
+    parts.append("def fixture() -> dict[str, object]:\n")
+    parts.append("    return {\n")
+    for index in range(230):
+        parts.append(f'        "field_{index}": {index},\n')
+    parts.append("    }\n")
     return "".join(parts)
 
 

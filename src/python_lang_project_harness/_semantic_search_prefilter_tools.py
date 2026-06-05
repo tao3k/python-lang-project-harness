@@ -35,9 +35,7 @@ def source_match_scores_by_term(
     )
     if process.returncode not in {0, 1}:
         return {}
-    scores_by_term: dict[str, dict[str, int]] = {
-        term: {} for term in normalized_terms
-    }
+    scores_by_term: dict[str, dict[str, int]] = {term: {} for term in normalized_terms}
     for line in process.stdout.splitlines():
         _merge_source_line_scores(
             scores_by_term,
@@ -105,11 +103,13 @@ def _rg_source_command(rg: str, terms: Sequence[str]) -> list[str]:
         ".",
     ]
 
+
 def _rg_excludes() -> tuple[str, ...]:
     args: list[str] = []
     for name in sorted(IGNORED_DIR_NAMES):
         args.extend(("--glob", f"!{name}/**"))
     return tuple(args)
+
 
 def _split_rg_line(line: str) -> tuple[str | None, str]:
     first = line.find(":")
@@ -126,9 +126,9 @@ def _source_line_score(source_line: str, folded_term: str) -> int:
     folded = stripped.casefold()
     if _starts_with_definition(folded, folded_term):
         return 0
-    if folded.startswith(folded_term) and folded[len(folded_term) :].lstrip().startswith(
-        "="
-    ):
+    if folded.startswith(folded_term) and folded[
+        len(folded_term) :
+    ].lstrip().startswith("="):
         return 1
     if "__all__" in source_line:
         return 2

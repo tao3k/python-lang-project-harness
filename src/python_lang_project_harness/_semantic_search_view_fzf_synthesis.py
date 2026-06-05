@@ -40,7 +40,9 @@ def search_synthesis(
         return None
     ranked_owners = _rank_synthesis_owners(hits, owner_paths)
     edit_frontier = [
-        owner_path for owner_path in ranked_owners if not _is_test_owner_path(owner_path)
+        owner_path
+        for owner_path in ranked_owners
+        if not _is_test_owner_path(owner_path)
     ][:4]
     test_frontier = [
         owner_path for owner_path in ranked_owners if _is_test_owner_path(owner_path)
@@ -49,14 +51,6 @@ def search_synthesis(
         *({"kind": "owner", "target": owner_path} for owner_path in edit_frontier),
         *({"kind": "tests", "target": owner_path} for owner_path in test_frontier),
     ][:8]
-    seeds = [
-        seed
-        for owner_path in ranked_owners[:4]
-        for seed in (
-            {"kind": "owner", "target": owner_path},
-            {"kind": "tests", "target": owner_path},
-        )
-    ]
     return {
         "algorithm": "query-set-owner-resolution",
         "scope": "query-set",
@@ -68,7 +62,7 @@ def search_synthesis(
         **({"editFrontier": edit_frontier} if edit_frontier else {}),
         **({"testFrontier": test_frontier} if test_frontier else {}),
         **({"windowSet": window_set} if window_set else {}),
-        "seeds": seeds[:8],
+        "seeds": window_set,
         "fields": {
             "querySet": len(query_terms),
             "owners": len(owner_paths),

@@ -75,9 +75,7 @@ def parse_semantic_search_args(
         return ParsedSemanticSearchArgs(
             error="--code requires search owner <path> items --query <symbol>",
         )
-    if state.owner_path is not None and not (
-        view == "fzf" and state.query_set
-    ):
+    if state.owner_path is not None and not (view == "fzf" and state.query_set):
         return ParsedSemanticSearchArgs(
             error="--owner is only supported by search fzf --query-set",
         )

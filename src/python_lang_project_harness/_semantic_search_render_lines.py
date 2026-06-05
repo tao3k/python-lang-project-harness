@@ -104,9 +104,7 @@ def handle_lines(packet: dict[str, Any]) -> list[str]:
             for key, value in raw_fields.items()
             if value is not None and value != [] and value != ""
         }
-        lines.append(
-            f"|handle {handle['id']} {render_fields(fields)}".rstrip()
-        )
+        lines.append(f"|handle {handle['id']} {render_fields(fields)}".rstrip())
     return lines
 
 

@@ -57,16 +57,23 @@ def _query_line(
     names_only: bool,
 ) -> str:
     fields = payload["fields"]
+    item_count = fields.get("item")
     query_fields = compact_fields(
         {
             "itemQuery": item_query,
             "status": fields.get("itemStatus"),
             "match": fields.get("itemMatch"),
-            "item": fields.get("item"),
+            "item": item_count,
             "reason": "parser-item-query",
             "output": "names" if names_only else None,
             "next": fields.get("next")
-            or ("code" if fields.get("item") else "revise-query"),
+            or (
+                "revise-query"
+                if fields.get("itemStatus") == "miss" or not item_count
+                else "select-item"
+                if names_only and isinstance(item_count, int) and item_count > 1
+                else "query-code"
+            ),
         }
     )
     return f"|query {render_fields(query_fields)}"
@@ -92,13 +99,7 @@ def _note_lines(payload: dict[str, Any]) -> list[str]:
 
 
 def _item_lines(items: list[dict[str, Any]], names_only: bool) -> list[str]:
-    lines: list[str] = []
-    for item in items:
-        lines.append(_item_summary_line(item))
-        code_line = _item_code_line(item, names_only)
-        if code_line is not None:
-            lines.append(code_line)
-    return lines
+    return [_item_summary_line(item) for item in items]
 
 
 def _item_summary_line(item: dict[str, Any]) -> str:
@@ -123,6 +124,12 @@ def _item_code_line(item: dict[str, Any], names_only: bool) -> str | None:
         return None
     return "|code " + render_fields(
         compact_fields(
-            {'path': location.get('path'), 'lineRange': location.get('lineRange'), 'reason': 'item-query', 'truncated': False, 'text': code}
+            {
+                "path": location.get("path"),
+                "lineRange": location.get("lineRange"),
+                "reason": "item-query",
+                "truncated": False,
+                "text": code,
+            }
         )
     )

@@ -4,20 +4,32 @@
       "name": "collect",
       "kind": "async_function",
       "read": "src/pkg/flow.py:1:7",
-      "code": "async def collect(values: list[str], normalize) -> list[str]:\n  results: list[str] = []\n  for value in values:\n    if not value:\n      continue\n    results.append(await normalize(value))\n  return results",
+      "code": "async def collect(values: list[str], normalize) -> list[str]:\n  results: list[str] = list[0]\n  for value in values:\n    if not value:\n      continue\n    append\n      await normalize\n  return results",
       "projection": {
-        "mode": "outline",
-        "syntax": "semantic-outline",
+        "mode": "compact",
+        "syntax": "save-token-ruff",
         "sourceAuthority": "native-parser",
-        "sourceFingerprint": "src/pkg/flow.py:1:7:203:df6c662",
+        "sourceFingerprint": "src/pkg/flow.py:1:7:198:e9eda205",
+        "compactSafety": {
+          "literalPolicy": "summarize",
+          "whitespacePolicy": "formatter-structural",
+          "normalization": "none",
+          "alignment": "parser-roundtrip",
+          "exactReadRequired": true
+        },
         "losslessStructure": true,
         "exactRead": "src/pkg/flow.py:1:7",
+        "nodeCount": 8,
+        "nodeLimit": 24,
+        "nodesTruncated": false,
         "nodes": [
           {
             "id": "collect",
+            "nativeId": "python:async_function:src-pkg-flow.py-1-7:ae15eacd",
+            "structuralFingerprint": "async_function:declaration:src-pkg-flow.py-1-7:ae15eacd",
             "kind": "async_function",
             "role": "declaration",
-            "label": "async def collect",
+            "label": "async def collect(values: list[str], normalize) -> list[str]:",
             "depth": 0,
             "read": "src/pkg/flow.py:1:7",
             "flags": [
@@ -25,10 +37,12 @@
             ]
           },
           {
-            "id": "collect:1",
+            "id": "collect:assign:src-pkg-flow.py-2-2:cd97a507",
+            "nativeId": "python:assign:src-pkg-flow.py-2-2:cd97a507",
+            "structuralFingerprint": "assign:mutation:src-pkg-flow.py-2-2:cd97a507",
             "kind": "assign",
             "role": "mutation",
-            "label": "assign results",
+            "label": "results: list[str] = list[0]",
             "depth": 1,
             "read": "src/pkg/flow.py:2:2",
             "parentId": "collect",
@@ -37,10 +51,12 @@
             ]
           },
           {
-            "id": "collect:2",
+            "id": "collect:for:src-pkg-flow.py-3-6:e27490d4",
+            "nativeId": "python:for:src-pkg-flow.py-3-6:e27490d4",
+            "structuralFingerprint": "for:control-flow:src-pkg-flow.py-3-6:e27490d4",
             "kind": "for",
             "role": "control-flow",
-            "label": "for value in values",
+            "label": "for value in values:",
             "depth": 1,
             "read": "src/pkg/flow.py:3:6",
             "parentId": "collect",
@@ -49,55 +65,65 @@
             ]
           },
           {
-            "id": "collect:3",
+            "id": "collect:if:src-pkg-flow.py-4-5:518f54c8",
+            "nativeId": "python:if:src-pkg-flow.py-4-5:518f54c8",
+            "structuralFingerprint": "if:control-flow:src-pkg-flow.py-4-5:518f54c8",
             "kind": "if",
             "role": "control-flow",
-            "label": "if not value",
+            "label": "if not value:",
             "depth": 2,
             "read": "src/pkg/flow.py:4:5",
-            "parentId": "collect:2",
+            "parentId": "collect:for:src-pkg-flow.py-3-6:e27490d4",
             "flags": [
               "branch"
             ]
           },
           {
-            "id": "collect:4",
+            "id": "collect:continue:src-pkg-flow.py-5-5:b1727e44",
+            "nativeId": "python:continue:src-pkg-flow.py-5-5:b1727e44",
+            "structuralFingerprint": "continue:terminal:src-pkg-flow.py-5-5:b1727e44",
             "kind": "continue",
             "role": "terminal",
             "label": "continue",
             "depth": 3,
             "read": "src/pkg/flow.py:5:5",
-            "parentId": "collect:3",
+            "parentId": "collect:if:src-pkg-flow.py-4-5:518f54c8",
             "flags": [
               "continue"
             ]
           },
           {
-            "id": "collect:5",
+            "id": "collect:call:src-pkg-flow.py-6-6:69982e1",
+            "nativeId": "python:call:src-pkg-flow.py-6-6:69982e1",
+            "structuralFingerprint": "call:call:src-pkg-flow.py-6-6:69982e1",
             "kind": "call",
             "role": "call",
-            "label": "call results.append(await normalize(value))",
+            "label": "append",
             "depth": 2,
             "read": "src/pkg/flow.py:6:6",
-            "parentId": "collect:2",
+            "parentId": "collect:for:src-pkg-flow.py-3-6:e27490d4",
             "flags": [
               "call"
             ]
           },
           {
-            "id": "collect:6",
+            "id": "collect:await:src-pkg-flow.py-6-6:86fd1b12",
+            "nativeId": "python:await:src-pkg-flow.py-6-6:86fd1b12",
+            "structuralFingerprint": "await:effect:src-pkg-flow.py-6-6:86fd1b12",
             "kind": "await",
             "role": "effect",
-            "label": "await normalize(value)",
+            "label": "await normalize",
             "depth": 3,
             "read": "src/pkg/flow.py:6:6",
-            "parentId": "collect:5",
+            "parentId": "collect:call:src-pkg-flow.py-6-6:69982e1",
             "flags": [
               "await"
             ]
           },
           {
-            "id": "collect:7",
+            "id": "collect:return:src-pkg-flow.py-7-7:38131edd",
+            "nativeId": "python:return:src-pkg-flow.py-7-7:38131edd",
+            "structuralFingerprint": "return:terminal:src-pkg-flow.py-7-7:38131edd",
             "kind": "return",
             "role": "terminal",
             "label": "return results",
@@ -109,126 +135,109 @@
             ]
           }
         ],
+        "renderedNodeIds": [
+          "collect",
+          "collect:assign:src-pkg-flow.py-2-2:cd97a507",
+          "collect:for:src-pkg-flow.py-3-6:e27490d4",
+          "collect:if:src-pkg-flow.py-4-5:518f54c8",
+          "collect:continue:src-pkg-flow.py-5-5:b1727e44",
+          "collect:call:src-pkg-flow.py-6-6:69982e1",
+          "collect:await:src-pkg-flow.py-6-6:86fd1b12",
+          "collect:return:src-pkg-flow.py-7-7:38131edd"
+        ],
+        "renderedRows": [
+          {
+            "nodeId": "collect",
+            "rowKind": "declaration",
+            "text": "async def collect(values: list[str], normalize) -> list[str]:",
+            "semanticWeight": 1
+          },
+          {
+            "nodeId": "collect:assign:src-pkg-flow.py-2-2:cd97a507",
+            "rowKind": "mutation",
+            "text": "  results: list[str] = list[0]",
+            "semanticWeight": 2
+          },
+          {
+            "nodeId": "collect:for:src-pkg-flow.py-3-6:e27490d4",
+            "rowKind": "control-flow",
+            "text": "  for value in values:",
+            "semanticWeight": 2
+          },
+          {
+            "nodeId": "collect:if:src-pkg-flow.py-4-5:518f54c8",
+            "rowKind": "control-flow",
+            "text": "    if not value:",
+            "semanticWeight": 2
+          },
+          {
+            "nodeId": "collect:continue:src-pkg-flow.py-5-5:b1727e44",
+            "rowKind": "terminal",
+            "text": "      continue",
+            "semanticWeight": 2
+          },
+          {
+            "nodeId": "collect:call:src-pkg-flow.py-6-6:69982e1",
+            "rowKind": "call",
+            "text": "    append",
+            "semanticWeight": 2
+          },
+          {
+            "nodeId": "collect:await:src-pkg-flow.py-6-6:86fd1b12",
+            "rowKind": "effect",
+            "text": "      await normalize",
+            "semanticWeight": 2
+          },
+          {
+            "nodeId": "collect:return:src-pkg-flow.py-7-7:38131edd",
+            "rowKind": "terminal",
+            "text": "  return results",
+            "semanticWeight": 2
+          }
+        ],
         "omitted": [],
         "expandActions": [
           {
             "kind": "exact-read",
             "target": "collect",
             "read": "src/pkg/flow.py:1:7",
-            "argv": [
-              "py-harness",
-              "query",
-              "--from-hook",
-              "direct-source-read",
-              "--selector",
-              "src/pkg/flow.py:1:7",
-              "."
-            ],
             "reason": "read exact source before editing"
           },
           {
             "kind": "exact-read",
-            "target": "collect:1",
+            "target": "collect:assign:src-pkg-flow.py-2-2:cd97a507",
             "read": "src/pkg/flow.py:2:2",
-            "argv": [
-              "py-harness",
-              "query",
-              "--from-hook",
-              "direct-source-read",
-              "--selector",
-              "src/pkg/flow.py:2:2",
-              "."
-            ],
             "reason": "expand assign node before editing"
           },
           {
             "kind": "exact-read",
-            "target": "collect:2",
+            "target": "collect:for:src-pkg-flow.py-3-6:e27490d4",
             "read": "src/pkg/flow.py:3:6",
-            "argv": [
-              "py-harness",
-              "query",
-              "--from-hook",
-              "direct-source-read",
-              "--selector",
-              "src/pkg/flow.py:3:6",
-              "."
-            ],
             "reason": "expand for node before editing"
           },
           {
             "kind": "exact-read",
-            "target": "collect:3",
+            "target": "collect:if:src-pkg-flow.py-4-5:518f54c8",
             "read": "src/pkg/flow.py:4:5",
-            "argv": [
-              "py-harness",
-              "query",
-              "--from-hook",
-              "direct-source-read",
-              "--selector",
-              "src/pkg/flow.py:4:5",
-              "."
-            ],
             "reason": "expand if node before editing"
           },
           {
             "kind": "exact-read",
-            "target": "collect:4",
+            "target": "collect:continue:src-pkg-flow.py-5-5:b1727e44",
             "read": "src/pkg/flow.py:5:5",
-            "argv": [
-              "py-harness",
-              "query",
-              "--from-hook",
-              "direct-source-read",
-              "--selector",
-              "src/pkg/flow.py:5:5",
-              "."
-            ],
             "reason": "expand continue node before editing"
           },
           {
             "kind": "exact-read",
-            "target": "collect:5",
+            "target": "collect:call:src-pkg-flow.py-6-6:69982e1",
             "read": "src/pkg/flow.py:6:6",
-            "argv": [
-              "py-harness",
-              "query",
-              "--from-hook",
-              "direct-source-read",
-              "--selector",
-              "src/pkg/flow.py:6:6",
-              "."
-            ],
             "reason": "expand call node before editing"
           },
           {
             "kind": "exact-read",
-            "target": "collect:7",
+            "target": "collect:return:src-pkg-flow.py-7-7:38131edd",
             "read": "src/pkg/flow.py:7:7",
-            "argv": [
-              "py-harness",
-              "query",
-              "--from-hook",
-              "direct-source-read",
-              "--selector",
-              "src/pkg/flow.py:7:7",
-              "."
-            ],
             "reason": "expand return node before editing"
-          },
-          {
-            "kind": "owner-names",
-            "target": "src/pkg/flow.py",
-            "argv": [
-              "py-harness",
-              "query",
-              "--from-hook",
-              "direct-source-read",
-              "--selector",
-              "src/pkg/flow.py",
-              "."
-            ],
-            "reason": "return owner-local item names without code windows"
           }
         ]
       }

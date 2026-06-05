@@ -52,15 +52,17 @@ def test_cli_search_owner_items_query_returns_compact_code(tmp_path: Path) -> No
     assert "doc=false" not in rendered
     assert "read=src/pkg/service.py:" in rendered
     assert "|item build kind=function" in rendered
-    assert 'text="def fetch() -> Response:\\n  return Response()"' in rendered
-    assert 'text="def build(value: str) -> str:\\n  return value.strip()"' in rendered
+    assert "next=query-code" in rendered
+    assert "|code " not in rendered
+    assert " text=" not in rendered
     assert "    return value.strip()" not in rendered
 
     packet = json.loads(json_stdout.getvalue())
     assert json_exit_code == 0
     assert packet["items"][0]["name"] == "fetch"
-    assert packet["items"][0]["fields"]["code"] == (
-        "def fetch() -> Response:\n  return Response()"
+    assert (
+        packet["items"][0]["fields"]["code"]
+        == "def fetch() -> Response:\n  return Response"
     )
     assert packet["items"][1]["name"] == "build"
 
@@ -87,7 +89,7 @@ def test_cli_search_owner_items_code_flag_returns_pure_compact_code(
 
     rendered = stdout.getvalue()
     assert exit_code == 0
-    assert rendered == "def build(value: str) -> str:\n  return value.strip()\n"
+    assert rendered == "def build(value: str) -> str:\n  return strip\n"
     assert "[search-owner]" not in rendered
     assert "|code" not in rendered
 
@@ -158,7 +160,7 @@ def test_cli_search_owner_items_query_matches_function_body_text(
             "src/pkg/service.py",
             "items",
             "--query",
-            "value.strip",
+            "strip",
             str(tmp_path),
         ],
         stdout=stdout,
@@ -166,12 +168,12 @@ def test_cli_search_owner_items_query_matches_function_body_text(
 
     rendered = stdout.getvalue()
     assert exit_code == 0
-    assert (
-        "itemQuery=value.strip itemStatus=hit itemMatch=fallback-contains" in rendered
-    )
+    assert "itemQuery=strip itemStatus=hit itemMatch=fallback-contains" in rendered
     assert "|item build kind=function" in rendered
     assert "read=src/pkg/service.py:" in rendered
-    assert "return value.strip()" in rendered
+    assert "next=query-code" in rendered
+    assert "|code " not in rendered
+    assert " text=" not in rendered
 
 
 def test_cli_query_json_emits_projection_nodes_and_expand_actions(
@@ -211,10 +213,35 @@ def test_cli_query_json_emits_projection_nodes_and_expand_actions(
 
     packet = json.loads(stdout.getvalue())
     projection = packet["matches"][0]["projection"]
+    nodes = projection["nodes"]
+    node_ids = {node["id"] for node in nodes}
     assert exit_code == 0
-    assert any(node["read"] != projection["exactRead"] for node in projection["nodes"])
-    assert any(
-        node.get("parentId") not in {None, "decide"} for node in projection["nodes"]
+    assert projection["mode"] == "compact"
+    assert projection["syntax"] == "save-token-ruff"
+    assert projection["compactSafety"] == {
+        "literalPolicy": "summarize",
+        "whitespacePolicy": "formatter-structural",
+        "normalization": "none",
+        "alignment": "parser-roundtrip",
+        "exactReadRequired": True,
+    }
+    assert len(node_ids) == len(nodes)
+    assert projection["renderedNodeIds"]
+    assert set(projection["renderedNodeIds"]).issubset(node_ids)
+    rows = projection["renderedRows"]
+    assert [row["nodeId"] for row in rows] == projection["renderedNodeIds"]
+    assert "\n".join(row["text"] for row in rows) == packet["matches"][0]["code"]
+    assert all(
+        any(char.isalnum() or char == "_" for char in row["text"]) for row in rows
+    )
+    assert any(node["read"] != projection["exactRead"] for node in nodes)
+    assert all("nativeId" in node for node in nodes)
+    assert all("structuralFingerprint" in node for node in nodes)
+    assert any(node.get("parentId") not in {None, "decide"} for node in nodes)
+    assert all(
+        node.get("parentId") in node_ids
+        for node in nodes
+        if node.get("parentId") is not None
     )
     assert any(
         action.get("target") != "decide"
@@ -224,9 +251,7 @@ def test_cli_query_json_emits_projection_nodes_and_expand_actions(
     for action in projection["expandActions"]:
         if action.get("kind") != "exact-read":
             continue
-        argv = action["argv"]
-        selector_index = argv.index("--selector")
-        assert argv[selector_index + 1] == action["read"]
+        assert action["read"].startswith("src/pkg/service.py")
 
 
 def test_cli_query_direct_source_read_selector_strips_line_range(

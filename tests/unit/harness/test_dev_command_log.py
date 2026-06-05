@@ -17,7 +17,7 @@ def test_dev_command_log_records_ordered_active_context_events(
     project.mkdir()
     trace.mkdir()
     (project / "pyproject.toml").write_text(
-        "[project]\nname = \"dev-log-fixture\"\nversion = \"0.1.0\"\n",
+        '[project]\nname = "dev-log-fixture"\nversion = "0.1.0"\n',
         encoding="utf-8",
     )
     project_root_hash = _stable_hash_hex(str(project))

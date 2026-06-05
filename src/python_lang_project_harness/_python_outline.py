@@ -92,7 +92,9 @@ class _PythonOutlineRenderer:
     ) -> bool:
         del depth
         if isinstance(node, ast.Assign):
-            self._lines.append(f"{prefix}{_targets(node.targets)} = {_expr(node.value)}")
+            self._lines.append(
+                f"{prefix}{_targets(node.targets)} = {_expr(node.value)}"
+            )
             return True
         if isinstance(node, ast.AnnAssign):
             target = _expr(node.target)
@@ -211,7 +213,9 @@ class _PythonOutlineRenderer:
         for node in body[:max_nodes]:
             self._append_node(node, depth=depth)
         if len(body) > max_nodes:
-            self._lines.append(f"{'  ' * depth}... {len(body) - max_nodes} more statements")
+            self._lines.append(
+                f"{'  ' * depth}... {len(body) - max_nodes} more statements"
+            )
 
 
 def _leading_spaces(line: str) -> int:
@@ -240,7 +244,7 @@ def _large_collection_summary(node: ast.AST | None) -> str | None:
     if isinstance(node, ast.List | ast.Tuple) and len(node.elts) >= 4:
         return _sequence_summary(node)
     if isinstance(node, ast.Dict) and len(node.keys) >= 4:
-        return f"dict[{len(node.keys)}]"
+        return _expr(node)
     return None
 
 
@@ -258,10 +262,25 @@ def _sequence_summary(node: ast.List | ast.Tuple) -> str:
 def _sequence_item_labels(items: list[ast.expr]) -> list[str]:
     labels: list[str] = []
     for item in items:
-        label = _call_item_label(item)
+        label = _collection_item_label(item)
         if label is not None:
             labels.append(label)
     return labels
+
+
+def _collection_item_label(node: ast.expr) -> str | None:
+    label = _call_item_label(node)
+    if label is not None:
+        return label
+    if isinstance(node, ast.Dict | ast.List | ast.Tuple):
+        return _limit_collection_label(_expr(node))
+    return None
+
+
+def _limit_collection_label(label: str, *, max_chars: int = 72) -> str:
+    if len(label) <= max_chars:
+        return label
+    return label[: max_chars - 1].rstrip() + "..."
 
 
 def _call_item_label(node: ast.expr) -> str | None:

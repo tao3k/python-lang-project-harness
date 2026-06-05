@@ -51,9 +51,9 @@ def ranked_capped_matches(
 ) -> tuple[str, ...]:
     """Return globally capped candidate paths."""
 
-    return tuple(
-        sorted(set(paths), key=lambda path: path_key_rank(path, ()))
-    )[:MAX_PREFILTER_FILES_TOTAL]
+    return tuple(sorted(set(paths), key=lambda path: path_key_rank(path, ())))[
+        :MAX_PREFILTER_FILES_TOTAL
+    ]
 
 
 def path_rank(

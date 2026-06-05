@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from . import _semantic_language_ids as ids
 from ._python_compact import compact_python_item
-from ._semantic_search_common import compact_fields, display_path, render_fields
+from ._semantic_projection import semantic_query_projection
+from ._semantic_search_common import compact_fields, display_path
 from ._semantic_search_import_routes import import_definition_routes
 from ._semantic_search_model import MAX_OWNER_QUERY_ITEMS
 
@@ -116,6 +116,11 @@ def owner_item_semantic_query_packet(
         "queryTerms": terms,
         "matchMode": _query_match_mode(str(fields.get("itemMatch", "none"))),
         "outputMode": output_mode,
+        "patchSafety": {
+            "level": "read-safe",
+            "reason": "compact query packet is not a mutation authority",
+            "nextAction": "query --from-hook direct-source-read",
+        },
         "queryCoverage": [
             _query_coverage(
                 term,
@@ -269,8 +274,13 @@ def _semantic_query_match(
         "kind": item["kind"],
         "visibility": "public" if fields.get("public") else "private",
         "doc": bool(fields.get("doc")),
-        "location": {'path': location['path'], 'lineRange': location['lineRange']},
+        "location": {"path": location["path"], "lineRange": location["lineRange"]},
         "read": fields["read"],
+        "patchSafety": {
+            "level": "read-safe",
+            "reason": "read exact source locator before editing this compact match",
+            "exactRead": fields["read"],
+        },
         "truncated": bool(fields.get("truncated")),
         "fields": {
             "public": bool(fields.get("public")),
@@ -280,7 +290,11 @@ def _semantic_query_match(
     code = fields.get("code")
     if include_code and isinstance(code, str):
         match["code"] = code
-        match["projection"] = _semantic_query_projection(match, fields, code)
+        projection = semantic_query_projection(match, fields, code)
+        projected_code = _projected_code_from_rows(projection)
+        if projected_code:
+            match["code"] = projected_code
+        match["projection"] = projection
         match["outline"] = {
             "summary": f"{match['kind']} {match['name']}",
             "hotBlocks": [
@@ -294,291 +308,16 @@ def _semantic_query_match(
     return match
 
 
-def _semantic_query_projection(
-    match: dict[str, Any],
-    fields: dict[str, Any],
-    code: str,
-) -> dict[str, Any]:
-    exact_read = str(match["read"])
-    owner_path = str(match["location"]["path"])
-    node_id = _projection_node_id(str(match["name"]))
-    nodes = _semantic_outline_nodes(node_id, match, fields, code)
-    return {
-        "mode": "outline",
-        "syntax": "semantic-outline",
-        "sourceAuthority": "native-parser",
-        "sourceFingerprint": _source_fingerprint(exact_read, code),
-        "losslessStructure": True,
-        "exactRead": exact_read,
-        "nodes": nodes,
-        "omitted": _semantic_outline_omissions(match, exact_read),
-        "expandActions": _semantic_expand_actions(
-            node_id,
-            owner_path,
-            exact_read,
-            nodes,
-        ),
-    }
-
-
-def _semantic_outline_nodes(
-    root_id: str,
-    match: dict[str, Any],
-    fields: dict[str, Any],
-    code: str,
-) -> list[dict[str, Any]]:
-    parser_nodes = fields.get("projectionNodes")
-    if isinstance(parser_nodes, list) and parser_nodes:
-        return _semantic_outline_parser_nodes(root_id, parser_nodes)
-    exact_read = str(match["read"])
-    nodes: list[dict[str, Any]] = []
-    parent_stack: dict[int, str] = {0: root_id}
-    for line in code.splitlines():
-        label = line.strip()
-        if not label:
-            continue
-        depth = max(0, _leading_spaces(line) // 2)
-        node_index = len(nodes)
-        node: dict[str, Any] = {
-            "id": root_id if node_index == 0 else f"{root_id}:{node_index}",
-            "kind": _outline_node_kind(label, node_index),
-            "role": _outline_node_role(label, node_index),
-            "label": label,
-            "depth": depth,
-            "read": exact_read,
-        }
-        if node_index > 0:
-            node["parentId"] = _projection_parent_id(parent_stack, depth, root_id)
-        flags = _outline_node_flags(label)
-        if flags:
-            node["flags"] = flags
-        nodes.append(node)
-        _projection_record_parent(parent_stack, depth, str(node["id"]))
-    return nodes
-
-
-def _semantic_outline_parser_nodes(
-    root_id: str,
-    parser_nodes: list[Any],
-) -> list[dict[str, Any]]:
-    nodes: list[dict[str, Any]] = []
-    parent_stack: dict[int, str] = {0: root_id}
-    for parser_node in parser_nodes:
-        if not isinstance(parser_node, dict):
-            continue
-        node_index = len(nodes)
-        depth = int(parser_node.get("depth", 0))
-        node = {
-            "id": root_id if node_index == 0 else f"{root_id}:{node_index}",
-            "kind": str(parser_node.get("kind", "statement")),
-            "role": str(parser_node.get("role", "unknown")),
-            "label": str(parser_node.get("label", "statement")),
-            "depth": depth,
-            "read": str(parser_node.get("read")),
-        }
-        if node_index > 0:
-            node["parentId"] = _projection_parent_id(parent_stack, depth, root_id)
-        flags = parser_node.get("flags")
-        if isinstance(flags, list) and flags:
-            node["flags"] = [str(flag) for flag in flags]
-        nodes.append(node)
-        _projection_record_parent(parent_stack, depth, str(node["id"]))
-    return nodes
-
-
-def _projection_parent_id(
-    parent_stack: dict[int, str],
-    depth: int,
-    root_id: str,
-) -> str:
-    parent_depths = [stack_depth for stack_depth in parent_stack if stack_depth < depth]
-    if not parent_depths:
-        return root_id
-    return parent_stack[max(parent_depths)]
-
-
-def _projection_record_parent(
-    parent_stack: dict[int, str],
-    depth: int,
-    node_id: str,
-) -> None:
-    for stored_depth in list(parent_stack):
-        if stored_depth >= depth:
-            del parent_stack[stored_depth]
-    parent_stack[depth] = node_id
-
-
-def _semantic_outline_omissions(
-    match: dict[str, Any],
-    exact_read: str,
-) -> list[dict[str, Any]]:
-    if not bool(match.get("truncated")):
-        return []
-    return [
-        {
-            "kind": "statement-tail",
-            "reason": "outline projection capped a large item; expand exact read before editing",
-            "read": exact_read,
-        }
+def _projected_code_from_rows(projection: dict[str, Any]) -> str:
+    rows = projection.get("renderedRows")
+    if not isinstance(rows, list):
+        return ""
+    texts = [
+        str(row.get("text", ""))
+        for row in rows
+        if isinstance(row, dict) and str(row.get("text", "")).strip()
     ]
-
-
-def _semantic_expand_actions(
-    root_id: str,
-    owner_path: str,
-    exact_read: str,
-    nodes: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    actions = [
-        {
-            "kind": "exact-read",
-            "target": root_id,
-            "read": exact_read,
-            "argv": [
-                "py-harness",
-                "query",
-                "--from-hook",
-                "direct-source-read",
-                "--selector",
-                exact_read,
-                ".",
-            ],
-            "reason": "read exact source before editing",
-        },
-    ]
-    seen_reads = {exact_read}
-    for node in _hot_projection_nodes(nodes):
-        read = str(node.get("read", ""))
-        if not read or read in seen_reads:
-            continue
-        seen_reads.add(read)
-        actions.append(
-            {
-                "kind": "exact-read",
-                "target": str(node.get("id", root_id)),
-                "read": read,
-                "argv": [
-                    "py-harness",
-                    "query",
-                    "--from-hook",
-                    "direct-source-read",
-                    "--selector",
-                    read,
-                    ".",
-                ],
-                "reason": f"expand {node.get('kind', 'statement')} node before editing",
-            }
-        )
-        if len(actions) >= 8:
-            break
-    actions.append(
-        {
-            "kind": "owner-names",
-            "target": owner_path,
-            "argv": [
-                "py-harness",
-                "query",
-                "--from-hook",
-                "direct-source-read",
-                "--selector",
-                owner_path,
-                ".",
-            ],
-            "reason": "return owner-local item names without code windows",
-        }
-    )
-    return actions
-
-
-def _hot_projection_nodes(
-    nodes: list[dict[str, Any]],
-) -> Iterable[dict[str, Any]]:
-    return (node for node in nodes if _is_hot_projection_node(node))
-
-
-def _is_hot_projection_node(node: dict[str, Any]) -> bool:
-    return str(node.get("role", "")) in {
-        "control-flow",
-        "terminal",
-        "call",
-        "mutation",
-        "effect",
-    }
-
-
-def _outline_node_kind(label: str, index: int) -> str:
-    if index == 0:
-        return "declaration"
-    if label.startswith("@"):
-        return "decorator"
-    if label.startswith("class "):
-        return "class"
-    if label.startswith("async def "):
-        return "async_function"
-    if label.startswith("def "):
-        return "function"
-    head = label.split(" ", 1)[0].rstrip(":")
-    return head or "statement"
-
-
-def _outline_node_role(label: str, index: int) -> str:
-    if index == 0:
-        return "declaration"
-    if label.startswith(
-        ("if ", "for ", "while ", "with ", "try:", "except ", "match ", "case ")
-    ):
-        return "control-flow"
-    if label.startswith(("@", "class ", "def ", "async def ")):
-        return "declaration"
-    if label.startswith("call "):
-        return "call"
-    if label.startswith(("return", "raise", "break", "continue")):
-        return "terminal"
-    if label.startswith("await "):
-        return "effect"
-    if label.startswith("assign "):
-        return "mutation"
-    return "unknown"
-
-
-def _outline_node_flags(label: str) -> list[str]:
-    flags: list[str] = []
-    if label.startswith(("if ", "match ", "case ")):
-        flags.append("branch")
-    if label.startswith("@"):
-        flags.append("decorator")
-    if label.startswith(("for ", "while ")):
-        flags.append("loop")
-    if label.startswith("call "):
-        flags.append("call")
-    if label.startswith("return"):
-        flags.append("return")
-    if label.startswith("raise"):
-        flags.append("raise")
-    if label.startswith("break"):
-        flags.append("break")
-    if label.startswith("continue"):
-        flags.append("continue")
-    if "await " in label:
-        flags.append("await")
-    if label.startswith("assign "):
-        flags.append("mutation")
-    return flags
-
-
-def _source_fingerprint(exact_read: str, code: str) -> str:
-    return f"{exact_read}:{len(code)}:{_stable_hash(code)}"
-
-
-def _stable_hash(value: str) -> str:
-    current = 5381
-    for char in value:
-        current = ((current * 33) ^ ord(char)) & 0xFFFFFFFF
-    return f"{current:x}"
-
-
-def _projection_node_id(value: str) -> str:
-    return "".join(char if char.isalnum() or char in "_.:-" else "_" for char in value)
+    return "\n".join(texts)
 
 
 def _sorted_symbols(module: PythonModuleReport) -> list[PythonSymbol]:
@@ -700,12 +439,15 @@ def _item_record(
         "name": symbol.qualified_name,
         "kind": symbol.kind.value,
         "ownerPath": owner_path,
-        "location": {'path': owner_path, 'lineRange': f'{symbol.location.line}:{end_line}'},
+        "location": {
+            "path": owner_path,
+            "lineRange": f"{symbol.location.line}:{end_line}",
+        },
         "fields": compact_fields(
             {
                 "public": symbol.is_public,
                 "doc": bool(symbol.docstring),
-                "read": f'{owner_path}:{symbol.location.line}:{end_line}',
+                "read": f"{owner_path}:{symbol.location.line}:{end_line}",
                 "reason": "item-query",
                 "truncated": truncated,
                 "code": code,
@@ -735,7 +477,3 @@ def _compact_code(
     selected_lines = raw_lines[:max_lines]
     compact = compact_python_item(selected_lines, owner_path, start_line)
     return compact.code, truncated, compact.projection_nodes
-
-
-def _leading_spaces(line: str) -> int:
-    return len(line) - len(line.lstrip(" "))

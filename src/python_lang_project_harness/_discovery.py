@@ -188,7 +188,19 @@ def is_scannable_python_file(
     """Return whether a Python file belongs to the harness-owned scan scope."""
 
     relative_parts = _scan_relative_parts(path, scan_root)
-    return not any(part in ignored_dir_names for part in relative_parts)
+    return not any(
+        part in ignored_dir_names for part in relative_parts
+    ) and not _is_test_fixture_path(relative_parts, scan_root)
+
+
+def _is_test_fixture_path(relative_parts: tuple[str, ...], scan_root: Path) -> bool:
+    if len(relative_parts) >= 2 and relative_parts[:2] == ("tests", "fixtures"):
+        return True
+    return (
+        scan_root.name == "tests"
+        and bool(relative_parts)
+        and relative_parts[0] == "fixtures"
+    )
 
 
 def _append_unique_path(discovered: list[Path], seen: set[Path], path: Path) -> None:

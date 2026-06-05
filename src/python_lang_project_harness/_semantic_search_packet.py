@@ -25,30 +25,24 @@ def build_python_semantic_search_packet(
     facts = verification_reasoning_tree_facts(report)
     project_root = verification_project_root(report)
     payload = payload_for_view(report, facts, project_root, options)
-    packet: dict[str, Any] = {
-        "schemaId": ids.SEMANTIC_SEARCH_PACKET_SCHEMA_ID,
-        "schemaVersion": "1",
-        "protocolId": ids.SEMANTIC_LANGUAGE_PROTOCOL_ID,
-        "protocolVersion": ids.SEMANTIC_LANGUAGE_PROTOCOL_VERSION,
-        "languageId": ids.PYTHON_LANGUAGE_ID,
-        "providerId": ids.PYTHON_PROVIDER_ID,
-        "binary": ids.PYTHON_BINARY,
-        "namespace": ids.PYTHON_PROVIDER_NAMESPACE,
-        "method": f"search/{options.view}",
-        "projectRoot": str(project_root),
-        "view": options.view,
-        "renderMode": options.render_mode or "both",
-        "header": payload["header"],
-        "nodes": payload.get("nodes", []),
-        "edges": payload.get("edges", []),
-        "owners": payload.get("owners", []),
-        "hits": payload.get("hits", []),
-        "findings": payload.get("findings", []),
-        "nextActions": payload.get("nextActions", []),
-        "notes": payload.get("notes", []),
-    }
+    packet = _base_python_search_packet(project_root, options, payload)
+    _attach_query(packet, options)
+    _attach_query_set(packet, options)
+    _attach_package_name(packet, facts)
+    _attach_reasoning_profiles(packet, options)
+    _attach_runtime_cost(packet, options)
+    _attach_payload_optionals(packet, payload)
+    return _normalize_packet_locations(packet)
+
+
+def _attach_query(packet: dict[str, Any], options: PythonSemanticSearchOptions) -> None:
     if options.query is not None:
         packet["query"] = options.query
+
+
+def _attach_query_set(
+    packet: dict[str, Any], options: PythonSemanticSearchOptions
+) -> None:
     query_terms = [
         {
             "value": term,
@@ -79,8 +73,25 @@ def build_python_semantic_search_packet(
                 "notes",
             ],
         }
+
+
+def _attach_package_name(packet: dict[str, Any], facts: Any) -> None:
     if facts.project_metadata is not None and facts.project_metadata.project_name:
         packet["packageName"] = facts.project_metadata.project_name
+
+
+def _attach_reasoning_profiles(
+    packet: dict[str, Any], options: PythonSemanticSearchOptions
+) -> None:
+    if (options.render_mode or "both") in {"graph", "seeds", "both", "facts"}:
+        from ._semantic_search_profiles import python_reasoning_profiles
+
+        packet["reasoningProfiles"] = python_reasoning_profiles()
+
+
+def _attach_runtime_cost(
+    packet: dict[str, Any], options: PythonSemanticSearchOptions
+) -> None:
     if options.runtime_cost is not None:
         packet["runtimeCost"] = options.runtime_cost
         packet["notes"] = [
@@ -91,6 +102,9 @@ def build_python_semantic_search_packet(
                 "fields": options.runtime_cost.get("fields", {}),
             },
         ]
+
+
+def _attach_payload_optionals(packet: dict[str, Any], payload: dict[str, Any]) -> None:
     for optional_key in (
         "inputDetection",
         "packages",
@@ -105,7 +119,53 @@ def build_python_semantic_search_packet(
     ):
         if payload.get(optional_key) is not None:
             packet[optional_key] = payload[optional_key]
-    return packet
+
+
+def _base_python_search_packet(
+    project_root: Any,
+    options: PythonSemanticSearchOptions,
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "schemaId": ids.SEMANTIC_SEARCH_PACKET_SCHEMA_ID,
+        "schemaVersion": "1",
+        "protocolId": ids.SEMANTIC_LANGUAGE_PROTOCOL_ID,
+        "protocolVersion": ids.SEMANTIC_LANGUAGE_PROTOCOL_VERSION,
+        "languageId": ids.PYTHON_LANGUAGE_ID,
+        "providerId": ids.PYTHON_PROVIDER_ID,
+        "binary": ids.PYTHON_BINARY,
+        "namespace": ids.PYTHON_PROVIDER_NAMESPACE,
+        "method": f"search/{options.view}",
+        "projectRoot": str(project_root),
+        "view": options.view,
+        "renderMode": options.render_mode or "both",
+        "header": payload["header"],
+        "nodes": payload.get("nodes", []),
+        "edges": payload.get("edges", []),
+        "owners": payload.get("owners", []),
+        "hits": payload.get("hits", []),
+        "findings": payload.get("findings", []),
+        "nextActions": payload.get("nextActions", []),
+        "notes": payload.get("notes", []),
+    }
+
+
+def _normalize_packet_locations(value: Any) -> Any:
+    if isinstance(value, list):
+        return [_normalize_packet_locations(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+
+    normalized = {key: _normalize_packet_locations(item) for key, item in value.items()}
+    line = normalized.pop("line", None)
+    if "path" in normalized and isinstance(line, int):
+        end_line = normalized.pop("endLine", None)
+        normalized.pop("column", None)
+        normalized.pop("endColumn", None)
+        if not isinstance(end_line, int):
+            end_line = line
+        normalized["lineRange"] = f"{line}:{end_line}"
+    return normalized
 
 
 def _normalized_query_set(query_set: tuple[str, ...]) -> list[str]:

@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-
 SECRET_FLAGS = {
     "--api-key",
     "--apikey",
@@ -76,7 +75,9 @@ def normalize_command(argv: list[str]) -> NormalizedCommand:
         (index for index, arg in enumerate(args) if not arg.startswith("-")),
         -1,
     )
-    namespace = normalize_token(args[namespace_index]) if namespace_index >= 0 else "cli"
+    namespace = (
+        normalize_token(args[namespace_index]) if namespace_index >= 0 else "cli"
+    )
     render_mode = option_value(args, "--view")
     query_set_count = sum(
         1 for arg in args if arg == "--query-set" or arg.startswith("--query-set=")

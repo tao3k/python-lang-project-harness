@@ -237,5 +237,7 @@ def _source_matched_files(
     source_scores_by_term: dict[str, dict[str, int]],
 ) -> frozenset[str]:
     return frozenset(
-        path for source_scores in source_scores_by_term.values() for path in source_scores
+        path
+        for source_scores in source_scores_by_term.values()
+        for path in source_scores
     )

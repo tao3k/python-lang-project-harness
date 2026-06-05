@@ -8,7 +8,7 @@ from pathlib import Path
 from python_lang_project_harness import run_cli
 
 
-def test_cli_agent_install_reports_root_semantic_agent_hook_owner(
+def test_cli_agent_install_reports_root_asp_owner(
     tmp_path: Path,
 ) -> None:
     stdout = io.StringIO()
@@ -22,11 +22,11 @@ def test_cli_agent_install_reports_root_semantic_agent_hook_owner(
 
     assert exit_code == 2
     assert stdout.getvalue() == ""
-    assert "py-harness agent install moved to semantic-agent-hook" in stderr.getvalue()
-    assert "semantic-agent-hook install --client codex" in stderr.getvalue()
+    assert "py-harness agent install moved to asp" in stderr.getvalue()
+    assert "asp hook install --client codex" in stderr.getvalue()
 
 
-def test_cli_agent_hook_reports_root_semantic_agent_hook_owner(
+def test_cli_agent_hook_reports_root_asp_owner(
     tmp_path: Path,
 ) -> None:
     stdout = io.StringIO()
@@ -41,5 +41,5 @@ def test_cli_agent_hook_reports_root_semantic_agent_hook_owner(
 
     assert exit_code == 2
     assert stdout.getvalue() == ""
-    assert "py-harness agent hook moved to semantic-agent-hook" in stderr.getvalue()
-    assert "semantic-agent-hook hook --client codex" in stderr.getvalue()
+    assert "py-harness agent hook moved to asp" in stderr.getvalue()
+    assert "asp hook <event> --client codex" in stderr.getvalue()
