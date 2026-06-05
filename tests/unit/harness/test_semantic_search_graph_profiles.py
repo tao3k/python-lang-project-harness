@@ -16,7 +16,11 @@ def _render_fields(fields: dict[str, Any]) -> str:
 
 
 def test_compact_graph_profiles_filter_to_rendered_aliases() -> None:
-    workspace_renderer = Path(__file__).resolve().parents[5] / ".bin" / "asp"
+    workspace_renderer = (
+        Path(os.environ["SEMANTIC_AGENT_PROTOCOL_BIN"])
+        if os.environ.get("SEMANTIC_AGENT_PROTOCOL_BIN")
+        else Path(__file__).resolve().parents[5] / ".bin" / "asp"
+    )
     if not workspace_renderer.exists():
         pytest.skip("workspace graph renderer is not built")
     os.environ["SEMANTIC_AGENT_PROTOCOL_BIN"] = str(workspace_renderer)

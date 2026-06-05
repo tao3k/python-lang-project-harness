@@ -14,6 +14,8 @@ jobs:
   python:
     name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    env:
+      SEMANTIC_AGENT_PROTOCOL_BIN: ${{ github.workspace }}/tests/fixtures/bin/asp
     strategy:
       fail-fast: false
       matrix:
