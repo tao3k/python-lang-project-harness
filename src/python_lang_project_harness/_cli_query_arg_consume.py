@@ -9,6 +9,8 @@ from ._cli_query_hook_args import (
     normalize_query_surfaces,
     normalize_query_view,
 )
+from ._cli_query_predicates import parse_asp_syntax_query_predicates
+from ._tree_sitter_query_predicates import SyntaxQueryPredicate
 
 QUERY_USAGE = (
     "usage: py-harness query <owner-path> --term <symbol> "
@@ -37,6 +39,9 @@ class QueryParseState:
     asp_syntax_query_captures: list[str] = field(default_factory=list)
     asp_syntax_query_node_types: list[str] = field(default_factory=list)
     asp_syntax_query_fields: list[str] = field(default_factory=list)
+    asp_syntax_query_predicates: list[SyntaxQueryPredicate] = field(
+        default_factory=list
+    )
     render_mode: str | None = None
     terms: list[str] = field(default_factory=list)
     surfaces: list[str] = field(default_factory=list)
@@ -77,6 +82,7 @@ def consume_query_arg(
         "--asp-syntax-query-captures",
         "--asp-syntax-query-node-types",
         "--asp-syntax-query-fields",
+        "--asp-syntax-query-predicates-json",
     }:
         return _consume_query_option(state, args, index, arg)
     if arg in {"--help", "-h"}:
@@ -136,6 +142,13 @@ def _consume_query_option(
             state.asp_syntax_query_node_types = _split_asp_syntax_query_plan_list(value)
         case "--asp-syntax-query-fields":
             state.asp_syntax_query_fields = _split_asp_syntax_query_plan_list(value)
+        case "--asp-syntax-query-predicates-json":
+            try:
+                state.asp_syntax_query_predicates = parse_asp_syntax_query_predicates(
+                    value
+                )
+            except ValueError as error:
+                return ProtocolArgError(f"invalid ASP syntax query predicates: {error}")
         case _:
             state.package_path = Path(value)
     return index + 2
@@ -151,6 +164,7 @@ def _query_option_value_name(arg: str) -> str:
         "--asp-syntax-query-captures": "an ASP query capture list",
         "--asp-syntax-query-node-types": "an ASP query node-type list",
         "--asp-syntax-query-fields": "an ASP query field list",
+        "--asp-syntax-query-predicates-json": "an ASP query predicate JSON array",
     }[arg]
 
 

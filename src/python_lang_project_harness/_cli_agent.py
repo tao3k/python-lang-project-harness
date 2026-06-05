@@ -84,6 +84,11 @@ def render_agent_guide(project_root: Path) -> str:
                     "native parser facts into tree-sitter-compatible captures"
                 ),
                 (
+                    "|rule syntax predicates supported=#eq?,#any-eq?,#any-of?,"
+                    "#match?,#any-match?,#not-eq?,#not-match? "
+                    "unsupported=none unsupportedReported=true"
+                ),
+                (
                     "|rule query --code is pure code; search/read-plan returns "
                     "locators/frontier, not inline code"
                 ),

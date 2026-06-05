@@ -37,6 +37,7 @@ def tree_sitter_query_protocol_args(args_type: type[Any], state: Any) -> Any:
         asp_syntax_query_captures=tuple(state.asp_syntax_query_captures),
         asp_syntax_query_node_types=tuple(state.asp_syntax_query_node_types),
         asp_syntax_query_fields=tuple(state.asp_syntax_query_fields),
+        asp_syntax_query_predicates=tuple(state.asp_syntax_query_predicates),
         query_set=tuple(state.terms),
         project_root=None if not state.positionals else Path(state.positionals[0]),
         package_path=state.package_path,

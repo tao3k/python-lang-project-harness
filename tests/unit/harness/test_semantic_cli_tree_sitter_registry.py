@@ -26,6 +26,17 @@ def test_agent_doctor_advertises_tree_sitter_query_descriptor(
         == "tree-sitter/tree-sitter-python/grammar-profile.json"
         and descriptor["packetSchemas"] == ["semantic-tree-sitter-query.v1"]
         and descriptor["queryInputForms"] == ["catalog-id", "s-expression"]
+        and descriptor["supportedPredicates"]
+        == [
+            "#eq?",
+            "#any-eq?",
+            "#any-of?",
+            "#match?",
+            "#any-match?",
+            "#not-eq?",
+            "#not-match?",
+        ]
+        and descriptor["unsupportedPredicates"] == []
         and all(
             catalog["sourceDelivery"] == "provider-binary-embedded"
             for catalog in descriptor["queryCatalogs"]
@@ -44,3 +55,4 @@ def test_agent_guide_lists_tree_sitter_query_entrypoint(tmp_path: Path) -> None:
         "|cmd catalog-json=asp python query --catalog declarations --json ."
         in stdout.getvalue()
     )
+    assert "syntax predicates supported=#eq?,#any-eq?,#any-of?" in stdout.getvalue()

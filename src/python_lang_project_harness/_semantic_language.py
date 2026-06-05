@@ -93,6 +93,16 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
                 "grammarProfileSchema": "semantic-tree-sitter-grammar-profile.v1",
                 "grammarProfilePath": PYTHON_TREE_SITTER_GRAMMAR_PROFILE_PATH,
                 "queryCatalogs": python_tree_sitter_query_catalog_descriptors(),
+                "supportedPredicates": [
+                    "#eq?",
+                    "#any-eq?",
+                    "#any-of?",
+                    "#match?",
+                    "#any-match?",
+                    "#not-eq?",
+                    "#not-match?",
+                ],
+                "unsupportedPredicates": [],
                 "cacheReplay": True,
             },
             {

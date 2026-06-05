@@ -129,6 +129,8 @@ def _query_object(
         "captures": list(query["captures"]),
         "nodeTypes": list(query["nodeTypes"]),
         "fields": list(query["fields"]),
+        "predicates": [_predicate_json(predicate) for predicate in query["predicates"]],
+        "unsupportedPredicates": [],
         "catalogCanonical": bool(query["catalogCanonical"]),
         "catalogEmbedded": bool(query["catalogEmbedded"]),
         "compilerBoundary": "python-ast-tokenize-symtable",
@@ -151,6 +153,16 @@ def _query_object(
     if query["catalogPath"] is not None:
         query_object["catalogPath"] = query["catalogPath"]
     return query_object
+
+
+def _predicate_json(predicate: Any) -> dict[str, Any]:
+    return {
+        "op": predicate.op,
+        "capture": predicate.capture,
+        "values": [
+            {"kind": value.kind, "value": value.value} for value in predicate.values
+        ],
+    }
 
 
 def _miss_lines(

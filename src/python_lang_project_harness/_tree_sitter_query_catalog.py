@@ -179,6 +179,7 @@ def resolved_tree_sitter_query(args: Any) -> dict[str, Any]:
             "captures": catalog.captures,
             "nodeTypes": CATALOG_NODE_TYPES[catalog.id],
             "fields": CATALOG_FIELDS[catalog.id],
+            "predicates": (),
             "catalogCanonical": True,
             "catalogEmbedded": True,
         }
@@ -199,6 +200,7 @@ def resolved_tree_sitter_query(args: Any) -> dict[str, Any]:
         "captures": tuple(args.asp_syntax_query_captures),
         "nodeTypes": tuple(args.asp_syntax_query_node_types),
         "fields": tuple(args.asp_syntax_query_fields),
+        "predicates": tuple(args.asp_syntax_query_predicates),
         "catalogCanonical": False,
         "catalogEmbedded": False,
     }

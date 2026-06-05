@@ -37,6 +37,7 @@ def write_tree_sitter_query_response(
         project_root,
         tuple(query["nodeTypes"]),
         tuple(query["captures"]),
+        tuple(query["predicates"]),
         terms,
         selector,
     )

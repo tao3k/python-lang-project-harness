@@ -20,6 +20,10 @@ from ._tree_sitter_query_model import (
     selector_matches,
     terms_match,
 )
+from ._tree_sitter_query_predicates import (
+    SyntaxQueryPredicate,
+    syntax_predicates_match,
+)
 
 if TYPE_CHECKING:
     from python_lang_parser import PythonModuleReport
@@ -32,6 +36,7 @@ def project_tree_sitter_query(
     project_root: Path,
     query_node_types: tuple[str, ...],
     captures: tuple[str, ...],
+    predicates: tuple[SyntaxQueryPredicate, ...],
     terms: list[str],
     selector: SyntaxQuerySelector | None,
 ) -> SyntaxQueryProjection:
@@ -51,7 +56,13 @@ def project_tree_sitter_query(
     for module in report.modules:
         rows.extend(
             _module_syntax_query_rows(
-                module, project_root, active_nodes, captures, terms, selector
+                module,
+                project_root,
+                active_nodes,
+                captures,
+                predicates,
+                terms,
+                selector,
             )
         )
     rows.sort(key=lambda row: (row.path, row.item_start_line, row.start_line, row.name))
@@ -69,6 +80,7 @@ def _module_syntax_query_rows(
     project_root: Path,
     active_nodes: frozenset[str],
     captures: tuple[str, ...],
+    predicates: tuple[SyntaxQueryPredicate, ...],
     terms: list[str],
     selector: SyntaxQuerySelector | None,
 ) -> list[SyntaxQueryRow]:
@@ -92,7 +104,9 @@ def _module_syntax_query_rows(
     return [
         row
         for row in rows
-        if selector_matches(row, selector) and terms_match(row, terms)
+        if selector_matches(row, selector)
+        and terms_match(row, terms)
+        and syntax_predicates_match(row, predicates)
     ]
 
 

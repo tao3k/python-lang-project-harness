@@ -56,6 +56,87 @@ def test_cli_query_inline_s_expression_projects_python_functions(
     assert "|syntax-query inputForm" not in rendered
 
 
+def test_cli_query_inline_s_expression_applies_asp_typed_predicates(
+    tmp_path: Path,
+) -> None:
+    write_search_fixture(tmp_path)
+    stdout = io.StringIO()
+    query = (
+        "(function_definition name: (identifier) @function.name "
+        '(#eq? @function.name "fetch"))'
+    )
+
+    exit_code = run_cli(
+        _function_name_query_args(
+            query,
+            tmp_path,
+            _predicate_plan_args("eq", "fetch"),
+        ),
+        stdout=stdout,
+    )
+
+    assert exit_code == 0
+    assert stdout.getvalue() == "src/pkg/service.py:9:10\nfetch\n"
+
+
+def test_cli_query_inline_s_expression_applies_asp_any_predicates(
+    tmp_path: Path,
+) -> None:
+    write_search_fixture(tmp_path)
+    stdout = io.StringIO()
+    query = (
+        "(function_definition name: (identifier) @function.name "
+        '(#any-match? @function.name "^f"))'
+    )
+
+    exit_code = run_cli(
+        _function_name_query_args(
+            query,
+            tmp_path,
+            _predicate_plan_args("any-match", "^f"),
+        ),
+        stdout=stdout,
+    )
+
+    assert exit_code == 0
+    assert stdout.getvalue() == "src/pkg/service.py:9:10\nfetch\n"
+
+
+def test_cli_query_inline_s_expression_reports_asp_typed_predicates(
+    tmp_path: Path,
+) -> None:
+    write_search_fixture(tmp_path)
+    stdout = io.StringIO()
+    query = (
+        "(function_definition name: (identifier) @function.name "
+        '(#match? @function.name "^f"))'
+    )
+
+    exit_code = run_cli(
+        _function_name_query_args(
+            query,
+            tmp_path,
+            _predicate_plan_args("match", "^f"),
+            "--json",
+        ),
+        stdout=stdout,
+    )
+
+    assert exit_code == 0
+    packet = json.loads(stdout.getvalue())
+    assert packet["query"]["fields"]["predicates"] == [
+        {
+            "op": "match",
+            "capture": "function.name",
+            "values": [{"kind": "string", "value": "^f"}],
+        }
+    ]
+    assert packet["query"]["fields"]["unsupportedPredicates"] == []
+    assert packet["matches"][0]["nativeFactRefs"] == [
+        "python:ast:src/pkg/service.py:9:10:fetch"
+    ]
+
+
 def test_cli_query_inline_s_expression_requires_asp_compiled_plan(
     tmp_path: Path,
 ) -> None:
@@ -179,11 +260,17 @@ def test_cli_search_owner_items_packet_links_python_syntax_refs(
     )
 
 
-def _function_name_query_args(query: str, project_root: Path) -> list[str]:
+def _function_name_query_args(
+    query: str,
+    project_root: Path,
+    plan_args: list[str] | None = None,
+    *extra_args: str,
+) -> list[str]:
     return [
         "query",
         "--treesitter-query",
         query,
+        *extra_args,
         str(project_root),
         "--asp-syntax-query-captures",
         "function.name",
@@ -191,4 +278,20 @@ def _function_name_query_args(query: str, project_root: Path) -> list[str]:
         "function_definition,identifier",
         "--asp-syntax-query-fields",
         "name",
+        *(plan_args or []),
+    ]
+
+
+def _predicate_plan_args(op: str, value: str) -> list[str]:
+    return [
+        "--asp-syntax-query-predicates-json",
+        json.dumps(
+            [
+                {
+                    "op": op,
+                    "capture": "function.name",
+                    "values": [{"kind": "string", "value": value}],
+                }
+            ]
+        ),
     ]
