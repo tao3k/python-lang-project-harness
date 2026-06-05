@@ -38,4 +38,24 @@ def test_cli_direct_read_registry_advertises_read_packet_mode(
         "agent.semantic-protocols.semantic-query-packet",
         "agent.semantic-protocols.semantic-read-packet",
     ]
+    assert direct_read["packetSchemas"] == [
+        "semantic-query-packet.v1",
+        "semantic-read-packet.v1",
+        "semantic-tree-sitter-query.v1",
+    ]
+    assert direct_read["queryInputForms"] == ["selector"]
+    assert direct_read["grammarId"] == "tree-sitter-python"
+    assert direct_read["cacheReplay"] is True
     assert "read-packet" in direct_read["outputModes"]
+
+    owner_items = next(
+        descriptor
+        for descriptor in descriptors
+        if descriptor["method"] == "query/owner-items"
+    )
+    assert owner_items["packetSchemas"] == [
+        "semantic-query-packet.v1",
+        "semantic-tree-sitter-query.v1",
+    ]
+    assert owner_items["grammarId"] == "tree-sitter-python"
+    assert owner_items["cacheReplay"] is True
