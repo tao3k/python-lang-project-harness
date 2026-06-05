@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from python_lang_project_harness._semantic_search_graph_render import (
     compact_graph_seed_packet_text,
 )
@@ -14,11 +16,10 @@ def _render_fields(fields: dict[str, Any]) -> str:
 
 
 def test_compact_graph_profiles_filter_to_rendered_aliases() -> None:
-    workspace_renderer = (
-        Path(__file__).resolve().parents[5] / ".bin" / "semantic-agent-protocol"
-    )
-    if workspace_renderer.exists():
-        os.environ["SEMANTIC_AGENT_PROTOCOL_BIN"] = str(workspace_renderer)
+    workspace_renderer = Path(__file__).resolve().parents[5] / ".bin" / "asp"
+    if not workspace_renderer.exists():
+        pytest.skip("workspace graph renderer is not built")
+    os.environ["SEMANTIC_AGENT_PROTOCOL_BIN"] = str(workspace_renderer)
 
     packet: dict[str, Any] = {
         "header": {"kind": "search-owner", "fields": {}},
@@ -71,6 +72,7 @@ def test_compact_graph_profiles_filter_to_rendered_aliases() -> None:
     output = compact_graph_seed_packet_text(packet, _render_fields)
 
     assert "alias: graph:{G=search,O=owner,T=test}" in output
+    assert "entries=owner-tests(O=>covering-tests+test-entrypoints+fixtures)" in output
     assert "owner-query(" not in output
     assert "query-deps(" not in output
     assert "finding-frontier(" not in output

@@ -124,28 +124,16 @@
       }
     },
     "syntaxQueryRef": {
-      "type": "string",
-      "description": "Reference to the semantic-tree-sitter-query artifact that selected or repaired the read window.",
-      "minLength": 1
+      "$ref": "semantic-tree-sitter-provenance.v1.schema.json#/$defs/syntaxQueryRef"
     },
     "syntaxMatchRefs": {
-      "type": "array",
-      "description": "Match ids from a semantic-tree-sitter-query artifact that selected or repaired the read window.",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      }
+      "$ref": "semantic-tree-sitter-provenance.v1.schema.json#/$defs/syntaxMatchRefs"
     },
     "syntaxCaptureRefs": {
-      "type": "array",
-      "description": "Capture ids from a semantic-tree-sitter-query artifact that selected or repaired the read window.",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      }
+      "$ref": "semantic-tree-sitter-provenance.v1.schema.json#/$defs/syntaxCaptureRefs"
     },
     "syntaxAnchor": {
-      "$ref": "#/$defs/syntaxAnchor"
+      "$ref": "semantic-tree-sitter-provenance.v1.schema.json#/$defs/syntaxAnchor"
     },
     "nativeSyntaxFacts": {
       "type": "array",
@@ -192,31 +180,6 @@
         },
         "lineRange": {
           "$ref": "#/$defs/lineRange"
-        }
-      }
-    },
-    "syntaxAnchor": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "nodeType",
-        "location"
-      ],
-      "properties": {
-        "nodeType": {
-          "type": "string",
-          "minLength": 1
-        },
-        "field": {
-          "type": "string",
-          "minLength": 1
-        },
-        "capture": {
-          "type": "string",
-          "minLength": 1
-        },
-        "location": {
-          "$ref": "#/$defs/location"
         }
       }
     },

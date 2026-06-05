@@ -59,13 +59,29 @@ def owner_item_direct_read_packet(
     _source_lines, selector_range, windows = _direct_read_windows(
         report, project_root, owner_path, selector
     )
-    return render_direct_read_packet(
+    from ._semantic_syntax_refs import (
+        annotate_python_owner_item_syntax_refs,
+        attach_python_syntax_refs,
+    )
+
+    syntax_refs = annotate_python_owner_item_syntax_refs(
+        [
+            window["item"]
+            for window in windows
+            if isinstance(window.get("item"), dict)
+            and window["item"].get("name")
+            and window["item"].get("kind")
+        ]
+    )
+    packet = render_direct_read_packet(
         project_root=project_root,
         owner_path=owner_path,
         selector=selector,
         selector_range=selector_range,
         windows=windows,
     )
+    attach_python_syntax_refs(packet, syntax_refs)
+    return packet
 
 
 def _direct_read_windows(

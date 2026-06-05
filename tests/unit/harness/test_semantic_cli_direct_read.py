@@ -150,6 +150,7 @@ def test_cli_query_direct_source_read_read_packet_preserves_non_item_source_wind
         {"number": 1, "text": "# generated header"},
         {"number": 2, "text": "# keep exact spacing"},
     ]
+    assert "syntaxQueryRef" not in packet
     assert "itemName" not in window
     assert "itemKind" not in window
 
@@ -237,6 +238,11 @@ def test_cli_query_direct_source_read_read_packet_wide_selector_emits_source_win
 
     packet = json.loads(stdout.getvalue())
     assert exit_code == 0
+    assert packet["syntaxQueryRef"] == (
+        "semantic-tree-sitter-query/python-owner-items.v1"
+    )
+    assert packet["syntaxMatchRefs"] == ["match.1", "match.2"]
+    assert packet["syntaxCaptureRefs"] == ["capture.1", "capture.2"]
     assert "readPlan" not in packet
     windows = packet["sourceWindows"]
     assert len(windows) == 2

@@ -108,3 +108,60 @@ def test_cli_query_catalog_json_projects_native_capture_rows(
     assert packet["matches"][0]["captures"][0]["name"] == "class.name"
     assert packet["matches"][0]["captures"][0]["nodeType"] == "class_definition"
     assert packet["nativeFactRefs"][0].startswith("python:ast:src/pkg/service.py:")
+
+
+def test_cli_owner_item_query_packet_links_python_syntax_refs(
+    tmp_path: Path,
+) -> None:
+    write_search_fixture(tmp_path)
+    stdout = io.StringIO()
+
+    exit_code = run_cli(
+        ["query", "src/pkg/service.py", "--term", "build", "--json", str(tmp_path)],
+        stdout=stdout,
+    )
+
+    assert exit_code == 0
+    packet = json.loads(stdout.getvalue())
+    assert packet["syntaxQueryRef"] == (
+        "semantic-tree-sitter-query/python-owner-items.v1"
+    )
+    assert packet["syntaxMatchRefs"] == ["match.1"]
+    assert packet["syntaxCaptureRefs"] == ["capture.1"]
+    assert packet["matches"][0]["fields"]["syntaxQueryRef"] == (
+        "semantic-tree-sitter-query/python-owner-items.v1"
+    )
+    assert packet["matches"][0]["fields"]["syntaxMatchRef"] == "match.1"
+    assert packet["matches"][0]["fields"]["syntaxCaptureRef"] == "capture.1"
+
+
+def test_cli_search_owner_items_packet_links_python_syntax_refs(
+    tmp_path: Path,
+) -> None:
+    write_search_fixture(tmp_path)
+    stdout = io.StringIO()
+
+    exit_code = run_cli(
+        [
+            "search",
+            "owner",
+            "src/pkg/service.py",
+            "items",
+            "--query",
+            "build",
+            "--json",
+            str(tmp_path),
+        ],
+        stdout=stdout,
+    )
+
+    assert exit_code == 0
+    packet = json.loads(stdout.getvalue())
+    assert packet["syntaxQueryRef"] == (
+        "semantic-tree-sitter-query/python-owner-items.v1"
+    )
+    assert packet["syntaxMatchRefs"] == ["match.1"]
+    assert packet["syntaxCaptureRefs"] == ["capture.1"]
+    assert packet["items"][0]["fields"]["syntaxQueryRef"] == (
+        "semantic-tree-sitter-query/python-owner-items.v1"
+    )

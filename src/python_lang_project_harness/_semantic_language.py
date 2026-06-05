@@ -113,10 +113,13 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
                 "command": "query",
                 "input": "owner-path",
                 "requiredOptions": ["--from-hook", "--selector"],
-                "outputSchemaIds": [ids.SEMANTIC_QUERY_PACKET_SCHEMA_ID],
+                "outputSchemaIds": [
+                    ids.SEMANTIC_QUERY_PACKET_SCHEMA_ID,
+                    ids.SEMANTIC_READ_PACKET_SCHEMA_ID,
+                ],
                 "supportsJson": True,
                 "supportsCompact": True,
-                "outputModes": ["compact", "json", "names"],
+                "outputModes": ["compact", "json", "code", "names", "read-packet"],
             },
         ]
     )

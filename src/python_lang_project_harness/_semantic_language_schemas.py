@@ -25,6 +25,11 @@ def python_semantic_language_schemas() -> list[dict[str, str]]:
             "path": "schemas/semantic-read-packet.v1.schema.json",
         },
         {
+            "schemaId": ids.SEMANTIC_TREE_SITTER_PROVENANCE_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-tree-sitter-provenance.v1.schema.json",
+        },
+        {
             "schemaId": ids.SEMANTIC_GRAPH_SCHEMA_ID,
             "schemaVersion": "1",
             "path": "schemas/semantic-graph.v1.schema.json",

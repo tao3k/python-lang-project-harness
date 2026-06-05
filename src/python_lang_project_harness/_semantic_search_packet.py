@@ -32,6 +32,7 @@ def build_python_semantic_search_packet(
     _attach_reasoning_profiles(packet, options)
     _attach_runtime_cost(packet, options)
     _attach_payload_optionals(packet, payload)
+    _attach_syntax_refs(packet, payload)
     return _normalize_packet_locations(packet)
 
 
@@ -119,6 +120,20 @@ def _attach_payload_optionals(packet: dict[str, Any], payload: dict[str, Any]) -
     ):
         if payload.get(optional_key) is not None:
             packet[optional_key] = payload[optional_key]
+
+
+def _attach_syntax_refs(packet: dict[str, Any], payload: dict[str, Any]) -> None:
+    items = payload.get("items")
+    if not isinstance(items, list):
+        return
+
+    from ._semantic_syntax_refs import (
+        annotate_python_owner_item_syntax_refs,
+        attach_python_syntax_refs,
+    )
+
+    syntax_refs = annotate_python_owner_item_syntax_refs(items)
+    attach_python_syntax_refs(packet, syntax_refs)
 
 
 def _base_python_search_packet(

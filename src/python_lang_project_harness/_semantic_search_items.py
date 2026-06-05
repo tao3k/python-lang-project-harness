@@ -100,7 +100,13 @@ def owner_item_semantic_query_packet(
         }
         import_routes = []
     terms = _query_terms(item_query)
-    return {
+    from ._semantic_syntax_refs import (
+        annotate_python_owner_item_syntax_refs,
+        attach_python_syntax_refs,
+    )
+
+    syntax_refs = annotate_python_owner_item_syntax_refs(items)
+    packet = {
         "schemaId": ids.SEMANTIC_QUERY_PACKET_SCHEMA_ID,
         "schemaVersion": "1",
         "protocolId": ids.SEMANTIC_LANGUAGE_PROTOCOL_ID,
@@ -139,6 +145,8 @@ def owner_item_semantic_query_packet(
         ),
         "notes": payload.get("notes", []),
     }
+    attach_python_syntax_refs(packet, syntax_refs)
+    return packet
 
 
 def _module_for_owner(
@@ -287,6 +295,10 @@ def _semantic_query_match(
             "reason": str(fields.get("reason", "item-query")),
         },
     }
+    for syntax_key in ("syntaxQueryRef", "syntaxMatchRef", "syntaxCaptureRef"):
+        syntax_value = fields.get(syntax_key)
+        if isinstance(syntax_value, str):
+            match["fields"][syntax_key] = syntax_value
     code = fields.get("code")
     if include_code and isinstance(code, str):
         match["code"] = code

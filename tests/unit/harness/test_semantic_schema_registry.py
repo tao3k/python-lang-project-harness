@@ -14,6 +14,7 @@ def test_package_local_semantic_schemas_stay_synchronized() -> None:
         "semantic-search-packet.v1.schema.json",
         "semantic-query-packet.v1.schema.json",
         "semantic-read-packet.v1.schema.json",
+        "semantic-tree-sitter-provenance.v1.schema.json",
         "semantic-tree-sitter-query.v1.schema.json",
         "semantic-tree-sitter-grammar-profile.v1.schema.json",
         "semantic-graph.v1.schema.json",
