@@ -101,12 +101,16 @@ def test_cli_agent_guide_prints_provider_owned_searchflow(tmp_path: Path) -> Non
     assert (
         "|catalog reasoningProfiles=owner-query,query-deps,owner-tests,"
         "finding-frontier,feature-cfg entries=owner-query,query-deps,owner-tests "
-        "routes=read-frontier"
+        "routes=read-frontier,syntax-locate,syntax-code,query-code"
     ) in rendered
-    assert f"|cmd asp python search prime --view seeds {tmp_path}" in rendered
+    assert "|route syntax-locate selectors=S:tree-sitter-query,R:range" in rendered
     assert (
-        f"|cmd asp python search owner <owner-path> --view seeds {tmp_path}" in rendered
+        "|route syntax-code selectors=S:tree-sitter-query,R:exact-selector" in rendered
     )
+    assert "|route query-code selectors=O:owner,Q:symbol" in rendered
+    assert "|cmd prime=asp python search prime --view seeds ." in rendered
+    assert f"|cmd asp python search prime --view seeds {tmp_path}" not in rendered
+    assert "|cmd owner=asp python search owner <owner-path> --view seeds ." in rendered
     assert "asp python search owner <owner-path> items --query <symbol|a|b>" in rendered
     assert (
         "asp python query --from-hook direct-source-read --selector <selector> "

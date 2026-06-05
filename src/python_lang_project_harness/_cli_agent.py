@@ -6,50 +6,79 @@ from pathlib import Path
 
 
 def render_agent_guide(project_root: Path) -> str:
-    root = str(project_root)
+    project = str(project_root)
+    root = "."
     return (
         "\n".join(
             (
-                f"[py-harness-guide] project={root}",
+                f"[py-harness-guide] project={project}",
                 (
                     "|catalog reasoningProfiles=owner-query,query-deps,owner-tests,"
                     "finding-frontier,feature-cfg entries=owner-query,query-deps,"
-                    "owner-tests routes=read-frontier"
+                    "owner-tests routes=read-frontier,syntax-locate,syntax-code,"
+                    "query-code"
                 ),
-                f"|cmd asp python search prime --view seeds {root}",
-                f"|cmd asp python search owner <owner-path> --view seeds {root}",
-                f"|cmd asp python query <owner-path> --term <symbol> --names-only {root}",
-                f"|cmd asp python query <owner-path> --term <symbol> --code {root}",
-                f"|cmd asp python query --catalog declarations --json {root}",
+                "|flow prime->owner|syntax-locate|query-code|deps|tests "
+                "pipe=fzf:tests ingest=stdin",
                 (
-                    f"|cmd asp python query --treesitter-query "
+                    f"|route syntax-locate selectors=S:tree-sitter-query,R:range "
+                    f"returns=locator,capture,frontier code=false cmd=asp python "
+                    f"query --treesitter-query "
                     f"'(function_definition name: (identifier) @function.name)' "
                     f"--selector <path[:line|:start:end]> {root}"
                 ),
                 (
-                    f"|cmd asp python query --treesitter-query "
+                    f"|route syntax-code selectors=S:tree-sitter-query,R:exact-selector "
+                    f"returns=code code=pure cmd=asp python query --treesitter-query "
                     f"'(function_definition name: (identifier) @function.name)' "
                     f"--selector <path[:line|:start:end]> --code {root}"
                 ),
                 (
-                    f"|cmd asp python search owner <owner-path> items "
+                    f"|route read-plan selectors=R:selector,T:term "
+                    f"returns=owners,tests,window-set code=false cmd=asp python "
+                    f"query --from-hook direct-source-read --selector <selector> "
+                    f"--term <term> --surface owners,tests --view seeds {root}"
+                ),
+                (
+                    f"|route query-code selectors=O:owner,Q:symbol returns=code "
+                    f"code=pure cmd=asp python query <owner-path> --term <symbol> "
+                    f"--code {root}"
+                ),
+                f"|cmd prime=asp python search prime --view seeds {root}",
+                f"|cmd owner=asp python search owner <owner-path> --view seeds {root}",
+                f"|cmd names=asp python query <owner-path> --term <symbol> --names-only {root}",
+                f"|cmd query-code=asp python query <owner-path> --term <symbol> --code {root}",
+                f"|cmd catalog-json=asp python query --catalog declarations --json {root}",
+                (
+                    f"|cmd syntax-locate=asp python query --treesitter-query "
+                    f"'(function_definition name: (identifier) @function.name)' "
+                    f"--selector <path[:line|:start:end]> {root}"
+                ),
+                (
+                    f"|cmd syntax-code=asp python query --treesitter-query "
+                    f"'(function_definition name: (identifier) @function.name)' "
+                    f"--selector <path[:line|:start:end]> --code {root}"
+                ),
+                (
+                    f"|cmd owner-items-code=asp python search owner <owner-path> items "
                     f"--query <symbol|a|b> --code {root}"
                 ),
                 (
-                    f"|cmd asp python search policy <rule-id-or-alias> "
+                    f"|cmd policy=asp python search policy <rule-id-or-alias> "
                     f"owner tests --view seeds {root}"
                 ),
                 (
-                    f"|cmd asp python query --from-hook direct-source-read "
+                    f"|cmd read-plan=asp python query --from-hook direct-source-read "
                     f"--selector <selector> --term <term> --surface owners,tests "
                     f"--view seeds {root}"
                 ),
-                f"|cmd asp python search fzf <query> owner tests --view seeds {root}",
-                f"|cmd asp python ast-patch dry-run --packet <semantic-ast-patch.json|-> {root}",
-                f"|cmd asp python search deps <pkg[@ver][::api]> {root}",
+                f"|cmd fzf=asp python search fzf <query> owner tests --view seeds {root}",
+                f"|cmd ast-patch=asp python ast-patch dry-run --packet <semantic-ast-patch.json|-> {root}",
+                f"|cmd deps=asp python search deps <pkg[@ver][::api]> {root}",
                 f"|pipe <candidate-lines> | asp python search ingest --view seeds {root}",
-                f"|cmd asp python check --changed {root}",
+                f"|cmd check=asp python check --changed {root}",
                 "|rule agent hook install/runtime is owned by asp",
+                "|rule run guide commands from project root; trailing . is the project root",
                 (
                     "|rule syntax query ABI is compiled by asp; provider projects "
                     "native parser facts into tree-sitter-compatible captures"

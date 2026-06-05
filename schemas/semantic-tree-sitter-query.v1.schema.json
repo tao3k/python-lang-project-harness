@@ -140,6 +140,43 @@
     "lineRange": {
       "$ref": "semantic-source-location.v1.schema.json#/$defs/lineRange"
     },
+    "location": {
+      "$ref": "semantic-source-location.v1.schema.json#/$defs/location"
+    },
+    "sourceLocator": {
+      "$ref": "semantic-source-location.v1.schema.json#/$defs/sourceLocator"
+    },
+    "sourceSpanLocator": {
+      "$ref": "semantic-source-location.v1.schema.json#/$defs/sourceSpanLocator"
+    },
+    "sourceLocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "lineRange",
+        "location",
+        "sourceLocator",
+        "sourceSpanLocator"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/projectPath"
+        },
+        "lineRange": {
+          "$ref": "#/$defs/lineRange"
+        },
+        "location": {
+          "$ref": "#/$defs/location"
+        },
+        "sourceLocator": {
+          "$ref": "#/$defs/sourceLocator"
+        },
+        "sourceSpanLocator": {
+          "$ref": "#/$defs/sourceSpanLocator"
+        }
+      }
+    },
     "range": {
       "type": "object",
       "additionalProperties": false,
@@ -264,6 +301,9 @@
         "range": {
           "$ref": "#/$defs/range"
         },
+        "sourceLocation": {
+          "$ref": "#/$defs/sourceLocation"
+        },
         "captures": {
           "type": "array",
           "minItems": 1,
@@ -323,6 +363,9 @@
         },
         "range": {
           "$ref": "#/$defs/range"
+        },
+        "sourceLocation": {
+          "$ref": "#/$defs/sourceLocation"
         },
         "predicateRefs": {
           "type": "array",

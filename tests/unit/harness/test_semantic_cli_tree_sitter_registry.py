@@ -40,6 +40,7 @@ def test_agent_guide_lists_tree_sitter_query_entrypoint(tmp_path: Path) -> None:
     exit_code = run_cli(["agent", "guide", str(tmp_path)], stdout=stdout)
 
     assert exit_code == 0
-    assert f"|cmd asp python query --catalog declarations --json {tmp_path}" in (
-        stdout.getvalue()
+    assert (
+        "|cmd catalog-json=asp python query --catalog declarations --json ."
+        in stdout.getvalue()
     )
