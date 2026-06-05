@@ -6,7 +6,6 @@ import ast
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ._python_compact import compact_python_item
 from ._python_expr import _expr
 from ._semantic_search_common import display_path
 from ._tree_sitter_query_model import (
@@ -24,10 +23,33 @@ from ._tree_sitter_query_predicates import (
     SyntaxQueryPredicate,
     syntax_predicates_match,
 )
+from ._tree_sitter_query_projection_capture import (
+    call_capture as _call_capture,
+)
+from ._tree_sitter_query_projection_capture import (
+    call_capture_node as _call_capture_node,
+)
+from ._tree_sitter_query_projection_capture import (
+    capture_field as _capture_field,
+)
+from ._tree_sitter_query_projection_capture import (
+    capture_node_type as _capture_node_type,
+)
+from ._tree_sitter_query_projection_capture import (
+    decorator_capture as _decorator_capture,
+)
+from ._tree_sitter_query_projection_capture import (
+    first_capture as _first_capture,
+)
+from ._tree_sitter_query_projection_source import (
+    ResolvedSelectorSource,
+    SyntaxSource,
+    effective_selector,
+    resolve_selector_source,
+    syntax_sources,
+)
 
 if TYPE_CHECKING:
-    from python_lang_parser import PythonModuleReport
-
     from ._model import PythonHarnessReport
 
 
@@ -36,6 +58,7 @@ def project_tree_sitter_query(
     project_root: Path,
     query_node_types: tuple[str, ...],
     captures: tuple[str, ...],
+    fields: tuple[str, ...],
     predicates: tuple[SyntaxQueryPredicate, ...],
     terms: list[str],
     selector: SyntaxQuerySelector | None,
@@ -52,17 +75,20 @@ def project_tree_sitter_query(
         if not active_nodes
         else []
     )
+    resolved_selector_source = resolve_selector_source(project_root, selector)
     rows: list[SyntaxQueryRow] = []
-    for module in report.modules:
+    for source in syntax_sources(report, resolved_selector_source):
         rows.extend(
             _module_syntax_query_rows(
-                module,
+                source,
                 project_root,
                 active_nodes,
                 captures,
+                fields,
                 predicates,
                 terms,
                 selector,
+                resolved_selector_source,
             )
         )
     rows.sort(key=lambda row: (row.path, row.item_start_line, row.start_line, row.name))
@@ -76,45 +102,56 @@ def project_tree_sitter_query(
 
 
 def _module_syntax_query_rows(
-    module: PythonModuleReport,
+    module: SyntaxSource,
     project_root: Path,
     active_nodes: frozenset[str],
     captures: tuple[str, ...],
+    fields: tuple[str, ...],
     predicates: tuple[SyntaxQueryPredicate, ...],
     terms: list[str],
     selector: SyntaxQuerySelector | None,
+    resolved_selector_source: ResolvedSelectorSource | None,
 ) -> list[SyntaxQueryRow]:
     if module.path is None:
         return []
     owner_path = display_path(module.path, project_root)
-    if selector is not None and selector.path != owner_path:
-        return []
+    effective = effective_selector(
+        owner_path,
+        selector,
+        module,
+        resolved_selector_source,
+    )
     try:
         tree = ast.parse("\n".join(module.source_lines))
     except SyntaxError:
         return []
     rows: list[SyntaxQueryRow] = []
     for node in ast.walk(tree):
-        row = _row_for_ast_node(module, owner_path, active_nodes, captures, node)
+        row = _row_for_ast_node(
+            module, owner_path, active_nodes, captures, fields, node
+        )
         if row is not None:
             rows.append(row)
         rows.extend(
-            _rows_for_ast_node_extras(module, owner_path, active_nodes, captures, node)
+            _rows_for_ast_node_extras(
+                module, owner_path, active_nodes, captures, fields, node
+            )
         )
     return [
         row
         for row in rows
-        if selector_matches(row, selector)
+        if selector_matches(row, effective)
         and terms_match(row, terms)
         and syntax_predicates_match(row, predicates)
     ]
 
 
 def _row_for_ast_node(
-    module: PythonModuleReport,
+    module: SyntaxSource,
     owner_path: str,
     active_nodes: frozenset[str],
     captures: tuple[str, ...],
+    fields: tuple[str, ...],
     node: ast.AST,
 ) -> SyntaxQueryRow | None:
     if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
@@ -128,6 +165,7 @@ def _row_for_ast_node(
             name=node.name,
             node=node,
             item_node=node,
+            fields=fields,
         )
     if isinstance(node, ast.ClassDef):
         if "class_definition" not in active_nodes:
@@ -140,42 +178,51 @@ def _row_for_ast_node(
             name=node.name,
             node=node,
             item_node=node,
+            fields=fields,
         )
     if isinstance(node, ast.Call) and "call" in active_nodes:
+        capture = _call_capture(captures, node)
         return _syntax_row(
             module,
             owner_path,
-            capture=_call_capture(captures, node),
+            capture=capture,
             node_type="call",
             name=_expr(node.func),
-            node=node,
+            node=_call_capture_node(capture, node),
             item_node=node,
+            fields=fields,
         )
-    return _import_or_control_row(module, owner_path, active_nodes, captures, node)
+    return _import_or_control_row(
+        module, owner_path, active_nodes, captures, fields, node
+    )
 
 
 def _rows_for_ast_node_extras(
-    module: PythonModuleReport,
+    module: SyntaxSource,
     owner_path: str,
     active_nodes: frozenset[str],
     captures: tuple[str, ...],
+    fields: tuple[str, ...],
     node: ast.AST,
 ) -> list[SyntaxQueryRow]:
     rows: list[SyntaxQueryRow] = []
     if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
         if "decorator" in active_nodes or "decorated_definition" in active_nodes:
             rows.extend(
-                _decorator_rows(module, owner_path, captures, node, node.decorator_list)
+                _decorator_rows(
+                    module, owner_path, captures, fields, node, node.decorator_list
+                )
             )
     if isinstance(node, ast.Call) and "keyword_argument" in active_nodes:
-        rows.extend(_keyword_rows(module, owner_path, captures, node))
+        rows.extend(_keyword_rows(module, owner_path, captures, fields, node))
     return rows
 
 
 def _decorator_rows(
-    module: PythonModuleReport,
+    module: SyntaxSource,
     owner_path: str,
     captures: tuple[str, ...],
+    fields: tuple[str, ...],
     item_node: ast.AST,
     decorators: list[ast.expr],
 ) -> list[SyntaxQueryRow]:
@@ -189,6 +236,7 @@ def _decorator_rows(
             name=_expr(decorator),
             node=decorator,
             item_node=item_node,
+            fields=fields,
         )
         if row is not None:
             rows.append(row)
@@ -196,9 +244,10 @@ def _decorator_rows(
 
 
 def _keyword_rows(
-    module: PythonModuleReport,
+    module: SyntaxSource,
     owner_path: str,
     captures: tuple[str, ...],
+    fields: tuple[str, ...],
     call: ast.Call,
 ) -> list[SyntaxQueryRow]:
     rows: list[SyntaxQueryRow] = []
@@ -213,6 +262,7 @@ def _keyword_rows(
             name=keyword.arg,
             node=keyword.value,
             item_node=call,
+            fields=fields,
         )
         if row is not None:
             rows.append(row)
@@ -220,10 +270,11 @@ def _keyword_rows(
 
 
 def _import_or_control_row(
-    module: PythonModuleReport,
+    module: SyntaxSource,
     owner_path: str,
     active_nodes: frozenset[str],
     captures: tuple[str, ...],
+    fields: tuple[str, ...],
     node: ast.AST,
 ) -> SyntaxQueryRow | None:
     if isinstance(node, ast.Import) and "import_statement" in active_nodes:
@@ -235,9 +286,10 @@ def _import_or_control_row(
             name=", ".join(alias.asname or alias.name for alias in node.names),
             node=node,
             item_node=node,
+            fields=fields,
         )
     if isinstance(node, ast.ImportFrom) and "import_from_statement" in active_nodes:
-        return _import_from_row(module, owner_path, captures, node)
+        return _import_from_row(module, owner_path, captures, fields, node)
     control = _control_row_spec(active_nodes, captures, node)
     if control is None:
         return None
@@ -250,13 +302,15 @@ def _import_or_control_row(
         name=_expr(name_node),
         node=name_node,
         item_node=node,
+        fields=fields,
     )
 
 
 def _import_from_row(
-    module: PythonModuleReport,
+    module: SyntaxSource,
     owner_path: str,
     captures: tuple[str, ...],
+    fields: tuple[str, ...],
     node: ast.ImportFrom,
 ) -> SyntaxQueryRow | None:
     module_name = "." * node.level + (node.module or "")
@@ -272,6 +326,7 @@ def _import_from_row(
         name=name,
         node=node,
         item_node=node,
+        fields=fields,
     )
 
 
@@ -317,7 +372,7 @@ def _control_row_spec(
 
 
 def _syntax_row(
-    module: PythonModuleReport,
+    module: SyntaxSource,
     owner_path: str,
     *,
     capture: str | None,
@@ -325,13 +380,16 @@ def _syntax_row(
     name: str,
     node: ast.AST,
     item_node: ast.AST,
+    fields: tuple[str, ...],
 ) -> SyntaxQueryRow | None:
     if capture is None:
         return None
-    start_line, end_line = node_span(node)
+    start_line, end_line = _capture_span(node, capture)
     item_start_line, item_end_line = node_span(item_node)
     return SyntaxQueryRow(
         capture=capture,
+        capture_node=_capture_node_type(node_type, capture, node),
+        capture_field=_capture_field(capture, fields),
         node=node_type,
         name=name,
         path=owner_path,
@@ -339,40 +397,23 @@ def _syntax_row(
         end_line=end_line,
         item_start_line=item_start_line,
         item_end_line=item_end_line,
-        item_code=_compact_item_code(
-            module, owner_path, item_start_line, item_end_line
-        ),
+        item_code=_exact_item_code(module, item_start_line, item_end_line),
     )
 
 
-def _compact_item_code(
-    module: PythonModuleReport,
-    owner_path: str,
+def _capture_span(node: ast.AST, capture: str) -> tuple[int, int]:
+    start_line, end_line = node_span(node)
+    if capture.endswith(".name") or capture.endswith(".keyword"):
+        return start_line, start_line
+    return start_line, end_line
+
+
+def _exact_item_code(
+    module: SyntaxSource,
     start_line: int,
     end_line: int,
 ) -> str:
     raw_lines = module.source_lines[start_line - 1 : end_line]
-    return compact_python_item(raw_lines, owner_path, start_line).code
-
-
-def _first_capture(captures: tuple[str, ...], *preferred: str) -> str | None:
-    for capture in preferred:
-        if capture in captures:
-            return capture
-    return captures[0] if captures else None
-
-
-def _call_capture(captures: tuple[str, ...], node: ast.Call) -> str | None:
-    if isinstance(node.func, ast.Attribute):
-        capture = _first_capture(captures, "call.method", "call.target")
-        if capture is not None:
-            return capture
-    return _first_capture(captures, "call.target", "call.expression")
-
-
-def _decorator_capture(captures: tuple[str, ...], node: ast.AST) -> str | None:
-    if isinstance(node, ast.Call):
-        capture = _first_capture(captures, "decorator.call", "decorator.expression")
-        if capture is not None:
-            return capture
-    return _first_capture(captures, "decorator.expression", "decorator.target")
+    if not raw_lines:
+        return ""
+    return "\n".join(raw_lines)

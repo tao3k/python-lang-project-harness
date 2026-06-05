@@ -27,6 +27,7 @@ IGNORED_DIR_NAMES = frozenset(
         "venv",
     }
 )
+INCLUDE_HIDDEN_DIR_NAMES = frozenset[str]()
 DEFAULT_BLOCKING_SEVERITIES = frozenset(
     {
         PythonDiagnosticSeverity.ERROR,

@@ -137,6 +137,7 @@ def python_search_view_descriptors() -> list[dict[str, Any]]:
         _view(
             "ingest",
             accepts_stdin=True,
+            accepted_pipes=["items", "tests"],
             capabilities=[
                 _semantic("external-candidate-ingest"),
                 _semantic("stdin-shape-detection"),

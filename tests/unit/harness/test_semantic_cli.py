@@ -103,10 +103,14 @@ def test_cli_agent_guide_prints_provider_owned_searchflow(tmp_path: Path) -> Non
         "finding-frontier,feature-cfg entries=owner-query,query-deps,owner-tests "
         "routes=read-frontier,syntax-locate,syntax-code,query-code"
     ) in rendered
-    assert "|route syntax-locate selectors=S:tree-sitter-query,R:range" in rendered
     assert (
-        "|route syntax-code selectors=S:tree-sitter-query,R:exact-selector" in rendered
-    )
+        "|route syntax-locate selectors=S:tree-sitter-query,R:range "
+        "returns=locator,capture,frontier code=false"
+    ) in rendered
+    assert (
+        "|route syntax-code selectors=S:tree-sitter-query,R:exact-selector "
+        "returns=code code=pure"
+    ) in rendered
     assert "|route query-code selectors=O:owner,Q:symbol" in rendered
     assert "|cmd prime=asp python search prime --view seeds ." in rendered
     assert f"|cmd asp python search prime --view seeds {tmp_path}" not in rendered

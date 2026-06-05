@@ -42,6 +42,9 @@ def render_direct_read_packet(
     selector: str,
     selector_range: tuple[int, int],
     windows: list[dict[str, Any]],
+    source_version: str,
+    repository_root: str | None = None,
+    git_blob_oid: str | None = None,
 ) -> dict[str, Any]:
     """Return the structured read packet for an exact direct-source-read."""
 
@@ -56,6 +59,7 @@ def render_direct_read_packet(
         "namespace": "agent.semantic-protocols.languages.python.py-harness",
         "method": "query/direct-source-read",
         "projectRoot": str(project_root),
+        "sourceVersion": source_version,
         "ownerPath": owner_path,
         "selector": selector,
         "fromHook": "direct-source-read",
@@ -63,6 +67,10 @@ def render_direct_read_packet(
         "truncated": False,
         "notes": [],
     }
+    if repository_root is not None:
+        packet["repositoryRoot"] = repository_root
+    if git_blob_oid is not None:
+        packet["gitBlobOid"] = git_blob_oid
     outline_reason = _direct_read_outline_reason(selector_range, windows)
     if outline_reason is None:
         packet["sourceWindows"] = [

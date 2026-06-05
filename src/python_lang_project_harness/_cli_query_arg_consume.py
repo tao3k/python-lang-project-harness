@@ -15,6 +15,8 @@ from ._tree_sitter_query_predicates import SyntaxQueryPredicate
 QUERY_USAGE = (
     "usage: py-harness query <owner-path> --term <symbol> "
     "[--term <symbol>] [--names-only] [--json] [--package PATH] [PROJECT_ROOT]; "
+    "or py-harness query --from-hook direct-source-read --selector PATH:START:END "
+    "[--source worktree|index|head] [--code] [PROJECT_ROOT]; "
     "or py-harness query (--catalog ID | --treesitter-query EXPR) [--json] [PROJECT_ROOT]"
 )
 
@@ -43,6 +45,7 @@ class QueryParseState:
         default_factory=list
     )
     render_mode: str | None = None
+    source_version: str = "worktree"
     terms: list[str] = field(default_factory=list)
     surfaces: list[str] = field(default_factory=list)
     positionals: list[str] = field(default_factory=list)
@@ -78,6 +81,7 @@ def consume_query_arg(
         "--selector",
         "--package",
         "--catalog",
+        "--source",
         "--treesitter-query",
         "--asp-syntax-query-captures",
         "--asp-syntax-query-node-types",
@@ -134,6 +138,11 @@ def _consume_query_option(
             state.selector = value
         case "--catalog":
             state.catalog = value
+        case "--source":
+            source_version, error = normalize_query_source_version(value)
+            if error is not None:
+                return ProtocolArgError(error)
+            state.source_version = source_version
         case "--treesitter-query":
             state.tree_sitter_query = value
         case "--asp-syntax-query-captures":
@@ -160,12 +169,22 @@ def _query_option_value_name(arg: str) -> str:
         "--selector": "an owner path",
         "--package": "a package path",
         "--catalog": "a catalog id",
+        "--source": "worktree, index, or head",
         "--treesitter-query": "a tree-sitter query expression",
         "--asp-syntax-query-captures": "an ASP query capture list",
         "--asp-syntax-query-node-types": "an ASP query node-type list",
         "--asp-syntax-query-fields": "an ASP query field list",
         "--asp-syntax-query-predicates-json": "an ASP query predicate JSON array",
     }[arg]
+
+
+def normalize_query_source_version(value: str | None) -> tuple[str, str | None]:
+    if value in {"worktree", "index", "head"}:
+        return value, None
+    return (
+        "worktree",
+        f"unknown query --source value: {value}; expected worktree, index, or head",
+    )
 
 
 def _split_asp_syntax_query_plan_list(value: str) -> list[str]:

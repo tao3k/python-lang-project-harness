@@ -15,6 +15,7 @@ from python_lang_project_harness import (
     discover_python_files,
     render_python_lang_harness,
     run_python_lang_harness,
+    run_python_project_harness,
 )
 
 if TYPE_CHECKING:
@@ -40,6 +41,35 @@ def test_discover_python_files_skips_cache_dirs(tmp_path: Path) -> None:
     data_ignored.write_text("VALUE = 4\n", encoding="utf-8")
 
     assert discover_python_files([tmp_path]) == (good,)
+
+
+def test_discover_python_files_skips_hidden_dirs_by_default(tmp_path: Path) -> None:
+    src = tmp_path / "src"
+    hidden = tmp_path / ".devenv"
+    src.mkdir()
+    hidden.mkdir()
+    good = src / "good.py"
+    ignored = hidden / "ignored.py"
+    good.write_text("VALUE = 1\n", encoding="utf-8")
+    ignored.write_text("VALUE = 2\n", encoding="utf-8")
+
+    assert discover_python_files([tmp_path]) == (good,)
+
+
+def test_asp_toml_can_include_hidden_python_dirs(tmp_path: Path) -> None:
+    hidden = tmp_path / ".agent-fixtures"
+    hidden.mkdir()
+    fixture = hidden / "fixture.py"
+    fixture.write_text("VALUE = 1\n", encoding="utf-8")
+    (tmp_path / "asp.toml").write_text(
+        '[discovery]\nincludeHiddenDirNames = [".agent-fixtures"]\n',
+        encoding="utf-8",
+    )
+
+    report = run_python_project_harness(tmp_path)
+
+    assert report.file_count == 1
+    assert report.modules[0].path == str(fixture)
 
 
 def test_discover_python_files_accepts_custom_ignored_dirs(tmp_path: Path) -> None:

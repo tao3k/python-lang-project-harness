@@ -32,6 +32,8 @@ class SyntaxQuerySelector:
 @dataclass(frozen=True)
 class SyntaxQueryRow:
     capture: str
+    capture_node: str
+    capture_field: str
     node: str
     name: str
     path: str
@@ -136,14 +138,22 @@ def parse_selector(selector: str | None) -> SyntaxQuerySelector | None:
 def selector_matches(row: SyntaxQueryRow, selector: SyntaxQuerySelector | None) -> bool:
     if selector is None:
         return True
-    if row.path != selector.path:
+    if not selector_path_matches(selector.path, row.path):
         return False
     if selector.start_line is None or selector.end_line is None:
         return True
     return (
+        row.end_line >= selector.start_line and row.start_line <= selector.end_line
+    ) or (
         row.item_end_line >= selector.start_line
         and row.item_start_line <= selector.end_line
     )
+
+
+def selector_path_matches(selector_path: str, row_path: str) -> bool:
+    normalized = selector_path.replace("\\", "/").removeprefix("./")
+    row_normalized = row_path.replace("\\", "/").removeprefix("./")
+    return normalized == row_normalized
 
 
 def terms_match(row: SyntaxQueryRow, terms: list[str]) -> bool:
@@ -169,7 +179,8 @@ def syntax_line_locator(path: str, start_line: int, end_line: int) -> str:
 
 def syntax_query_line_range(start_line: int, end_line: int) -> str:
     start = max(1, start_line)
-    return f"{start}:{max(start, end_line)}"
+    end = max(start, end_line)
+    return str(start) if start == end else f"{start}:{end}"
 
 
 def compact_value(value: str) -> str:

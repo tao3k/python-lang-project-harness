@@ -71,7 +71,7 @@ def test_compact_graph_profiles_filter_to_rendered_aliases() -> None:
 
     output = compact_graph_seed_packet_text(packet, _render_fields)
 
-    assert "alias: graph:{G=search,O=owner,T=test}" in output
+    assert "aliases: graph:{G=search,O=owner,T=test}" in output
     assert "entries=owner-tests(O=>covering-tests+test-entrypoints+fixtures)" in output
     assert "owner-query(" not in output
     assert "query-deps(" not in output

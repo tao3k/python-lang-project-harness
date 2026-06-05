@@ -26,10 +26,21 @@ def _run_search_harness(
     project_root: Path,
     args: ProtocolArgs,
 ) -> tuple[object, dict[str, object] | None]:
+    from ._rule_packs import resolve_project_harness_config
+
+    config = resolve_project_harness_config(
+        project_root,
+        None,
+        rule_packs=None,
+    )
     if args.command != "search" or args.view != "fzf":
         from ._runner import run_python_project_harness
 
-        return run_python_project_harness(project_root), None
+        return run_python_project_harness(project_root, config=config), None
+    if config.include_hidden_dir_names:
+        from ._runner import run_python_project_harness
+
+        return run_python_project_harness(project_root, config=config), None
     from ._semantic_search_prefilter import prefilter_python_text_search_paths
 
     query_terms = args.query_set or (() if args.query is None else (args.query,))
@@ -41,7 +52,7 @@ def _run_search_harness(
     if prefilter is None:
         from ._runner import run_python_project_harness
 
-        return run_python_project_harness(project_root), None
+        return run_python_project_harness(project_root, config=config), None
     return _run_prefiltered_text_search(project_root, prefilter.paths), (
         prefilter.runtime_cost()
     )

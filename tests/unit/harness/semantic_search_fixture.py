@@ -17,12 +17,12 @@ def compact_graph_renderer_available() -> bool:
     configured_bin = os.environ.get(SEMANTIC_AGENT_PROTOCOL_BIN_ENV)
     if configured_bin is not None:
         return Path(configured_bin).exists()
-    return shutil.which("semantic-agent-protocol") is not None
+    return shutil.which("asp") is not None
 
 
 def require_compact_graph_renderer() -> None:
     if not compact_graph_renderer_available():
-        pytest.skip("semantic-agent-protocol graph renderer is not available")
+        pytest.skip("asp graph renderer is not available")
 
 
 def write_search_fixture(project_root: Path) -> None:

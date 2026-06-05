@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ._constants import IGNORED_DIR_NAMES
+from ._constants import IGNORED_DIR_NAMES, INCLUDE_HIDDEN_DIR_NAMES
 from ._semantic_search_prefilter_process import run_prefilter_command
 
 if TYPE_CHECKING:
@@ -23,13 +23,18 @@ class PythonFilePathMatchScan:
     tool: str
 
 
-def list_python_files(project_root: Path) -> tuple[Path, ...]:
+def list_python_files(
+    project_root: Path,
+    *,
+    ignored_dir_names: frozenset[str] = IGNORED_DIR_NAMES,
+    include_hidden_dir_names: frozenset[str] = INCLUDE_HIDDEN_DIR_NAMES,
+) -> tuple[Path, ...]:
     """Return scannable Python files below a project root."""
 
     fd = shutil.which("fd") or shutil.which("fdfind")
     if fd is not None:
         process = run_prefilter_command(
-            _fd_python_files_command(fd),
+            _fd_python_files_command(fd, ignored_dir_names),
             cwd=project_root,
         )
         if process.returncode == 0:
@@ -39,7 +44,9 @@ def list_python_files(project_root: Path) -> tuple[Path, ...]:
             (
                 path.resolve()
                 for path in project_root.rglob("*.py")
-                if not _ignored(path, project_root)
+                if not _ignored(
+                    path, project_root, ignored_dir_names, include_hidden_dir_names
+                )
             ),
             key=lambda path: path.as_posix(),
         )
@@ -51,12 +58,17 @@ def python_file_path_matches_by_term(
     terms: Sequence[str],
     *,
     rg: str | None = None,
+    ignored_dir_names: frozenset[str] = IGNORED_DIR_NAMES,
+    include_hidden_dir_names: frozenset[str] = INCLUDE_HIDDEN_DIR_NAMES,
 ) -> PythonFilePathMatchScan:
     """Return Python file counts and path matches from one file-list pass."""
 
     normalized_terms = tuple(dict.fromkeys(term for term in terms if term))
     if rg is not None:
-        process = run_prefilter_command(_rg_python_files_command(rg), cwd=project_root)
+        process = run_prefilter_command(
+            _rg_python_files_command(rg, ignored_dir_names),
+            cwd=project_root,
+        )
         if process.returncode == 0:
             return _path_match_scan_from_output(
                 project_root,
@@ -66,7 +78,10 @@ def python_file_path_matches_by_term(
             )
     fd = shutil.which("fd") or shutil.which("fdfind")
     if fd is not None:
-        process = run_prefilter_command(_fd_python_files_command(fd), cwd=project_root)
+        process = run_prefilter_command(
+            _fd_python_files_command(fd, ignored_dir_names),
+            cwd=project_root,
+        )
         if process.returncode == 0:
             return _path_match_scan_from_output(
                 project_root,
@@ -74,7 +89,12 @@ def python_file_path_matches_by_term(
                 normalized_terms,
                 tool="fd+rg",
             )
-    return _path_match_scan_from_rglob(project_root, normalized_terms)
+    return _path_match_scan_from_rglob(
+        project_root,
+        normalized_terms,
+        ignored_dir_names=ignored_dir_names,
+        include_hidden_dir_names=include_hidden_dir_names,
+    )
 
 
 def paths_from_output(project_root: Path, stdout: str) -> tuple[Path, ...]:
@@ -133,12 +153,15 @@ def _path_match_scan_from_output(
 def _path_match_scan_from_rglob(
     project_root: Path,
     terms: Sequence[str],
+    *,
+    ignored_dir_names: frozenset[str],
+    include_hidden_dir_names: frozenset[str],
 ) -> PythonFilePathMatchScan:
     folded_terms = tuple((term, term.casefold()) for term in terms)
     matches_by_term: dict[str, set[str]] = {term: set() for term in terms}
     total_files = 0
     for path in project_root.rglob("*.py"):
-        if _ignored(path, project_root):
+        if _ignored(path, project_root, ignored_dir_names, include_hidden_dir_names):
             continue
         total_files += 1
         relative = path.relative_to(project_root).as_posix()
@@ -153,7 +176,7 @@ def _path_match_scan_from_rglob(
     )
 
 
-def _fd_python_files_command(fd: str) -> list[str]:
+def _fd_python_files_command(fd: str, ignored_dir_names: frozenset[str]) -> list[str]:
     return [
         fd,
         "--color",
@@ -162,13 +185,13 @@ def _fd_python_files_command(fd: str) -> list[str]:
         "f",
         "-e",
         "py",
-        *(_fd_excludes()),
+        *(_fd_excludes(ignored_dir_names)),
         ".",
         ".",
     ]
 
 
-def _rg_python_files_command(rg: str) -> list[str]:
+def _rg_python_files_command(rg: str, ignored_dir_names: frozenset[str]) -> list[str]:
     return [
         rg,
         "--color",
@@ -176,26 +199,37 @@ def _rg_python_files_command(rg: str) -> list[str]:
         "--files",
         "--glob",
         "*.py",
-        *(_rg_excludes()),
+        *(_rg_excludes(ignored_dir_names)),
         ".",
     ]
 
 
-def _fd_excludes() -> tuple[str, ...]:
+def _fd_excludes(ignored_dir_names: frozenset[str]) -> tuple[str, ...]:
     args: list[str] = []
-    for name in sorted(IGNORED_DIR_NAMES):
+    for name in sorted(ignored_dir_names):
         args.extend(("-E", name))
     return tuple(args)
 
 
-def _rg_excludes() -> tuple[str, ...]:
+def _rg_excludes(ignored_dir_names: frozenset[str]) -> tuple[str, ...]:
     args: list[str] = []
-    for name in sorted(IGNORED_DIR_NAMES):
+    for name in sorted(ignored_dir_names):
         args.extend(("--glob", f"!{name}/**"))
     return tuple(args)
 
 
-def _ignored(path: Path, project_root: Path) -> bool:
+def _ignored(
+    path: Path,
+    project_root: Path,
+    ignored_dir_names: frozenset[str],
+    include_hidden_dir_names: frozenset[str],
+) -> bool:
     return any(
-        part in IGNORED_DIR_NAMES for part in path.relative_to(project_root).parts
+        part in ignored_dir_names
+        or (
+            part.startswith(".")
+            and part not in {".", ".."}
+            and part not in include_hidden_dir_names
+        )
+        for part in path.relative_to(project_root).parts
     )

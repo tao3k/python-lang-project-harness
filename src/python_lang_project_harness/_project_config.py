@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tomllib
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -38,6 +39,26 @@ def read_python_project_harness_config(
     return PythonHarnessConfig(**_harness_config_kwargs(table))
 
 
+def apply_asp_project_discovery_config(
+    project_root: str | Path,
+    config: PythonHarnessConfig,
+) -> PythonHarnessConfig:
+    """Merge nearest `asp.toml` discovery settings into a harness config."""
+
+    table = _read_asp_discovery_table(Path(project_root))
+    if not table:
+        return config
+    ignored = _optional_string_frozenset(table, "ignoredDirNames")
+    included_hidden = _optional_string_frozenset(table, "includeHiddenDirNames")
+    return replace(
+        config,
+        ignored_dir_names=frozenset((*config.ignored_dir_names, *ignored)),
+        include_hidden_dir_names=frozenset(
+            (*config.include_hidden_dir_names, *included_hidden)
+        ),
+    )
+
+
 def _read_project_config_table(pyproject_path: Path) -> dict[str, Any] | None:
     if not pyproject_path.exists():
         return None
@@ -60,11 +81,42 @@ def _harness_config_kwargs(table: dict[str, Any]) -> dict[str, object]:
     _put_string_tuple(kwargs, table, "test_dir_names")
     _put_string_tuple(kwargs, table, "extra_path_names")
     _put_string_frozenset(kwargs, table, "ignored_dir_names")
+    _put_string_frozenset(kwargs, table, "include_hidden_dir_names")
     _put_string_frozenset(kwargs, table, "disabled_rule_ids")
     _put_string_frozenset(kwargs, table, "blocking_rule_ids")
     _put_severity_frozenset(kwargs, table, "blocking_severities")
     _put_verification_policy(kwargs, table)
     return kwargs
+
+
+def _read_asp_discovery_table(project_root: Path) -> dict[str, Any] | None:
+    config_path = _nearest_asp_toml(project_root)
+    if config_path is None:
+        return None
+    try:
+        payload = tomllib.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError, UnicodeDecodeError):
+        return None
+    table = _table(payload.get("discovery"))
+    return table or None
+
+
+def _nearest_asp_toml(project_root: Path) -> Path | None:
+    for candidate_root in (project_root, *project_root.parents):
+        candidate = candidate_root / "asp.toml"
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _optional_string_frozenset(
+    table: dict[str, Any],
+    key: str,
+) -> frozenset[str]:
+    value = table.get(key)
+    if value is None:
+        return frozenset()
+    return frozenset(_string_tuple(value, key=key))
 
 
 def _put_bool(

@@ -81,7 +81,7 @@ def parse_semantic_search_args(
         )
     if descriptor["requiresQuery"]:
         return _required_query_args(view, descriptor, state)
-    return _project_only_args(view, state)
+    return _project_only_args(view, descriptor, state)
 
 
 def _parse_search_option_state(
@@ -192,16 +192,21 @@ def _required_query_args(
 
 def _project_only_args(
     view: str,
+    descriptor: dict[str, object],
     state: _SearchOptionState,
 ) -> ParsedSemanticSearchArgs:
-    if len(state.positionals) > 1:
-        return ParsedSemanticSearchArgs(
-            error="expected at most one PROJECT_ROOT argument"
-        )
+    accepted_pipes = descriptor.get("acceptedPipes", ())
+    pipes, project_root, error = _parse_search_pipe_positionals(
+        state.positionals,
+        accepted_pipes if isinstance(accepted_pipes, tuple | list) else (),
+    )
+    if error is not None:
+        return ParsedSemanticSearchArgs(error=error)
     return ParsedSemanticSearchArgs(
         view=view,
-        project_root=None if not state.positionals else Path(state.positionals[0]),
+        project_root=None if project_root is None else Path(project_root),
         package_path=state.package_path,
+        pipes=tuple(pipes),
         json=state.json,
         code_only=state.code_only,
         render_mode=state.render_mode,
@@ -221,7 +226,10 @@ def _parse_search_pipe_positionals(
         index += 1
     remaining = positionals[index:]
     if len(remaining) > 1:
-        if not accepted_pipes:
+        looks_like_out_of_order_pipe = (
+            index < len(accepted_pipes) and remaining[0] in accepted_pipes
+        )
+        if not accepted_pipes or not looks_like_out_of_order_pipe:
             return pipes, remaining[0], "expected at most one PROJECT_ROOT argument"
         return (
             pipes,

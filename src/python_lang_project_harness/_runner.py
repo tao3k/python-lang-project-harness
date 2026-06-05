@@ -68,6 +68,8 @@ def run_python_project_harness(
             if extra_path_names is None
             else tuple(extra_path_names)
         ),
+        ignored_dir_names=selected_config.ignored_dir_names,
+        include_hidden_dir_names=selected_config.include_hidden_dir_names,
     )
     report = run_python_lang_harness(
         scope.monitored_paths,
@@ -157,6 +159,7 @@ def run_python_lang_harness(
         for path in discover_python_files(
             root_paths,
             ignored_dir_names=selected_config.ignored_dir_names,
+            include_hidden_dir_names=selected_config.include_hidden_dir_names,
         )
     )
     findings = tuple(

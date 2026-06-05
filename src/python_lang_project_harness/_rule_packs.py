@@ -9,7 +9,10 @@ from ._agent_policy import PythonAgentPolicyRulePack
 from ._model import PythonHarnessConfig, PythonLangRulePack, PythonRulePackDescriptor
 from ._modern_design import PythonModernDesignRulePack
 from ._modularity import PythonModularityRulePack
-from ._project_config import read_python_project_harness_config
+from ._project_config import (
+    apply_asp_project_discovery_config,
+    read_python_project_harness_config,
+)
 from ._project_policy import PythonProjectPolicyRulePack
 from ._syntax import PythonSyntaxRulePack
 from ._test_layout import PythonTestLayoutRulePack
@@ -70,7 +73,8 @@ def resolve_project_harness_config(
     selected_config = (
         read_python_project_harness_config(project_root) if config is None else config
     )
-    return resolve_harness_config(selected_config, rule_packs=rule_packs)
+    resolved = resolve_harness_config(selected_config, rule_packs=rule_packs)
+    return apply_asp_project_discovery_config(project_root, resolved)
 
 
 def selected_rule_packs(

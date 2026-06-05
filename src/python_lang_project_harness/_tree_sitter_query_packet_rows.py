@@ -59,8 +59,8 @@ def _syntax_query_capture_json(
     return {
         "id": f"capture.{index}",
         "name": row.capture,
-        "nodeType": row.node,
-        "field": _syntax_query_capture_field(row.capture),
+        "nodeType": row.capture_node,
+        "field": row.capture_field,
         "named": True,
         "range": {
             "path": row.path,
@@ -86,20 +86,6 @@ def _syntax_query_native_fact_ref(row: SyntaxQueryRow) -> str:
         f"python:ast:{row.path}:"
         f"{syntax_query_line_range(row.item_start_line, row.item_end_line)}:"
         f"{row.name}"
-    )
-
-
-def _syntax_query_capture_field(capture: str) -> str:
-    suffixes = {
-        ".name": "name",
-        ".target": "target",
-        ".condition": "condition",
-        ".iterable": "iterable",
-        ".keyword": "keyword",
-    }
-    return next(
-        (field for suffix, field in suffixes.items() if capture.endswith(suffix)),
-        "item",
     )
 
 

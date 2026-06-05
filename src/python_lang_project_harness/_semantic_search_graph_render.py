@@ -30,7 +30,7 @@ def render_compact_graph_packet(
     seed_limit: int = DEFAULT_GRAPH_SEED_LIMIT,
 ) -> str:
     command = [
-        os.environ.get(SEMANTIC_AGENT_PROTOCOL_BIN_ENV, "semantic-agent-protocol"),
+        os.environ.get(SEMANTIC_AGENT_PROTOCOL_BIN_ENV, "asp"),
         "graph",
         "render",
         "--packet",
@@ -50,15 +50,14 @@ def render_compact_graph_packet(
         )
     except FileNotFoundError as exc:
         raise CompactGraphRenderError(
-            "semantic-agent-protocol graph renderer not found; "
+            "asp graph renderer not found; "
             f"set {SEMANTIC_AGENT_PROTOCOL_BIN_ENV} or install "
-            "semantic-agent-protocol on PATH"
+            "asp on PATH"
         ) from exc
     except subprocess.CalledProcessError as exc:
         stderr = exc.stderr.strip()
         detail = f": {stderr}" if stderr else ""
         raise CompactGraphRenderError(
-            "semantic-agent-protocol graph render failed "
-            f"with exit code {exc.returncode}{detail}"
+            f"asp graph render failed with exit code {exc.returncode}{detail}"
         ) from exc
     return completed.stdout

@@ -22,6 +22,8 @@ def source_match_scores_by_term(
     project_root: Path,
     rg: str,
     terms: Sequence[str],
+    *,
+    ignored_dir_names: frozenset[str] = IGNORED_DIR_NAMES,
 ) -> dict[str, dict[str, int]]:
     """Return source-hit scores for all query terms using one rg scan."""
 
@@ -30,7 +32,7 @@ def source_match_scores_by_term(
         return {}
     folded_terms = tuple((term, term.casefold()) for term in normalized_terms)
     process = run_prefilter_command(
-        _rg_source_command(rg, normalized_terms),
+        _rg_source_command(rg, normalized_terms, ignored_dir_names),
         cwd=project_root,
     )
     if process.returncode not in {0, 1}:
@@ -83,7 +85,11 @@ def _matching_terms(
     )
 
 
-def _rg_source_command(rg: str, terms: Sequence[str]) -> list[str]:
+def _rg_source_command(
+    rg: str,
+    terms: Sequence[str],
+    ignored_dir_names: frozenset[str],
+) -> list[str]:
     expressions: list[str] = []
     for term in terms:
         expressions.extend(("-e", term))
@@ -98,15 +104,15 @@ def _rg_source_command(rg: str, terms: Sequence[str]) -> list[str]:
         "50",
         "--glob",
         "*.py",
-        *(_rg_excludes()),
+        *(_rg_excludes(ignored_dir_names)),
         *expressions,
         ".",
     ]
 
 
-def _rg_excludes() -> tuple[str, ...]:
+def _rg_excludes(ignored_dir_names: frozenset[str]) -> tuple[str, ...]:
     args: list[str] = []
-    for name in sorted(IGNORED_DIR_NAMES):
+    for name in sorted(ignored_dir_names):
         args.extend(("--glob", f"!{name}/**"))
     return tuple(args)
 

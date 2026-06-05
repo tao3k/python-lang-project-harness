@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ._constants import IGNORED_DIR_NAMES
+from ._constants import IGNORED_DIR_NAMES, INCLUDE_HIDDEN_DIR_NAMES
 from ._model import PythonProjectHarnessScope
 from ._project_metadata import read_python_project_metadata
 
@@ -17,17 +17,24 @@ def discover_python_files(
     paths: Sequence[str | Path],
     *,
     ignored_dir_names: Iterable[str] | None = None,
+    include_hidden_dir_names: Iterable[str] | None = None,
 ) -> tuple[Path, ...]:
     """Discover Python files below the provided paths."""
 
     ignored_names = (
         IGNORED_DIR_NAMES if ignored_dir_names is None else frozenset(ignored_dir_names)
     )
+    included_hidden_names = (
+        INCLUDE_HIDDEN_DIR_NAMES
+        if include_hidden_dir_names is None
+        else frozenset(include_hidden_dir_names)
+    )
     discovered: list[Path] = []
     seen: set[Path] = set()
     for candidate in _iter_python_file_candidates(
         paths,
         ignored_dir_names=ignored_names,
+        include_hidden_dir_names=included_hidden_names,
     ):
         _append_unique_path(discovered, seen, candidate)
     return tuple(sorted(discovered, key=lambda item: item.as_posix()))
@@ -37,6 +44,7 @@ def _iter_python_file_candidates(
     paths: Sequence[str | Path],
     *,
     ignored_dir_names: frozenset[str],
+    include_hidden_dir_names: frozenset[str],
 ) -> tuple[Path, ...]:
     candidates: list[Path] = []
     for raw_path in paths:
@@ -53,6 +61,7 @@ def _iter_python_file_candidates(
                     candidate,
                     scan_root=path,
                     ignored_dir_names=ignored_dir_names,
+                    include_hidden_dir_names=include_hidden_dir_names,
                 )
             )
     return tuple(candidates)
@@ -84,10 +93,20 @@ def python_project_harness_scope(
     source_dir_names: Sequence[str] = ("src",),
     test_dir_names: Sequence[str] = ("tests",),
     extra_path_names: Sequence[str] = (),
+    ignored_dir_names: Iterable[str] | None = None,
+    include_hidden_dir_names: Iterable[str] | None = None,
 ) -> PythonProjectHarnessScope:
     """Return the default project-wide monitoring scope."""
 
     root = Path(project_root)
+    ignored_names = (
+        IGNORED_DIR_NAMES if ignored_dir_names is None else frozenset(ignored_dir_names)
+    )
+    included_hidden_names = (
+        INCLUDE_HIDDEN_DIR_NAMES
+        if include_hidden_dir_names is None
+        else frozenset(include_hidden_dir_names)
+    )
     metadata = read_python_project_metadata(root)
     metadata_package_roots = () if metadata is None else metadata.package_roots
     source_paths = _source_paths(root, source_dir_names, metadata_package_roots)
@@ -102,6 +121,8 @@ def python_project_harness_scope(
         test_paths=test_paths,
         test_dir_names=test_dir_names,
         metadata_package_roots=metadata_package_roots,
+        ignored_dir_names=ignored_names,
+        include_hidden_dir_names=included_hidden_names,
     )
     return PythonProjectHarnessScope(
         project_root=root,
@@ -122,6 +143,8 @@ def _project_scan_paths(
     test_paths: tuple[Path, ...],
     test_dir_names: Sequence[str],
     metadata_package_roots: tuple[Path, ...],
+    ignored_dir_names: frozenset[str],
+    include_hidden_dir_names: frozenset[str],
 ) -> tuple[Path, ...]:
     external_package_roots = _external_package_roots(root, metadata_package_roots)
     if metadata_package_roots:
@@ -141,7 +164,11 @@ def _project_scan_paths(
         child
         for child in sorted(root.iterdir(), key=lambda path: path.as_posix())
         if child.name not in excluded_test_dir_names
-        and child.name not in IGNORED_DIR_NAMES
+        and not _ignored_path_part(
+            child.name,
+            ignored_dir_names,
+            include_hidden_dir_names,
+        )
         and (child.suffix == ".py" or child.is_dir())
     ]
     return _dedupe_paths((*candidates, *external_package_roots))
@@ -184,13 +211,27 @@ def is_scannable_python_file(
     *,
     scan_root: Path,
     ignored_dir_names: frozenset[str],
+    include_hidden_dir_names: frozenset[str] = INCLUDE_HIDDEN_DIR_NAMES,
 ) -> bool:
     """Return whether a Python file belongs to the harness-owned scan scope."""
 
     relative_parts = _scan_relative_parts(path, scan_root)
     return not any(
-        part in ignored_dir_names for part in relative_parts
+        _ignored_path_part(part, ignored_dir_names, include_hidden_dir_names)
+        for part in relative_parts
     ) and not _is_test_fixture_path(relative_parts, scan_root)
+
+
+def _ignored_path_part(
+    part: str,
+    ignored_dir_names: frozenset[str],
+    include_hidden_dir_names: frozenset[str],
+) -> bool:
+    return part in ignored_dir_names or (
+        part.startswith(".")
+        and part not in {".", ".."}
+        and part not in include_hidden_dir_names
+    )
 
 
 def _is_test_fixture_path(relative_parts: tuple[str, ...], scan_root: Path) -> bool:

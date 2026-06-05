@@ -12,12 +12,13 @@
   "aspWorkspace": {
     "owner": "main-asp",
     "repository": "https://github.com/tao3k/agent-semantic-protocols",
-    "revision": "0e3a21bf16c32c4d3b8f4101fd984b47de07fcbd",
-    "queryCorpusValidator": "tools/validate-tree-sitter-python-query-corpus.sh"
+    "revision": "4e3417721d576716bcf82b7cbf8b9c2dc9a2b32a",
+    "contractFingerprint": "sha256:5f398b14870d3da6bc81c33ab60598b2233449decbf3c0647ec18d2fc54757a9",
+    "queryCorpusValidator": "asp-tree-sitter-validate-python-query-corpus"
   },
   "queryCorpus": {
     "path": "tree-sitter/tree-sitter-python/query-corpus",
-    "validator": "tools/validate-tree-sitter-python-query-corpus.sh",
+    "validator": "asp-tree-sitter-validate-python-query-corpus",
     "realLibraryCases": [
       "tests/fixtures/parser-compact/cases/real-library/django-model-base/python.json",
       "tests/fixtures/parser-compact/cases/real-library/fastapi-api-router/python.json",

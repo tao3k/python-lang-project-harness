@@ -67,6 +67,7 @@ def _write_direct_read_response(
                     owner_path,
                     item_query,
                     args.selector or owner_path,
+                    source_version=args.source_version,
                 ),
                 separators=(",", ":"),
             )
@@ -90,6 +91,7 @@ def _write_direct_read_response(
                 item_query,
                 args.selector or owner_path,
                 code_only=args.code_only,
+                source_version=args.source_version,
             )
         )
     stdout.write("\n")

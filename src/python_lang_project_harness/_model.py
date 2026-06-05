@@ -5,7 +5,11 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field, replace
 from typing import TYPE_CHECKING, Protocol
 
-from ._constants import DEFAULT_BLOCKING_SEVERITIES, IGNORED_DIR_NAMES
+from ._constants import (
+    DEFAULT_BLOCKING_SEVERITIES,
+    IGNORED_DIR_NAMES,
+    INCLUDE_HIDDEN_DIR_NAMES,
+)
 from .verification.model import (
     PythonVerificationDependencySignal,
     PythonVerificationPolicy,
@@ -166,6 +170,7 @@ class PythonHarnessConfig:
     """Configuration for an embedded Python language harness run."""
 
     ignored_dir_names: frozenset[str] = IGNORED_DIR_NAMES
+    include_hidden_dir_names: frozenset[str] = INCLUDE_HIDDEN_DIR_NAMES
     blocking_severities: frozenset[PythonDiagnosticSeverity] = (
         DEFAULT_BLOCKING_SEVERITIES
     )

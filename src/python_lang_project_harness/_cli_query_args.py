@@ -59,6 +59,7 @@ def _query_args_result(
             package_path=state.package_path,
             pipes=tuple(state.surfaces),
             render_mode=state.render_mode,
+            source_version=state.source_version,
         )
     if is_tree_sitter_query_state(state):
         return tree_sitter_query_protocol_args(args_type, state)
@@ -77,6 +78,7 @@ def _query_args_result(
         json=state.json_output,
         names_only=_query_names_only(state),
         code_only=state.code_only,
+        source_version=state.source_version,
         render_mode=state.render_mode,
     )
 

@@ -36,6 +36,7 @@ class ProtocolArgs:
     json: bool = False
     names_only: bool = False
     code_only: bool = False
+    source_version: str = "worktree"
     render_mode: str | None = None
     error: str | None = None
 

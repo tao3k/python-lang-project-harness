@@ -125,7 +125,11 @@ def _prefilter_with_rg(
             candidate_file_basis="source-matched-files",
         )
 
-    path_match_scan = python_file_path_matches_by_term(project_root, terms, rg=rg)
+    path_match_scan = python_file_path_matches_by_term(
+        project_root,
+        terms,
+        rg=rg,
+    )
     if path_match_scan.total_files <= MIN_PREFILTER_FILES:
         return None
     term_capped = _term_capped_matches(
