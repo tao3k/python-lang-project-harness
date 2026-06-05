@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from ._tree_sitter_query_model import PythonTreeSitterCatalog, capture_names
+from ._tree_sitter_query_model import PythonTreeSitterCatalog
 
 PYTHON_TREE_SITTER_GRAMMAR_ID = "tree-sitter-python"
 PYTHON_TREE_SITTER_GRAMMAR_PROFILE_VERSION = "2026-06-04.v1"
@@ -122,12 +122,39 @@ CATALOGS = {
 }
 
 
+CATALOG_NODE_TYPES: dict[str, tuple[str, ...]] = {
+    "declarations": ("function_definition", "class_definition"),
+    "imports": ("import_statement", "import_from_statement", "aliased_import"),
+    "calls": ("call", "attribute", "keyword_argument"),
+    "decorators": ("decorated_definition", "decorator", "call"),
+    "control-flow": (
+        "if_statement",
+        "for_statement",
+        "while_statement",
+        "with_statement",
+        "try_statement",
+        "match_statement",
+        "with_item",
+    ),
+}
+
+CATALOG_FIELDS: dict[str, tuple[str, ...]] = {
+    "declarations": ("name",),
+    "imports": ("alias", "module_name", "name"),
+    "calls": ("attribute", "function", "name"),
+    "decorators": ("definition", "function"),
+    "control-flow": ("condition", "left", "right", "subject"),
+}
+
+
 def python_tree_sitter_query_catalog_descriptors() -> list[dict[str, Any]]:
     return [
         {
             "id": catalog.id,
             "path": catalog.path,
             "captures": list(catalog.captures),
+            "nodeTypes": list(CATALOG_NODE_TYPES[catalog.id]),
+            "fields": list(CATALOG_FIELDS[catalog.id]),
             "sourceDelivery": "provider-binary-embedded",
         }
         for catalog in CATALOGS.values()
@@ -150,19 +177,28 @@ def resolved_tree_sitter_query(args: Any) -> dict[str, Any]:
             "catalogPath": catalog.path,
             "source": catalog.source,
             "captures": catalog.captures,
+            "nodeTypes": CATALOG_NODE_TYPES[catalog.id],
+            "fields": CATALOG_FIELDS[catalog.id],
             "catalogCanonical": True,
             "catalogEmbedded": True,
         }
     if args.tree_sitter_query is None or not args.tree_sitter_query.strip():
         raise ValueError("missing --catalog or --treesitter-query value")
     source = args.tree_sitter_query.strip()
+    if not args.asp_syntax_query_node_types:
+        raise ValueError(
+            "tree-sitter query projection requires ASP-compiled query plan; use "
+            "`asp python query --treesitter-query ...` so ASP owns query ABI compilation"
+        )
     return {
         "input": source,
         "inputForm": "s-expression",
         "catalogId": None,
         "catalogPath": None,
         "source": source,
-        "captures": tuple(capture_names(source)),
+        "captures": tuple(args.asp_syntax_query_captures),
+        "nodeTypes": tuple(args.asp_syntax_query_node_types),
+        "fields": tuple(args.asp_syntax_query_fields),
         "catalogCanonical": False,
         "catalogEmbedded": False,
     }

@@ -23,7 +23,13 @@ def render_agent_guide(project_root: Path) -> str:
                 f"|cmd asp python query --catalog declarations --json {root}",
                 (
                     f"|cmd asp python query --treesitter-query "
-                    f"'<tree-sitter-query>' --json {root}"
+                    f"'(function_definition name: (identifier) @function.name)' "
+                    f"--selector <path[:line|:start:end]> {root}"
+                ),
+                (
+                    f"|cmd asp python query --treesitter-query "
+                    f"'(function_definition name: (identifier) @function.name)' "
+                    f"--selector <path[:line|:start:end]> --code {root}"
                 ),
                 (
                     f"|cmd asp python search owner <owner-path> items "
@@ -44,6 +50,14 @@ def render_agent_guide(project_root: Path) -> str:
                 f"|pipe <candidate-lines> | asp python search ingest --view seeds {root}",
                 f"|cmd asp python check --changed {root}",
                 "|rule agent hook install/runtime is owned by asp",
+                (
+                    "|rule syntax query ABI is compiled by asp; provider projects "
+                    "native parser facts into tree-sitter-compatible captures"
+                ),
+                (
+                    "|rule query --code is pure code; search/read-plan returns "
+                    "locators/frontier, not inline code"
+                ),
                 (
                     "|rule use the asp python facade; run one command at a time; "
                     "no raw Python source reads"

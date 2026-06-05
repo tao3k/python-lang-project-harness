@@ -34,6 +34,9 @@ class QueryParseState:
     selector: str | None = None
     catalog: str | None = None
     tree_sitter_query: str | None = None
+    asp_syntax_query_captures: list[str] = field(default_factory=list)
+    asp_syntax_query_node_types: list[str] = field(default_factory=list)
+    asp_syntax_query_fields: list[str] = field(default_factory=list)
     render_mode: str | None = None
     terms: list[str] = field(default_factory=list)
     surfaces: list[str] = field(default_factory=list)
@@ -71,6 +74,9 @@ def consume_query_arg(
         "--package",
         "--catalog",
         "--treesitter-query",
+        "--asp-syntax-query-captures",
+        "--asp-syntax-query-node-types",
+        "--asp-syntax-query-fields",
     }:
         return _consume_query_option(state, args, index, arg)
     if arg in {"--help", "-h"}:
@@ -124,6 +130,12 @@ def _consume_query_option(
             state.catalog = value
         case "--treesitter-query":
             state.tree_sitter_query = value
+        case "--asp-syntax-query-captures":
+            state.asp_syntax_query_captures = _split_asp_syntax_query_plan_list(value)
+        case "--asp-syntax-query-node-types":
+            state.asp_syntax_query_node_types = _split_asp_syntax_query_plan_list(value)
+        case "--asp-syntax-query-fields":
+            state.asp_syntax_query_fields = _split_asp_syntax_query_plan_list(value)
         case _:
             state.package_path = Path(value)
     return index + 2
@@ -136,7 +148,14 @@ def _query_option_value_name(arg: str) -> str:
         "--package": "a package path",
         "--catalog": "a catalog id",
         "--treesitter-query": "a tree-sitter query expression",
+        "--asp-syntax-query-captures": "an ASP query capture list",
+        "--asp-syntax-query-node-types": "an ASP query node-type list",
+        "--asp-syntax-query-fields": "an ASP query field list",
     }[arg]
+
+
+def _split_asp_syntax_query_plan_list(value: str) -> list[str]:
+    return sorted({item.strip() for item in value.split(",") if item.strip()})
 
 
 def _optional_arg(args: list[str] | tuple[str, ...], index: int) -> str | None:

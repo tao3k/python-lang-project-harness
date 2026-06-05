@@ -35,7 +35,7 @@ def write_tree_sitter_query_response(
     projection = project_tree_sitter_query(
         report,
         project_root,
-        str(query["source"]),
+        tuple(query["nodeTypes"]),
         tuple(query["captures"]),
         terms,
         selector,

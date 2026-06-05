@@ -7,7 +7,10 @@ import json
 import shutil
 from pathlib import Path
 
-from semantic_search_fixture import write_search_fixture
+from semantic_search_fixture import (
+    compact_graph_renderer_available,
+    write_search_fixture,
+)
 
 from python_lang_project_harness import run_cli
 
@@ -53,10 +56,12 @@ def test_cli_search_text_query_set_and_flag_like_literal_query(
         ],
         stdout=query_set_json_stdout,
     )
-    flag_like_exit = run_cli(
-        ["search", "fzf", "--json", "--view", "seeds", str(tmp_path)],
-        stdout=flag_like_stdout,
-    )
+    flag_like_exit = None
+    if compact_graph_renderer_available():
+        flag_like_exit = run_cli(
+            ["search", "fzf", "--json", "--view", "seeds", str(tmp_path)],
+            stdout=flag_like_stdout,
+        )
 
     rendered = query_set_stdout.getvalue()
     assert query_set_exit == 0
@@ -122,8 +127,9 @@ def test_cli_search_text_query_set_and_flag_like_literal_query(
     assert "runtimeCost" not in packet
     assert "|runtime " not in rendered
 
-    assert flag_like_exit == 0
-    assert flag_like_stdout.getvalue().startswith("[search-fzf] q=--json")
+    if compact_graph_renderer_available():
+        assert flag_like_exit == 0
+        assert flag_like_stdout.getvalue().startswith("[search-fzf] q=--json")
 
 
 def test_cli_search_text_prefilter_large_project_records_runtime_cost(

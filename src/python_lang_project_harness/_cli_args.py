@@ -25,6 +25,9 @@ class ProtocolArgs:
     selector: str | None = None
     catalog: str | None = None
     tree_sitter_query: str | None = None
+    asp_syntax_query_captures: tuple[str, ...] = ()
+    asp_syntax_query_node_types: tuple[str, ...] = ()
+    asp_syntax_query_fields: tuple[str, ...] = ()
     packet_path: str | None = None
     query_set: tuple[str, ...] = ()
     pipes: tuple[str, ...] = ()

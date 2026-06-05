@@ -2,7 +2,27 @@
 
 from __future__ import annotations
 
+import os
+import shutil
 from pathlib import Path
+
+import pytest
+
+from python_lang_project_harness._semantic_search_graph_render import (
+    SEMANTIC_AGENT_PROTOCOL_BIN_ENV,
+)
+
+
+def compact_graph_renderer_available() -> bool:
+    configured_bin = os.environ.get(SEMANTIC_AGENT_PROTOCOL_BIN_ENV)
+    if configured_bin is not None:
+        return Path(configured_bin).exists()
+    return shutil.which("semantic-agent-protocol") is not None
+
+
+def require_compact_graph_renderer() -> None:
+    if not compact_graph_renderer_available():
+        pytest.skip("semantic-agent-protocol graph renderer is not available")
 
 
 def write_search_fixture(project_root: Path) -> None:

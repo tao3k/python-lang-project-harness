@@ -19,7 +19,6 @@ from ._tree_sitter_query_model import (
     node_span,
     selector_matches,
     terms_match,
-    tree_sitter_query_nodes,
 )
 
 if TYPE_CHECKING:
@@ -31,19 +30,23 @@ if TYPE_CHECKING:
 def project_tree_sitter_query(
     report: PythonHarnessReport,
     project_root: Path,
-    query_source: str,
+    query_node_types: tuple[str, ...],
     captures: tuple[str, ...],
     terms: list[str],
     selector: SyntaxQuerySelector | None,
 ) -> SyntaxQueryProjection:
-    requested_nodes = tree_sitter_query_nodes(query_source)
-    unsupported_nodes = sorted(
-        node
-        for node in requested_nodes
-        if node not in SUPPORTED_TREE_SITTER_QUERY_NODES
-        and node not in LEAF_TREE_SITTER_QUERY_NODES
-    )
+    requested_nodes = frozenset(query_node_types)
     active_nodes = requested_nodes & SUPPORTED_TREE_SITTER_QUERY_NODES
+    unsupported_nodes = (
+        sorted(
+            node
+            for node in requested_nodes
+            if node not in SUPPORTED_TREE_SITTER_QUERY_NODES
+            and node not in LEAF_TREE_SITTER_QUERY_NODES
+        )
+        if not active_nodes
+        else []
+    )
     rows: list[SyntaxQueryRow] = []
     for module in report.modules:
         rows.extend(

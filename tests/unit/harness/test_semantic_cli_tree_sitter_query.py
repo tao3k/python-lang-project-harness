@@ -44,19 +44,31 @@ def test_cli_query_inline_s_expression_projects_python_functions(
     query = "(function_definition name: (identifier) @function.name)"
 
     exit_code = run_cli(
-        ["query", "--treesitter-query", query, str(tmp_path)],
+        _function_name_query_args(query, tmp_path),
         stdout=stdout,
     )
 
     rendered = stdout.getvalue()
     assert exit_code == 0
-    assert (
-        "|syntax-capture capture=function.name node=function_definition "
-        "name=fetch captureAt=src/pkg/service.py:9:10 "
-        "read=src/pkg/service.py:9:10 frontier=code"
-    ) in rendered
+    assert "src/pkg/service.py:9:10\nfetch" in rendered
+    assert "|syntax-capture" not in rendered
     assert "pub fn" not in rendered
     assert "|syntax-query inputForm" not in rendered
+
+
+def test_cli_query_inline_s_expression_requires_asp_compiled_plan(
+    tmp_path: Path,
+) -> None:
+    write_search_fixture(tmp_path)
+    stdout = io.StringIO()
+    query = "(function_definition name: (identifier) @function.name)"
+
+    exit_code = run_cli(
+        ["query", "--treesitter-query", query, str(tmp_path)],
+        stdout=stdout,
+    )
+
+    assert exit_code != 0
 
 
 def test_cli_query_catalog_code_flag_returns_compact_python_code(
@@ -165,3 +177,18 @@ def test_cli_search_owner_items_packet_links_python_syntax_refs(
     assert packet["items"][0]["fields"]["syntaxQueryRef"] == (
         "semantic-tree-sitter-query/python-owner-items.v1"
     )
+
+
+def _function_name_query_args(query: str, project_root: Path) -> list[str]:
+    return [
+        "query",
+        "--treesitter-query",
+        query,
+        str(project_root),
+        "--asp-syntax-query-captures",
+        "function.name",
+        "--asp-syntax-query-node-types",
+        "function_definition,identifier",
+        "--asp-syntax-query-fields",
+        "name",
+    ]

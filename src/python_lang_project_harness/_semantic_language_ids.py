@@ -7,6 +7,7 @@ SEMANTIC_LANGUAGE_PROTOCOL_VERSION = "1"
 SEMANTIC_SEARCH_PACKET_SCHEMA_ID = "agent.semantic-protocols.semantic-search-packet"
 SEMANTIC_QUERY_PACKET_SCHEMA_ID = "agent.semantic-protocols.semantic-query-packet"
 SEMANTIC_READ_PACKET_SCHEMA_ID = "agent.semantic-protocols.semantic-read-packet"
+SEMANTIC_SOURCE_LOCATION_SCHEMA_ID = "agent.semantic-protocols.semantic-source-location"
 SEMANTIC_TREE_SITTER_PROVENANCE_SCHEMA_ID = (
     "agent.semantic-protocols.semantic-tree-sitter-provenance"
 )

@@ -18,6 +18,11 @@ def test_cli_direct_read_registry_advertises_read_packet_mode(
     payload = json.loads(stdout.getvalue())
     schemas = payload["languages"][0]["schemas"]
     assert any(
+        schema["schemaId"] == ("agent.semantic-protocols.semantic-source-location")
+        and schema["path"] == "schemas/semantic-source-location.v1.schema.json"
+        for schema in schemas
+    )
+    assert any(
         schema["schemaId"]
         == ("agent.semantic-protocols.semantic-tree-sitter-provenance")
         and schema["path"] == "schemas/semantic-tree-sitter-provenance.v1.schema.json"

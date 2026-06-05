@@ -17,7 +17,6 @@ from ._tree_sitter_query_model import (
     SyntaxQueryProjection,
     SyntaxQueryRow,
     SyntaxQuerySelector,
-    compact_value,
     fingerprint,
     syntax_line_locator,
 )
@@ -87,14 +86,11 @@ def tree_sitter_query_compact_lines(
     lines: list[str] = []
     if not projection.rows:
         lines.extend(_miss_lines(query, terms, projection))
-    for row in projection.rows:
-        lines.append(
-            "|syntax-capture "
-            f"capture={row.capture} node={row.node} name={compact_value(row.name)} "
-            f"captureAt={syntax_line_locator(row.path, row.start_line, row.end_line)} "
-            f"read={syntax_line_locator(row.path, row.item_start_line, row.item_end_line)} "
-            "frontier=code"
-        )
+    for index, row in enumerate(projection.rows):
+        if index > 0:
+            lines.append("")
+        lines.append(syntax_line_locator(row.path, row.start_line, row.end_line))
+        lines.append(_capture_text(row))
     if projection.truncated:
         lines.append(
             "|syntax-query-truncated "
@@ -108,6 +104,21 @@ def tree_sitter_query_code(rows: list[SyntaxQueryRow]) -> str:
     return "\n\n".join(row.item_code for row in rows if row.item_code)
 
 
+def _capture_text(row: SyntaxQueryRow) -> str:
+    if (
+        row.capture.endswith(".name")
+        or row.capture.endswith(".target")
+        or row.capture.endswith(".method")
+    ):
+        return row.name
+    if row.capture.endswith(".definition"):
+        return row.item_code
+    return next(
+        (line.strip() for line in row.item_code.splitlines() if line.strip()),
+        row.name,
+    )
+
+
 def _query_object(
     query: dict[str, Any],
     terms: list[str],
@@ -116,6 +127,8 @@ def _query_object(
 ) -> dict[str, Any]:
     query_fields: dict[str, Any] = {
         "captures": list(query["captures"]),
+        "nodeTypes": list(query["nodeTypes"]),
+        "fields": list(query["fields"]),
         "catalogCanonical": bool(query["catalogCanonical"]),
         "catalogEmbedded": bool(query["catalogEmbedded"]),
         "compilerBoundary": "python-ast-tokenize-symtable",

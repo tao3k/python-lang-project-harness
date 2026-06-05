@@ -5,7 +5,7 @@ from __future__ import annotations
 import io
 from pathlib import Path
 
-from semantic_search_fixture import write_search_fixture
+from semantic_search_fixture import require_compact_graph_renderer, write_search_fixture
 
 from python_lang_project_harness._cli import run_cli
 
@@ -43,6 +43,7 @@ def test_cli_search_fzf_query_set(tmp_path: Path) -> None:
 
 
 def test_cli_search_fzf_matches_path_only_candidate(tmp_path: Path) -> None:
+    require_compact_graph_renderer()
     write_search_fixture(tmp_path)
     path_owner = tmp_path / "src" / "pkg" / "hook_runtime.py"
     path_owner.write_text(

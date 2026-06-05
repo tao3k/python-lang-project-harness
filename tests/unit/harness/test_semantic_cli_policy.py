@@ -4,6 +4,8 @@ import io
 import json
 from pathlib import Path
 
+from semantic_search_fixture import compact_graph_renderer_available
+
 from python_lang_project_harness._cli import run_cli
 
 
@@ -43,22 +45,23 @@ def test_cli_search_policy_renders_semantic_handles(
     seeds_stdout = io.StringIO()
     compact_stdout = io.StringIO()
     json_stdout = io.StringIO()
-    assert (
-        run_cli(
-            [
-                "search",
-                "policy",
-                "PY-PROJ-R001",
-                "owner",
-                "tests",
-                "--view",
-                "seeds",
-                str(tmp_path),
-            ],
-            stdout=seeds_stdout,
+    if compact_graph_renderer_available():
+        assert (
+            run_cli(
+                [
+                    "search",
+                    "policy",
+                    "PY-PROJ-R001",
+                    "owner",
+                    "tests",
+                    "--view",
+                    "seeds",
+                    str(tmp_path),
+                ],
+                stdout=seeds_stdout,
+            )
+            == 0
         )
-        == 0
-    )
     assert (
         run_cli(
             ["search", "policy", "src layout", "owner", "tests", str(tmp_path)],
@@ -84,13 +87,14 @@ def test_cli_search_policy_renders_semantic_handles(
     seeds = seeds_stdout.getvalue()
     compact = compact_stdout.getvalue()
     packet = json.loads(json_stdout.getvalue())
-    assert seeds.startswith("[search-policy] q=PY-PROJ-R001")
-    assert "alg=policy-handle-catalog" in seeds
-    assert (
-        "O=owner:path(src/python_lang_project_harness/_project_policy_catalog.py)!owner"
-        in seeds
-    )
-    assert "tests/unit/harness/project_policy/test_layout.py" in seeds
+    if compact_graph_renderer_available():
+        assert seeds.startswith("[search-policy] q=PY-PROJ-R001")
+        assert "alg=policy-handle-catalog" in seeds
+        assert (
+            "O=owner:path(src/python_lang_project_harness/_project_policy_catalog.py)!owner"
+            in seeds
+        )
+        assert "tests/unit/harness/project_policy/test_layout.py" in seeds
     assert "|handle PY-PROJ-R001 kind=policy-rule source=provider-policy" in compact
     assert 'title="Python project should use src layout"' in compact
     assert "implementation=None" not in compact
