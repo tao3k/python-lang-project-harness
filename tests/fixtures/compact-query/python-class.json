@@ -1,0 +1,271 @@
+{
+  "matches": [
+    {
+      "name": "Service",
+      "kind": "class",
+      "read": "src/pkg/service.py:4:14",
+      "code": "class Service:\n  prefix: str\n  def __init__(self, prefix: str) -> None:\n    self.prefix = prefix\n  async def run(self, value: str) -> str:\n    @trace\n    if not value:\n      raise ValueError:empty\n    return template\n      await normalize",
+      "projection": {
+        "mode": "compact",
+        "syntax": "save-token-ruff",
+        "sourceAuthority": "native-parser",
+        "sourceFingerprint": "src/pkg/service.py:4:14:238:a793d3a8",
+        "compactSafety": {
+          "literalPolicy": "summarize",
+          "whitespacePolicy": "formatter-structural",
+          "normalization": "none",
+          "alignment": "parser-roundtrip",
+          "exactReadRequired": true
+        },
+        "losslessStructure": true,
+        "exactRead": "src/pkg/service.py:4:14",
+        "nodeCount": 10,
+        "nodeLimit": 24,
+        "nodesTruncated": false,
+        "nodes": [
+          {
+            "id": "Service",
+            "nativeId": "python:class:src-pkg-service.py-4-14:f02acf62",
+            "structuralFingerprint": "class:declaration:src-pkg-service.py-4-14:f02acf62",
+            "kind": "class",
+            "role": "declaration",
+            "label": "class Service:",
+            "depth": 0,
+            "read": "src/pkg/service.py:4:14"
+          },
+          {
+            "id": "Service:field:src-pkg-service.py-5-5:68d63412",
+            "nativeId": "python:field:src-pkg-service.py-5-5:68d63412",
+            "structuralFingerprint": "field:field:src-pkg-service.py-5-5:68d63412",
+            "kind": "field",
+            "role": "field",
+            "label": "prefix: str",
+            "depth": 1,
+            "read": "src/pkg/service.py:5:5",
+            "parentId": "Service",
+            "flags": [
+              "field"
+            ]
+          },
+          {
+            "id": "Service:function:src-pkg-service.py-7-8:3ce33f37",
+            "nativeId": "python:function:src-pkg-service.py-7-8:3ce33f37",
+            "structuralFingerprint": "function:declaration:src-pkg-service.py-7-8:3ce33f37",
+            "kind": "function",
+            "role": "declaration",
+            "label": "def __init__(self, prefix: str) -> None:",
+            "depth": 1,
+            "read": "src/pkg/service.py:7:8",
+            "parentId": "Service"
+          },
+          {
+            "id": "Service:assign:src-pkg-service.py-8-8:e0f76bdc",
+            "nativeId": "python:assign:src-pkg-service.py-8-8:e0f76bdc",
+            "structuralFingerprint": "assign:mutation:src-pkg-service.py-8-8:e0f76bdc",
+            "kind": "assign",
+            "role": "mutation",
+            "label": "self.prefix = prefix",
+            "depth": 2,
+            "read": "src/pkg/service.py:8:8",
+            "parentId": "Service:function:src-pkg-service.py-7-8:3ce33f37",
+            "flags": [
+              "mutation"
+            ]
+          },
+          {
+            "id": "Service:async_function:src-pkg-service.py-11-14:3db045b8",
+            "nativeId": "python:async_function:src-pkg-service.py-11-14:3db045b8",
+            "structuralFingerprint": "async_function:declaration:src-pkg-service.py-11-14:3db045b8",
+            "kind": "async_function",
+            "role": "declaration",
+            "label": "async def run(self, value: str) -> str:",
+            "depth": 1,
+            "read": "src/pkg/service.py:11:14",
+            "parentId": "Service",
+            "flags": [
+              "async"
+            ]
+          },
+          {
+            "id": "Service:decorator:src-pkg-service.py-10-10:b269cebc",
+            "nativeId": "python:decorator:src-pkg-service.py-10-10:b269cebc",
+            "structuralFingerprint": "decorator:declaration:src-pkg-service.py-10-10:b269cebc",
+            "kind": "decorator",
+            "role": "declaration",
+            "label": "@trace",
+            "depth": 2,
+            "read": "src/pkg/service.py:10:10",
+            "parentId": "Service:async_function:src-pkg-service.py-11-14:3db045b8",
+            "flags": [
+              "decorator"
+            ]
+          },
+          {
+            "id": "Service:if:src-pkg-service.py-12-13:518f54c8",
+            "nativeId": "python:if:src-pkg-service.py-12-13:518f54c8",
+            "structuralFingerprint": "if:control-flow:src-pkg-service.py-12-13:518f54c8",
+            "kind": "if",
+            "role": "control-flow",
+            "label": "if not value:",
+            "depth": 2,
+            "read": "src/pkg/service.py:12:13",
+            "parentId": "Service:async_function:src-pkg-service.py-11-14:3db045b8",
+            "flags": [
+              "branch"
+            ]
+          },
+          {
+            "id": "Service:raise:src-pkg-service.py-13-13:f27f253",
+            "nativeId": "python:raise:src-pkg-service.py-13-13:f27f253",
+            "structuralFingerprint": "raise:terminal:src-pkg-service.py-13-13:f27f253",
+            "kind": "raise",
+            "role": "terminal",
+            "label": "raise ValueError:empty",
+            "depth": 3,
+            "read": "src/pkg/service.py:13:13",
+            "parentId": "Service:if:src-pkg-service.py-12-13:518f54c8",
+            "flags": [
+              "raise"
+            ]
+          },
+          {
+            "id": "Service:return:src-pkg-service.py-14-14:5b26e2d3",
+            "nativeId": "python:return:src-pkg-service.py-14-14:5b26e2d3",
+            "structuralFingerprint": "return:terminal:src-pkg-service.py-14-14:5b26e2d3",
+            "kind": "return",
+            "role": "terminal",
+            "label": "return template",
+            "depth": 2,
+            "read": "src/pkg/service.py:14:14",
+            "parentId": "Service:async_function:src-pkg-service.py-11-14:3db045b8",
+            "flags": [
+              "return",
+              "await"
+            ]
+          },
+          {
+            "id": "Service:await:src-pkg-service.py-14-14:86fd1b12",
+            "nativeId": "python:await:src-pkg-service.py-14-14:86fd1b12",
+            "structuralFingerprint": "await:effect:src-pkg-service.py-14-14:86fd1b12",
+            "kind": "await",
+            "role": "effect",
+            "label": "await normalize",
+            "depth": 3,
+            "read": "src/pkg/service.py:14:14",
+            "parentId": "Service:return:src-pkg-service.py-14-14:5b26e2d3",
+            "flags": [
+              "await"
+            ]
+          }
+        ],
+        "renderedNodeIds": [
+          "Service",
+          "Service:field:src-pkg-service.py-5-5:68d63412",
+          "Service:function:src-pkg-service.py-7-8:3ce33f37",
+          "Service:assign:src-pkg-service.py-8-8:e0f76bdc",
+          "Service:async_function:src-pkg-service.py-11-14:3db045b8",
+          "Service:decorator:src-pkg-service.py-10-10:b269cebc",
+          "Service:if:src-pkg-service.py-12-13:518f54c8",
+          "Service:raise:src-pkg-service.py-13-13:f27f253",
+          "Service:return:src-pkg-service.py-14-14:5b26e2d3",
+          "Service:await:src-pkg-service.py-14-14:86fd1b12"
+        ],
+        "renderedRows": [
+          {
+            "nodeId": "Service",
+            "rowKind": "declaration",
+            "text": "class Service:",
+            "semanticWeight": 1
+          },
+          {
+            "nodeId": "Service:field:src-pkg-service.py-5-5:68d63412",
+            "rowKind": "field",
+            "text": "  prefix: str",
+            "semanticWeight": 1
+          },
+          {
+            "nodeId": "Service:function:src-pkg-service.py-7-8:3ce33f37",
+            "rowKind": "declaration",
+            "text": "  def __init__(self, prefix: str) -> None:",
+            "semanticWeight": 1
+          },
+          {
+            "nodeId": "Service:assign:src-pkg-service.py-8-8:e0f76bdc",
+            "rowKind": "mutation",
+            "text": "    self.prefix = prefix",
+            "semanticWeight": 2
+          },
+          {
+            "nodeId": "Service:async_function:src-pkg-service.py-11-14:3db045b8",
+            "rowKind": "declaration",
+            "text": "  async def run(self, value: str) -> str:",
+            "semanticWeight": 1
+          },
+          {
+            "nodeId": "Service:decorator:src-pkg-service.py-10-10:b269cebc",
+            "rowKind": "declaration",
+            "text": "    @trace",
+            "semanticWeight": 1
+          },
+          {
+            "nodeId": "Service:if:src-pkg-service.py-12-13:518f54c8",
+            "rowKind": "control-flow",
+            "text": "    if not value:",
+            "semanticWeight": 2
+          },
+          {
+            "nodeId": "Service:raise:src-pkg-service.py-13-13:f27f253",
+            "rowKind": "terminal",
+            "text": "      raise ValueError:empty",
+            "semanticWeight": 2
+          },
+          {
+            "nodeId": "Service:return:src-pkg-service.py-14-14:5b26e2d3",
+            "rowKind": "terminal",
+            "text": "    return template",
+            "semanticWeight": 2
+          },
+          {
+            "nodeId": "Service:await:src-pkg-service.py-14-14:86fd1b12",
+            "rowKind": "effect",
+            "text": "      await normalize",
+            "semanticWeight": 2
+          }
+        ],
+        "omitted": [],
+        "expandActions": [
+          {
+            "kind": "exact-read",
+            "target": "Service",
+            "read": "src/pkg/service.py:4:14",
+            "reason": "read exact source before editing"
+          },
+          {
+            "kind": "exact-read",
+            "target": "Service:assign:src-pkg-service.py-8-8:e0f76bdc",
+            "read": "src/pkg/service.py:8:8",
+            "reason": "expand assign node before editing"
+          },
+          {
+            "kind": "exact-read",
+            "target": "Service:if:src-pkg-service.py-12-13:518f54c8",
+            "read": "src/pkg/service.py:12:13",
+            "reason": "expand if node before editing"
+          },
+          {
+            "kind": "exact-read",
+            "target": "Service:raise:src-pkg-service.py-13-13:f27f253",
+            "read": "src/pkg/service.py:13:13",
+            "reason": "expand raise node before editing"
+          },
+          {
+            "kind": "exact-read",
+            "target": "Service:return:src-pkg-service.py-14-14:5b26e2d3",
+            "read": "src/pkg/service.py:14:14",
+            "reason": "expand return node before editing"
+          }
+        ]
+      }
+    }
+  ]
+}

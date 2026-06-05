@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from python_lang_parser import PythonDiagnosticSeverity
+from python_lang_parser._diagnostic_model import PythonDiagnosticSeverity
 
 from ._model import PythonHarnessConfig
 from ._project_config import read_python_project_harness_config

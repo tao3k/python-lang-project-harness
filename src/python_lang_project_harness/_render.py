@@ -7,7 +7,8 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from python_lang_parser import PythonDiagnosticSeverity, python_reasoning_tree_facts
+from python_lang_parser._diagnostic_model import PythonDiagnosticSeverity
+from python_lang_parser._reasoning_tree import python_reasoning_tree_facts
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -22,6 +23,30 @@ if TYPE_CHECKING:
     )
 
     from ._model import PythonHarnessFinding, PythonHarnessReport
+
+
+def _compact_render_fields(fields: dict[str, object]) -> dict[str, object]:
+    return {
+        key: value
+        for key, value in fields.items()
+        if value is not None and value != [] and value != ""
+    }
+
+
+def _render_line_fields(fields: dict[str, object]) -> str:
+    return " ".join(
+        f"{key}={_line_protocol_field_value(value)}"
+        for key, value in fields.items()
+        if value != [] and value != ""
+    )
+
+
+def _line_protocol_field_value(value: object) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, list):
+        return ",".join(str(item) for item in value)
+    return str(value)
 
 
 def render_python_lang_harness(

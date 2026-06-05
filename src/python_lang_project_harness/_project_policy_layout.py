@@ -9,6 +9,8 @@ from ._project_policy_catalog import PY_PROJ_R001, PY_PROJ_R002, project_policy_
 from ._source import path_location, source_line
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from ._model import PythonProjectHarnessScope
     from ._project_metadata import PythonProjectMetadata
 
@@ -66,16 +68,48 @@ def _uses_src_layout(
     scope: PythonProjectHarnessScope,
     metadata: PythonProjectMetadata,
 ) -> bool:
-    src_path = metadata.project_root / "src"
-    if src_path not in scope.source_paths:
+    src_roots = _src_layout_roots(scope, metadata)
+    if not src_roots:
         return False
     if not metadata.package_roots:
         return True
+    return all(
+        any(_is_relative_to(package_root, src_root) for src_root in src_roots)
+        for package_root in metadata.package_roots
+    )
+
+
+def _src_layout_roots(
+    scope: PythonProjectHarnessScope,
+    metadata: PythonProjectMetadata,
+) -> tuple[Path, ...]:
+    src_roots: list[Path] = []
+    root_src = metadata.project_root / "src"
+    if root_src in scope.source_paths:
+        src_roots.append(root_src)
     for package_root in metadata.package_roots:
-        try:
-            package_root.relative_to(src_path)
-        except ValueError:
-            return False
+        src_parent = _src_parent_for_package(package_root, metadata.project_root)
+        if src_parent is not None and src_parent not in src_roots:
+            src_roots.append(src_parent)
+    return tuple(src_roots)
+
+
+def _src_parent_for_package(package_root: Path, project_root: Path) -> Path | None:
+    if not _is_relative_to(package_root, project_root):
+        return None
+    for parent in package_root.parents:
+        if parent == project_root:
+            break
+        if parent.name == "src":
+            return parent
+    return None
+
+
+def _is_relative_to(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return False
     return True
 
 

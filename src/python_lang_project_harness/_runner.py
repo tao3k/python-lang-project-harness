@@ -6,7 +6,8 @@ from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from python_lang_parser import PythonDiagnosticSeverity, parse_python_file
+from python_lang_parser._diagnostic_model import PythonDiagnosticSeverity
+from python_lang_parser.parser import parse_python_file
 
 from ._discovery import discover_python_files, python_project_harness_scope
 from ._model import (
@@ -14,12 +15,6 @@ from ._model import (
     PythonHarnessFinding,
     PythonHarnessReport,
     PythonLangRulePack,
-)
-from ._project_evaluation import compact_project_findings, evaluate_project_rule_packs
-from ._rule_packs import (
-    resolve_harness_config,
-    resolve_project_harness_config,
-    selected_rule_packs,
 )
 
 if TYPE_CHECKING:
@@ -41,6 +36,12 @@ def run_python_project_harness(
     root = Path(project_root)
     if not root.exists():
         raise ValueError(f"project root does not exist: {root}")
+    from ._project_evaluation import (
+        compact_project_findings,
+        evaluate_project_rule_packs,
+    )
+    from ._rule_packs import resolve_project_harness_config, selected_rule_packs
+
     selected_config = resolve_project_harness_config(
         root,
         config,
@@ -101,6 +102,8 @@ def assert_python_project_harness_clean(
 ) -> PythonHarnessReport:
     """Run the project harness and raise when configured-blocking findings exist."""
 
+    from ._rule_packs import resolve_project_harness_config
+
     selected_config = resolve_project_harness_config(
         Path(project_root),
         config,
@@ -133,8 +136,18 @@ def run_python_lang_harness(
 ) -> PythonHarnessReport:
     """Run the Python language harness over files or directories."""
 
-    selected_config = resolve_harness_config(config, rule_packs=rule_packs)
-    selected_packs = selected_rule_packs(selected_config)
+    if rule_packs == ():
+        selected_config = (
+            replace(config, rule_packs=())
+            if config is not None
+            else PythonHarnessConfig(rule_packs=())
+        )
+        selected_packs = ()
+    else:
+        from ._rule_packs import resolve_harness_config, selected_rule_packs
+
+        selected_config = resolve_harness_config(config, rule_packs=rule_packs)
+        selected_packs = selected_rule_packs(selected_config)
     root_paths = tuple(Path(path) for path in paths)
     for path in root_paths:
         if not path.exists():
@@ -171,6 +184,8 @@ def assert_python_lang_harness_clean(
     include_advice: bool = True,
 ) -> PythonHarnessReport:
     """Run the harness and raise when configured-blocking findings are present."""
+
+    from ._rule_packs import resolve_harness_config
 
     selected_config = resolve_harness_config(config, rule_packs=rule_packs)
     report = run_python_lang_harness(paths, config=selected_config)

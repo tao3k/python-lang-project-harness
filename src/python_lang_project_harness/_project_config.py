@@ -6,7 +6,7 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-from python_lang_parser import PythonDiagnosticSeverity
+from python_lang_parser._diagnostic_model import PythonDiagnosticSeverity
 
 from ._model import PythonHarnessConfig
 from .verification import (

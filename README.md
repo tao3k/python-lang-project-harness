@@ -82,13 +82,24 @@ low-noise Agent repair surface. The snapshot uses capped module summaries,
 branches, public owners, import edges, and branch-first profile candidates; it
 does not print clean-run file counts or empty section summaries.
 
-The console script follows the same render contract:
+The semantic-language console script exposes search, registry, and check
+surfaces aligned with the Rust and TypeScript harnesses:
 
 ```shell
-python-project-harness .
-python-project-harness --json .
-python-project-harness --agent-snapshot .
-python-project-harness --source-dir lib --extra-path tools --no-tests .
+py-harness search workspace .
+py-harness search prime .
+py-harness search fzf PythonHarnessReport owner tests .
+py-harness search fzf --query-set PythonHarnessReport --query-set PythonSemanticSearchOptions owner tests .
+py-harness search public-external-types pytest .
+py-harness search callsite PythonHarnessReport .
+py-harness search deps pytest .
+py-harness agent doctor --json .
+py-harness agent guide .
+py-harness check --full .
+py-harness .
+py-harness --json .
+py-harness --agent-snapshot .
+py-harness --source-dir lib --extra-path tools --no-tests .
 python -m python_lang_project_harness .
 ```
 

@@ -88,18 +88,18 @@ def python_project_harness_scope(
     """Return the default project-wide monitoring scope."""
 
     root = Path(project_root)
-    source_paths = tuple(
-        root / name for name in source_dir_names if (root / name).exists()
-    )
+    metadata = read_python_project_metadata(root)
+    metadata_package_roots = () if metadata is None else metadata.package_roots
+    source_paths = _source_paths(root, source_dir_names, metadata_package_roots)
     test_paths = tuple(root / name for name in test_dir_names if (root / name).exists())
     extra_paths = tuple(
         (root / name).resolve() for name in extra_path_names if (root / name).exists()
     )
-    metadata = read_python_project_metadata(root)
-    metadata_package_roots = () if metadata is None else metadata.package_roots
     project_paths = _project_scan_paths(
         root,
         include_tests=include_tests,
+        source_paths=source_paths,
+        test_paths=test_paths,
         test_dir_names=test_dir_names,
         metadata_package_roots=metadata_package_roots,
     )
@@ -118,10 +118,19 @@ def _project_scan_paths(
     root: Path,
     *,
     include_tests: bool,
+    source_paths: tuple[Path, ...],
+    test_paths: tuple[Path, ...],
     test_dir_names: Sequence[str],
     metadata_package_roots: tuple[Path, ...],
 ) -> tuple[Path, ...]:
     external_package_roots = _external_package_roots(root, metadata_package_roots)
+    if metadata_package_roots:
+        selected_paths = (
+            (*source_paths, *test_paths)
+            if include_tests
+            else (*source_paths, *external_package_roots)
+        )
+        return _dedupe_paths(selected_paths)
     if include_tests:
         return _dedupe_paths((root, *external_package_roots))
 
@@ -138,6 +147,38 @@ def _project_scan_paths(
     return _dedupe_paths((*candidates, *external_package_roots))
 
 
+def _source_paths(
+    root: Path,
+    source_dir_names: Sequence[str],
+    metadata_package_roots: tuple[Path, ...],
+) -> tuple[Path, ...]:
+    metadata_source_paths = _metadata_source_paths(root, metadata_package_roots)
+    if metadata_source_paths:
+        return metadata_source_paths
+    return tuple(root / name for name in source_dir_names if (root / name).exists())
+
+
+def _metadata_source_paths(
+    root: Path,
+    package_roots: tuple[Path, ...],
+) -> tuple[Path, ...]:
+    return _dedupe_paths(
+        _source_path_for_package_root(root, package_root)
+        for package_root in package_roots
+    )
+
+
+def _source_path_for_package_root(root: Path, package_root: Path) -> Path:
+    if package_root.name == "src":
+        return package_root
+    for parent in package_root.parents:
+        if parent == root:
+            break
+        if parent.name == "src":
+            return parent
+    return package_root.parent
+
+
 def is_scannable_python_file(
     path: Path,
     *,
@@ -147,7 +188,19 @@ def is_scannable_python_file(
     """Return whether a Python file belongs to the harness-owned scan scope."""
 
     relative_parts = _scan_relative_parts(path, scan_root)
-    return not any(part in ignored_dir_names for part in relative_parts)
+    return not any(
+        part in ignored_dir_names for part in relative_parts
+    ) and not _is_test_fixture_path(relative_parts, scan_root)
+
+
+def _is_test_fixture_path(relative_parts: tuple[str, ...], scan_root: Path) -> bool:
+    if len(relative_parts) >= 2 and relative_parts[:2] == ("tests", "fixtures"):
+        return True
+    return (
+        scan_root.name == "tests"
+        and bool(relative_parts)
+        and relative_parts[0] == "fixtures"
+    )
 
 
 def _append_unique_path(discovered: list[Path], seen: set[Path], path: Path) -> None:

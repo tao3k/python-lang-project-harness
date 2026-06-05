@@ -129,10 +129,12 @@ gate.
 
 ## CLI Embedding
 
-`python-project-harness [--json] [PROJECT_ROOT]` runs the same default project
+`py-harness check [--json] [PROJECT_ROOT]` runs the same default project
 runner. Compact text is the default output. `--json` emits the structured
-`PythonHarnessReport` payload. The CLI is a thin adapter over library APIs: it
-does not own workflow orchestration or project-specific policy.
+`PythonHarnessReport` payload. `py-harness search ...` renders bounded
+semantic-search packets from parser-owned facts. The CLI is a thin adapter over
+library APIs: it does not own workflow orchestration or project-specific
+policy.
 
 ## Blocking And Advice
 

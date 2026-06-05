@@ -16,7 +16,7 @@ pytest = [
 ]
 
 [project.scripts]
-python-project-harness = "python_lang_project_harness:run_cli_from_env"
+py-harness = "python_lang_project_harness:run_cli_from_env"
 
 [project.entry-points.pytest11]
 python_lang_project_harness = "python_lang_project_harness.pytest_plugin"

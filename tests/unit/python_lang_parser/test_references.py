@@ -72,6 +72,28 @@ def build(client, items):
     assert serialized["calls"][0]["effect"] == "unknown"
 
 
+def test_parse_python_source_preserves_multiline_source_segments() -> None:
+    report = parse_python_source(
+        """
+def build(client, first, second):
+    result = client.compose(
+        first,
+        second,
+    )
+    return result
+""",
+        path="multiline.py",
+    )
+
+    assert (
+        report.calls[0].expression
+        == "client.compose(\n        first,\n        second,\n    )"
+    )
+    assert [assignment.value_expression for assignment in report.assignments] == [
+        "client.compose(\n        first,\n        second,\n    )"
+    ]
+
+
 def test_parse_python_source_classifies_wildcard_import_and_builtin_call_effects() -> (
     None
 ):

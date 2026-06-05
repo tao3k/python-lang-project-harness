@@ -1,0 +1,201 @@
+"""Python file-list scanning for semantic-search prefilters."""
+
+from __future__ import annotations
+
+import shutil
+from dataclasses import dataclass
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+from ._constants import IGNORED_DIR_NAMES
+from ._semantic_search_prefilter_process import run_prefilter_command
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+
+@dataclass(frozen=True, slots=True)
+class PythonFilePathMatchScan:
+    """A single file-list pass with path matches grouped by query term."""
+
+    total_files: int
+    matches_by_term: dict[str, set[str]]
+    tool: str
+
+
+def list_python_files(project_root: Path) -> tuple[Path, ...]:
+    """Return scannable Python files below a project root."""
+
+    fd = shutil.which("fd") or shutil.which("fdfind")
+    if fd is not None:
+        process = run_prefilter_command(
+            _fd_python_files_command(fd),
+            cwd=project_root,
+        )
+        if process.returncode == 0:
+            return trusted_tool_paths_from_output(project_root, process.stdout)
+    return tuple(
+        sorted(
+            (
+                path.resolve()
+                for path in project_root.rglob("*.py")
+                if not _ignored(path, project_root)
+            ),
+            key=lambda path: path.as_posix(),
+        )
+    )
+
+
+def python_file_path_matches_by_term(
+    project_root: Path,
+    terms: Sequence[str],
+    *,
+    rg: str | None = None,
+) -> PythonFilePathMatchScan:
+    """Return Python file counts and path matches from one file-list pass."""
+
+    normalized_terms = tuple(dict.fromkeys(term for term in terms if term))
+    if rg is not None:
+        process = run_prefilter_command(_rg_python_files_command(rg), cwd=project_root)
+        if process.returncode == 0:
+            return _path_match_scan_from_output(
+                project_root,
+                process.stdout,
+                normalized_terms,
+                tool="rg",
+            )
+    fd = shutil.which("fd") or shutil.which("fdfind")
+    if fd is not None:
+        process = run_prefilter_command(_fd_python_files_command(fd), cwd=project_root)
+        if process.returncode == 0:
+            return _path_match_scan_from_output(
+                project_root,
+                process.stdout,
+                normalized_terms,
+                tool="fd+rg",
+            )
+    return _path_match_scan_from_rglob(project_root, normalized_terms)
+
+
+def paths_from_output(project_root: Path, stdout: str) -> tuple[Path, ...]:
+    """Return existing Python files named by command output."""
+
+    paths: list[Path] = []
+    for line in stdout.splitlines():
+        if not line:
+            continue
+        path = Path(line)
+        if not path.is_absolute():
+            path = project_root / path
+        resolved = path.resolve()
+        if resolved.is_file() and resolved.suffix == ".py":
+            paths.append(resolved)
+    return tuple(sorted(set(paths), key=lambda path: path.as_posix()))
+
+
+def trusted_tool_paths_from_output(project_root: Path, stdout: str) -> tuple[Path, ...]:
+    """Return Python files from a trusted fd/rg file-list command."""
+
+    paths = [
+        path if path.is_absolute() else project_root / path
+        for line in stdout.splitlines()
+        if line
+        for path in (Path(line),)
+    ]
+    return tuple(sorted(set(paths), key=lambda path: path.as_posix()))
+
+
+def _path_match_scan_from_output(
+    project_root: Path,
+    stdout: str,
+    terms: Sequence[str],
+    *,
+    tool: str,
+) -> PythonFilePathMatchScan:
+    folded_terms = tuple((term, term.casefold()) for term in terms)
+    matches_by_term: dict[str, set[str]] = {term: set() for term in terms}
+    total_files = 0
+    for line in stdout.splitlines():
+        if not line:
+            continue
+        total_files += 1
+        folded_line = line.casefold()
+        for term, folded_term in folded_terms:
+            if folded_term in folded_line:
+                matches_by_term[term].add(line)
+    return PythonFilePathMatchScan(
+        total_files=total_files,
+        matches_by_term=matches_by_term,
+        tool=tool,
+    )
+
+
+def _path_match_scan_from_rglob(
+    project_root: Path,
+    terms: Sequence[str],
+) -> PythonFilePathMatchScan:
+    folded_terms = tuple((term, term.casefold()) for term in terms)
+    matches_by_term: dict[str, set[str]] = {term: set() for term in terms}
+    total_files = 0
+    for path in project_root.rglob("*.py"):
+        if _ignored(path, project_root):
+            continue
+        total_files += 1
+        relative = path.relative_to(project_root).as_posix()
+        folded_relative = relative.casefold()
+        for term, folded_term in folded_terms:
+            if folded_term in folded_relative:
+                matches_by_term[term].add(relative)
+    return PythonFilePathMatchScan(
+        total_files=total_files,
+        matches_by_term=matches_by_term,
+        tool="rg",
+    )
+
+
+def _fd_python_files_command(fd: str) -> list[str]:
+    return [
+        fd,
+        "--color",
+        "never",
+        "-t",
+        "f",
+        "-e",
+        "py",
+        *(_fd_excludes()),
+        ".",
+        ".",
+    ]
+
+
+def _rg_python_files_command(rg: str) -> list[str]:
+    return [
+        rg,
+        "--color",
+        "never",
+        "--files",
+        "--glob",
+        "*.py",
+        *(_rg_excludes()),
+        ".",
+    ]
+
+
+def _fd_excludes() -> tuple[str, ...]:
+    args: list[str] = []
+    for name in sorted(IGNORED_DIR_NAMES):
+        args.extend(("-E", name))
+    return tuple(args)
+
+
+def _rg_excludes() -> tuple[str, ...]:
+    args: list[str] = []
+    for name in sorted(IGNORED_DIR_NAMES):
+        args.extend(("--glob", f"!{name}/**"))
+    return tuple(args)
+
+
+def _ignored(path: Path, project_root: Path) -> bool:
+    return any(
+        part in IGNORED_DIR_NAMES for part in path.relative_to(project_root).parts
+    )

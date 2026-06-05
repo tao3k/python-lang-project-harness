@@ -39,12 +39,13 @@ def collect_module_complexity_signals(
     if shape is None:
         return ModuleComplexitySignals(0, 0, 0, 0, 0, 0, ())
 
-    function_spans = tuple(
-        _symbol_line_span(symbol)
-        for symbol in report.symbols
-        if python_symbol_is_callable(symbol)
+    callable_symbols = tuple(
+        symbol for symbol in report.symbols if python_symbol_is_callable(symbol)
     )
-    long_function_count = sum(span > MAX_FUNCTION_LINES for span in function_spans)
+    function_spans = tuple(_symbol_line_span(symbol) for symbol in callable_symbols)
+    long_function_count = sum(
+        _is_procedural_long_function(symbol) for symbol in callable_symbols
+    )
     max_function_lines = max(function_spans, default=0)
     indicators = _split_indicators(
         top_level_statement_count=shape.top_level_statement_count,
@@ -96,3 +97,37 @@ def _symbol_line_span(symbol: PythonSymbol) -> int:
     if symbol.end_line is None:
         return 0
     return max(1, symbol.end_line - symbol.location.line + 1)
+
+
+def _is_procedural_long_function(symbol: PythonSymbol) -> bool:
+    if _symbol_line_span(symbol) <= MAX_FUNCTION_LINES:
+        return False
+    return not _is_single_return_literal_flow(symbol)
+
+
+def _is_single_return_literal_flow(symbol: PythonSymbol) -> bool:
+    flow = symbol.control_flow
+    if flow is None:
+        return False
+    return (
+        flow.statement_count == 1
+        and flow.max_block_statement_count == 1
+        and flow.return_count == 1
+        and not any(
+            (
+                flow.manual_collection_loop_count,
+                flow.manual_predicate_loop_count,
+                flow.manual_mapping_count_loop_count,
+                flow.manual_mapping_group_loop_count,
+                flow.manual_numeric_sum_loop_count,
+                flow.branch_count,
+                flow.loop_count,
+                flow.match_count,
+                flow.terminal_else_count,
+                flow.max_nesting_depth,
+                flow.max_loop_nesting_depth,
+                flow.max_literal_dispatch_chain,
+                flow.nested_control_flow_count,
+            )
+        )
+    )

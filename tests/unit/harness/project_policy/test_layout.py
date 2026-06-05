@@ -41,6 +41,30 @@ def test_project_policy_blocks_flat_layout_with_pyproject(tmp_path: Path) -> Non
     ]
 
 
+def test_project_policy_accepts_pyproject_declared_nested_src_layout(
+    tmp_path: Path,
+) -> None:
+    default_src = tmp_path / "src"
+    package = tmp_path / "packages" / "python" / "src" / "tools"
+    default_src.mkdir()
+    package.mkdir(parents=True)
+    (default_src / "ignored.py").write_text(
+        "def broken(:\n    pass\n", encoding="utf-8"
+    )
+    (package / "__init__.py").write_text(
+        '"""Package public API."""\n\n\ndef build(value: int) -> int:\n    return value\n',
+        encoding="utf-8",
+    )
+    (package / "py.typed").write_text("", encoding="utf-8")
+    _write_pyproject(tmp_path, packages='["packages/python/src/tools"]')
+
+    report = run_python_project_harness(tmp_path)
+
+    assert report.is_clean
+    assert report.project_scope is not None
+    assert report.project_scope.source_paths == (package.parent,)
+
+
 def test_project_policy_blocks_missing_declared_package_root(
     tmp_path: Path,
 ) -> None:

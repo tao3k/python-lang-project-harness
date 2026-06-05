@@ -353,7 +353,7 @@ class PythonHarnessReport:
         """Return non-blocking advisory findings for agent-guided repair."""
 
         if severities is None:
-            from python_lang_parser import PythonDiagnosticSeverity
+            from python_lang_parser._diagnostic_model import PythonDiagnosticSeverity
 
             selected_severities = frozenset({PythonDiagnosticSeverity.INFO})
         else:

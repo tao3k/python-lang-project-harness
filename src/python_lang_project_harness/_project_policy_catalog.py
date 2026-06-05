@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from python_lang_parser import PythonDiagnosticSeverity
+from python_lang_parser._diagnostic_model import PythonDiagnosticSeverity
 
 from ._model import PythonHarnessRule
 
@@ -111,7 +111,7 @@ _RULES = (
         pack_id=PROJECT_POLICY_PACK_ID,
         severity=PythonDiagnosticSeverity.INFO,
         title="Verification profile hints are not configured",
-        requirement="Configure `[tool.python-lang-project-harness.verification].profile_hints` from parser-suggested owners, or run `python-project-harness --agent-snapshot` to copy the compact `[verify-profile]` hints.",
+        requirement="Configure `[tool.python-lang-project-harness.verification].profile_hints` from parser-suggested owners, or run `py-harness --agent-snapshot` to copy the compact `[verify-profile]` hints.",
         labels=dict(_RULE_LABELS),
     ),
 )

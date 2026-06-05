@@ -6,13 +6,13 @@ import ast
 
 from ._ast_annotations import symbol_has_annotations
 from ._ast_names import (
+    SourceSegmentLookup,
     end_column,
     end_line,
     expr_context,
     is_public_name,
     iter_assignment_target_nodes,
     qualified_expr_name,
-    source_segment,
     target_assigns_name,
     unparse,
 )
@@ -38,7 +38,7 @@ class PythonAstCollector(ast.NodeVisitor):
 
     def __init__(self, path: str | None, source: str) -> None:
         self._path = path
-        self._source = source
+        self._source_segments = SourceSegmentLookup(source)
         self._scope_stack: list[str] = []
         self.imports: list[PythonImport] = []
         self.symbols: list[PythonSymbol] = []
@@ -100,7 +100,7 @@ class PythonAstCollector(ast.NodeVisitor):
                 end_line=end_line(node),
                 end_column=end_column(node),
                 context=expr_context(node.ctx),
-                expression=source_segment(self._source, node),
+                expression=self._source_segment(node),
             )
         )
         self.generic_visit(node)
@@ -115,7 +115,7 @@ class PythonAstCollector(ast.NodeVisitor):
                 end_line=end_line(node),
                 end_column=end_column(node),
                 context=expr_context(node.ctx),
-                expression=source_segment(self._source, node),
+                expression=self._source_segment(node),
             )
         )
         self.generic_visit(node)
@@ -130,7 +130,7 @@ class PythonAstCollector(ast.NodeVisitor):
                 end_column=end_column(node),
                 positional_count=len(node.args),
                 keyword_names=tuple(keyword.arg or "**" for keyword in node.keywords),
-                expression=source_segment(self._source, node),
+                expression=self._source_segment(node),
                 effect=call_effect(qualified_expr_name(node.func)),
             )
         )
@@ -142,7 +142,7 @@ class PythonAstCollector(ast.NodeVisitor):
             self._visit_assignment_target(
                 target,
                 "assign",
-                value_expression=source_segment(self._source, node.value),
+                value_expression=self._source_segment(node.value),
             )
         self.generic_visit(node)
 
@@ -154,9 +154,7 @@ class PythonAstCollector(ast.NodeVisitor):
             node.target,
             "annotated_assign",
             value_expression=(
-                source_segment(self._source, node.value)
-                if node.value is not None
-                else None
+                self._source_segment(node.value) if node.value is not None else None
             ),
         )
         self.generic_visit(node)
@@ -166,7 +164,7 @@ class PythonAstCollector(ast.NodeVisitor):
         self._visit_assignment_target(
             node.target,
             "aug_assign",
-            value_expression=source_segment(self._source, node.value),
+            value_expression=self._source_segment(node.value),
         )
         self.generic_visit(node)
 
@@ -174,7 +172,7 @@ class PythonAstCollector(ast.NodeVisitor):
         self._visit_assignment_target(
             node.target,
             "for",
-            value_expression=source_segment(self._source, node.iter),
+            value_expression=self._source_segment(node.iter),
         )
         self.generic_visit(node)
 
@@ -182,7 +180,7 @@ class PythonAstCollector(ast.NodeVisitor):
         self._visit_assignment_target(
             node.target,
             "async_for",
-            value_expression=source_segment(self._source, node.iter),
+            value_expression=self._source_segment(node.iter),
         )
         self.generic_visit(node)
 
@@ -192,7 +190,7 @@ class PythonAstCollector(ast.NodeVisitor):
                 self._visit_assignment_target(
                     item.optional_vars,
                     "with",
-                    value_expression=source_segment(self._source, item.context_expr),
+                    value_expression=self._source_segment(item.context_expr),
                 )
         self.generic_visit(node)
 
@@ -202,7 +200,7 @@ class PythonAstCollector(ast.NodeVisitor):
                 self._visit_assignment_target(
                     item.optional_vars,
                     "async_with",
-                    value_expression=source_segment(self._source, item.context_expr),
+                    value_expression=self._source_segment(item.context_expr),
                 )
         self.generic_visit(node)
 
@@ -266,12 +264,15 @@ class PythonAstCollector(ast.NodeVisitor):
                     end_line=end_line(item),
                     end_column=end_column(item),
                     target_kind=target_kind,
-                    expression=source_segment(self._source, item),
+                    expression=self._source_segment(item),
                     value_expression=value_expression,
                     is_public=is_public_name(name),
                     is_top_level=self._scope == "",
                 )
             )
+
+    def _source_segment(self, node: ast.AST) -> str | None:
+        return self._source_segments.segment(node)
 
     def _visit_export_contract(
         self,

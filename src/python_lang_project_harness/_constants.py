@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from python_lang_parser import PythonDiagnosticSeverity
+from python_lang_parser._diagnostic_model import PythonDiagnosticSeverity
 
 IGNORED_DIR_NAMES = frozenset(
     {
