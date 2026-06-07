@@ -41,6 +41,7 @@ def workspace_payload(
 
     packages = workspace_packages(report, facts, project_root, len(owner_nodes(facts)))
     edges = import_edges(facts, project_root, limit=MAX_WORKSPACE_EDGES)
+    owners = _workspace_owner_records(packages)
     return {
         "header": header(
             "workspace",
@@ -55,10 +56,11 @@ def workspace_payload(
             },
         ),
         "packages": packages,
+        "owners": owners,
         "edges": edges,
         "findings": finding_facts(report, project_root),
         "nextActions": [
-            {"kind": "prime", "target": item["id"]} for item in packages[:8]
+            {"kind": "owner", "target": item["path"]} for item in owners[:8]
         ],
     }
 
@@ -173,6 +175,29 @@ def _prime_next_actions(
         for dependency in _unique_dependencies(dep_nodes)
     )
     return actions[:8]
+
+
+def _workspace_owner_records(packages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    owners: list[dict[str, Any]] = []
+    for package in packages:
+        package_id = str(package["id"])
+        fields = dict(package.get("fields", {}))
+        owners.append(
+            {
+                "path": package_id,
+                "namespace": "." if package_id == "." else package_id.replace("/", "."),
+                "role": fields.get("role", "workspace-package"),
+                "public": True,
+                "exports": [],
+                "nextActions": [{"kind": "owner", "target": package_id}],
+                "fields": {
+                    "kind": "package",
+                    "surface": fields.get("surface", "workspace"),
+                    "name": fields.get("name", package_id),
+                },
+            }
+        )
+    return owners
 
 
 def _owner_next_actions(owners: list[dict[str, Any]]) -> list[dict[str, Any]]:

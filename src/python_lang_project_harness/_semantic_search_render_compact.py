@@ -52,6 +52,11 @@ def _item_inventory_packet_lines(packet: dict[str, Any]) -> list[str]:
     fields = packet["header"]["fields"]
     header_fields = compact_fields(
         {
+            "profile": fields.get("profile"),
+            "ownerPath": fields.get("ownerPath"),
+            "query": fields.get("query"),
+            "dependency": fields.get("dependency"),
+            "returns": fields.get("returns"),
             "q": fields.get("q"),
             "owner": fields.get("owner"),
             "item": len(packet.get("items", [])),
@@ -156,16 +161,32 @@ def item_lines(packet: dict[str, Any]) -> list[str]:
     lines: list[str] = []
     for item in packet.get("items", []):
         item_fields = item.get("fields", {})
+        item_name = item["name"]
         fields = compact_fields(
             {
                 "kind": item.get("kind"),
                 "public": True if item_fields.get("public") is True else None,
                 "doc": True if item_fields.get("doc") is True else None,
+                "next": f"syntax:{item_name}",
                 "read": item_fields.get("read"),
+                "syn": _syntax_atom_for_kind(item.get("kind")),
+                "tsqRef": "semantic-tree-sitter-query/python-owner-items.v1",
             }
         )
         lines.append(f"|item {item['name']} {render_fields(fields)}")
     return lines
+
+
+def _syntax_atom_for_kind(kind: object) -> str | None:
+    if kind == "function":
+        return "function_definition/name"
+    if kind == "class":
+        return "class_definition/name"
+    if kind == "import":
+        return "import_statement/name"
+    if kind == "import-from":
+        return "import_from_statement/name"
+    return None
 
 
 def code_lines(packet: dict[str, Any]) -> list[str]:

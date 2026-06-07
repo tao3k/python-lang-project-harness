@@ -164,5 +164,15 @@ def _first_repeated_namespace_segment(
         previous_index = seen.setdefault(segment, index)
         if previous_index == index:
             continue
+        if _is_src_layout_repeat(namespace, previous_index, index):
+            continue
         return segment, namespace[: index + 1]
     return None
+
+
+def _is_src_layout_repeat(
+    namespace: tuple[str, ...],
+    previous_index: int,
+    index: int,
+) -> bool:
+    return index == previous_index + 2 and namespace[previous_index + 1] == "src"

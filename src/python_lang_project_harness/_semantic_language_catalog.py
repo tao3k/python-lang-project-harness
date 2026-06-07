@@ -135,6 +135,17 @@ def python_search_view_descriptors() -> list[dict[str, Any]]:
             ],
         ),
         _view(
+            "reasoning",
+            requires_query=True,
+            capabilities=[
+                _semantic("reasoning-owner-search"),
+                _semantic("dependency-manifest-search"),
+                _python("python-owner-item-query"),
+                _python("pytest-test-owner-search"),
+                _python("dependency-local-usage-search"),
+            ],
+        ),
+        _view(
             "ingest",
             accepts_stdin=True,
             accepted_pipes=["items", "tests"],

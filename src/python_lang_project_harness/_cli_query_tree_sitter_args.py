@@ -41,6 +41,7 @@ def tree_sitter_query_protocol_args(args_type: type[Any], state: Any) -> Any:
         query_set=tuple(state.terms),
         project_root=None if not state.positionals else Path(state.positionals[0]),
         package_path=state.package_path,
+        workspace=state.workspace,
         json=state.json_output,
         code_only=state.code_only,
     )

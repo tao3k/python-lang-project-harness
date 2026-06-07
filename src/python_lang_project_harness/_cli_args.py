@@ -22,9 +22,12 @@ class ProtocolArgs:
     item_query: str | None = None
     project_root: Path | None = None
     package_path: Path | None = None
+    workspace: bool = False
     owner_path: str | None = None
+    dependency: str | None = None
     selector: str | None = None
     catalog: str | None = None
+    flow_lite_where: str | None = None
     tree_sitter_query: str | None = None
     asp_syntax_query_captures: tuple[str, ...] = ()
     asp_syntax_query_node_types: tuple[str, ...] = ()
@@ -70,9 +73,11 @@ class ProtocolArgs:
             query=parsed.query,
             item_query=parsed.item_query,
             owner_path=parsed.owner_path,
+            dependency=parsed.dependency,
             query_set=parsed.query_set,
             project_root=parsed.project_root,
             package_path=parsed.package_path,
+            workspace=parsed.workspace,
             pipes=parsed.pipes,
             json=parsed.json,
             code_only=parsed.code_only,
@@ -358,6 +363,7 @@ def help_text() -> str:
         "Usage:\n"
         "  py-harness search <view> ... [--json] [--code] [--package PATH] [PROJECT_ROOT]\n"
         "  py-harness query <owner-path> --term <symbol> [--term <symbol>] [--names-only | --code] [PROJECT_ROOT]\n"
+        "  py-harness query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION' [--json] [PROJECT_ROOT]\n"
         "  py-harness check [--changed | --full] [--json] [PROJECT_ROOT]\n"
         "  py-harness ast-patch dry-run --packet <semantic-ast-patch.json|-> [PROJECT_ROOT]\n"
         "  py-harness agent doctor [--json] [PROJECT_ROOT]\n"
@@ -384,6 +390,12 @@ def help_text() -> str:
         "  search fzf <query>        Fuzzy lexical owner/source-text candidates\n"
         "  search fzf <query> owner tests\n"
         "                             Minimal final-only fuzzy -> owner -> tests pipe\n"
+        "  search reasoning owner-tests --owner <path>\n"
+        "                             Typed graph entry returning covering tests, entrypoints, and fixtures\n"
+        "  search reasoning owner-query --owner <path> --query <symbol>\n"
+        "                             Typed graph entry returning owner items, tests, and dependency usage\n"
+        "  search reasoning query-deps --query <symbol> --dependency <pkg>\n"
+        "                             Typed graph entry returning owners, imports, and usage tests\n"
         "  search ingest             Detect stdin shape and group hits by owner\n\n"
         "QUERY\n"
         "  query <owner-path> --term <symbol>\n"
@@ -392,6 +404,8 @@ def help_text() -> str:
         "                             Owner-local item discovery without code windows\n"
         "  query <owner-path> --term <symbol> --code\n"
         "                             Pure compact parser-owned code output\n\n"
+        "  query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION'\n"
+        "                             Flow-lite ABI compatibility surface; Python executor is not enabled yet\n\n"
         "CHECK\n"
         "  check --changed           Fast lane alias; currently delegates to project check\n"
         "  check --full              Full project harness check\n"
@@ -418,8 +432,12 @@ def help_text() -> str:
         "  py-harness search public-external-types pytest .\n"
         "  py-harness search callsite PythonSemanticSearchOptions .\n"
         "  py-harness search fzf PythonSemanticSearchOptions owner tests .\n"
+        "  py-harness search reasoning owner-tests --owner src/python_lang_project_harness/_cli.py .\n"
+        "  py-harness search reasoning owner-query --owner src/python_lang_project_harness/_cli.py --query run_cli .\n"
+        "  py-harness search reasoning query-deps --query Session --dependency requests .\n"
         "  py-harness query src/python_lang_project_harness/_cli.py --term run_cli --names-only .\n"
         "  py-harness query src/python_lang_project_harness/_cli.py --term run_cli --code .\n"
+        "  py-harness query --catalog flow-lite --where 'source.call=payload sink.constructs=Action scope.fn=collect' .\n"
         '  rg -n "PythonSemanticSearchOptions" src tests | py-harness search ingest .\n'
         "  py-harness check --full .\n"
         "  py-harness agent doctor --json .\n"

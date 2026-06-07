@@ -16,8 +16,9 @@ QUERY_USAGE = (
     "usage: py-harness query <owner-path> --term <symbol> "
     "[--term <symbol>] [--names-only] [--json] [--package PATH] [PROJECT_ROOT]; "
     "or py-harness query --from-hook direct-source-read --selector PATH:START:END "
-    "[--source worktree|index|head] [--code] [PROJECT_ROOT]; "
-    "or py-harness query (--catalog ID | --treesitter-query EXPR) [--json] [PROJECT_ROOT]"
+    "[--workspace] [--source worktree|index|head] [--code] [PROJECT_ROOT]; "
+    "or py-harness query (--catalog ID | --treesitter-query EXPR) [--workspace] [--json] [PROJECT_ROOT]; "
+    "or py-harness query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION' [--json] [PROJECT_ROOT]"
 )
 
 
@@ -34,9 +35,11 @@ class QueryParseState:
     names_only: bool = False
     code_only: bool = False
     package_path: Path | None = None
+    workspace: bool = False
     from_hook: str | None = None
     selector: str | None = None
     catalog: str | None = None
+    flow_lite_where: str | None = None
     tree_sitter_query: str | None = None
     asp_syntax_query_captures: list[str] = field(default_factory=list)
     asp_syntax_query_node_types: list[str] = field(default_factory=list)
@@ -62,6 +65,9 @@ def consume_query_arg(
     if arg in {"--names-only", "--code", "--json"}:
         _set_query_flag(state, arg)
         return index + 1
+    if arg == "--workspace":
+        state.workspace = True
+        return index + 1
     if arg == "--surface":
         value = _optional_arg(args, index + 1)
         surfaces, error = normalize_query_surfaces(value)
@@ -81,6 +87,7 @@ def consume_query_arg(
         "--selector",
         "--package",
         "--catalog",
+        "--where",
         "--source",
         "--treesitter-query",
         "--asp-syntax-query-captures",
@@ -138,6 +145,8 @@ def _consume_query_option(
             state.selector = value
         case "--catalog":
             state.catalog = value
+        case "--where":
+            state.flow_lite_where = value
         case "--source":
             source_version, error = normalize_query_source_version(value)
             if error is not None:
@@ -169,6 +178,7 @@ def _query_option_value_name(arg: str) -> str:
         "--selector": "an owner path",
         "--package": "a package path",
         "--catalog": "a catalog id",
+        "--where": "flow-lite constraints",
         "--source": "worktree, index, or head",
         "--treesitter-query": "a tree-sitter query expression",
         "--asp-syntax-query-captures": "an ASP query capture list",

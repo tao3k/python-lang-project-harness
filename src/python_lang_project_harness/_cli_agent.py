@@ -46,6 +46,20 @@ def render_agent_guide(project_root: Path) -> str:
                 ),
                 f"|cmd prime=asp python search prime --view seeds {root}",
                 f"|cmd owner=asp python search owner <owner-path> --view seeds {root}",
+                (
+                    f"|cmd reasoning-owner-tests=asp python search reasoning "
+                    f"owner-tests --owner <owner-path> --view seeds {root}"
+                ),
+                (
+                    f"|cmd reasoning-owner-query=asp python search reasoning "
+                    f"owner-query --owner <owner-path> --query <symbol> "
+                    f"--view seeds {root}"
+                ),
+                (
+                    f"|cmd reasoning-query-deps=asp python search reasoning "
+                    f"query-deps --query <symbol> --dependency <pkg> "
+                    f"--view seeds {root}"
+                ),
                 f"|cmd names=asp python query <owner-path> --term <symbol> --names-only {root}",
                 f"|cmd query-code=asp python query <owner-path> --term <symbol> --code {root}",
                 f"|cmd catalog-json=asp python query --catalog declarations --json {root}",

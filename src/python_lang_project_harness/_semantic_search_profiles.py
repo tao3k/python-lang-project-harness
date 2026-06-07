@@ -85,4 +85,19 @@ def python_reasoning_profiles() -> list[dict[str, Any]]:
             "frontier": ["F.owner", "F.tests", "O.policy"],
             "fields": {"source": "search-guide"},
         },
+        {
+            "profile": "feature-cfg",
+            "description": "Use a feature or cfg gate to find guarded owners and verification surfaces.",
+            "selectors": [
+                {
+                    "kind": "feature",
+                    "alias": "F",
+                    "targetRole": "feature",
+                    "required": True,
+                },
+            ],
+            "returns": ["cfg-gates", "owners", "verification-surfaces"],
+            "frontier": ["F.cfg", "F.owner", "F.tests"],
+            "fields": {"source": "search-guide"},
+        },
     ]

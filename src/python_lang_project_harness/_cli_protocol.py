@@ -40,6 +40,23 @@ def run_protocol_cli(
         )
 
     try:
+        from ._cli_query_fast import render_fast_query_code
+        from ._semantic_search_ingest_fast import render_fast_empty_ingest_search
+        from ._semantic_search_prime_fast import render_fast_prime_search
+
+        fast_empty_ingest = render_fast_empty_ingest_search(args, project_root, stdin)
+        if fast_empty_ingest is not None:
+            stdout.write(fast_empty_ingest)
+            return 0
+        fast_prime = render_fast_prime_search(args, project_root)
+        if fast_prime is not None:
+            stdout.write(fast_prime)
+            return 0
+        fast_query_code = render_fast_query_code(args, project_root)
+        if fast_query_code is not None:
+            stdout.write(fast_query_code)
+            return 0
+
         report, runtime_cost = _run_search_harness(project_root, args)
         if args.command == "query":
             return _run_query_command(
@@ -61,7 +78,7 @@ def run_protocol_cli(
 
 def _resolve_project_root(args: ProtocolArgs, cwd: Path) -> Path:
     project_root = (cwd / args.project_root).resolve() if args.project_root else cwd
-    if args.package_path is not None:
+    if args.package_path is not None and not args.workspace:
         return (project_root / args.package_path).resolve()
     return project_root
 
@@ -141,6 +158,7 @@ def _run_search_command(
             item_query=args.item_query,
             query_set=args.query_set,
             owner_path=args.owner_path,
+            dependency=args.dependency,
             pipes=args.pipes,
             render_mode=args.render_mode,
             stdin=stdin,

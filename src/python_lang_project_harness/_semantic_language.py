@@ -6,13 +6,8 @@ from typing import Any
 
 from . import _semantic_language_ids as ids
 from ._semantic_language_catalog import python_search_view_descriptors
+from ._semantic_language_query import python_query_method_descriptors
 from ._semantic_language_schemas import python_semantic_language_schemas
-from ._tree_sitter_query_catalog import (
-    PYTHON_TREE_SITTER_GRAMMAR_ID,
-    PYTHON_TREE_SITTER_GRAMMAR_PROFILE_PATH,
-    PYTHON_TREE_SITTER_GRAMMAR_PROFILE_VERSION,
-    python_tree_sitter_query_catalog_descriptors,
-)
 
 _PYTHON_CHECK_METHODS = ("check/changed", "check/full")
 _PYTHON_QUERY_METHODS = ("query", "query/owner-items", "query/direct-source-read")
@@ -75,84 +70,7 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
         }
         for descriptor in _PYTHON_SEARCH_VIEW_DESCRIPTORS
     ]
-    descriptors.extend(
-        [
-            {
-                "method": "query",
-                "command": "query",
-                "input": "catalog-id",
-                "requiredOptions": ["--catalog|--treesitter-query"],
-                "outputSchemaIds": [ids.SEMANTIC_TREE_SITTER_QUERY_SCHEMA_ID],
-                "packetSchemas": ["semantic-tree-sitter-query.v1"],
-                "supportsJson": True,
-                "supportsCompact": True,
-                "outputModes": ["compact", "json", "code"],
-                "queryInputForms": ["catalog-id", "s-expression"],
-                "grammarId": PYTHON_TREE_SITTER_GRAMMAR_ID,
-                "grammarProfileVersion": PYTHON_TREE_SITTER_GRAMMAR_PROFILE_VERSION,
-                "grammarProfileSchema": "semantic-tree-sitter-grammar-profile.v1",
-                "grammarProfilePath": PYTHON_TREE_SITTER_GRAMMAR_PROFILE_PATH,
-                "queryCatalogs": python_tree_sitter_query_catalog_descriptors(),
-                "supportedPredicates": [
-                    "#eq?",
-                    "#any-eq?",
-                    "#any-of?",
-                    "#match?",
-                    "#any-match?",
-                    "#not-eq?",
-                    "#not-match?",
-                ],
-                "unsupportedPredicates": [],
-                "cacheReplay": True,
-            },
-            {
-                "method": "query/owner-items",
-                "command": "query",
-                "input": "owner-path",
-                "requiredOptions": ["--term"],
-                "outputSchemaIds": [ids.SEMANTIC_QUERY_PACKET_SCHEMA_ID],
-                "packetSchemas": [
-                    "semantic-query-packet.v1",
-                    "semantic-tree-sitter-query.v1",
-                ],
-                "grammarId": PYTHON_TREE_SITTER_GRAMMAR_ID,
-                "grammarProfileVersion": PYTHON_TREE_SITTER_GRAMMAR_PROFILE_VERSION,
-                "grammarProfileSchema": "semantic-tree-sitter-grammar-profile.v1",
-                "grammarProfilePath": PYTHON_TREE_SITTER_GRAMMAR_PROFILE_PATH,
-                "supportsJson": True,
-                "supportsCompact": True,
-                "supportsQuerySet": True,
-                "acceptedQuerySetSelectors": ["exact-set"],
-                "querySetScopes": ["owner"],
-                "outputModes": ["compact", "json", "code", "names"],
-                "cacheReplay": True,
-            },
-            {
-                "method": "query/direct-source-read",
-                "command": "query",
-                "input": "owner-path",
-                "requiredOptions": ["--from-hook", "--selector"],
-                "outputSchemaIds": [
-                    ids.SEMANTIC_QUERY_PACKET_SCHEMA_ID,
-                    ids.SEMANTIC_READ_PACKET_SCHEMA_ID,
-                ],
-                "packetSchemas": [
-                    "semantic-query-packet.v1",
-                    "semantic-read-packet.v1",
-                    "semantic-tree-sitter-query.v1",
-                ],
-                "queryInputForms": ["selector"],
-                "grammarId": PYTHON_TREE_SITTER_GRAMMAR_ID,
-                "grammarProfileVersion": PYTHON_TREE_SITTER_GRAMMAR_PROFILE_VERSION,
-                "grammarProfileSchema": "semantic-tree-sitter-grammar-profile.v1",
-                "grammarProfilePath": PYTHON_TREE_SITTER_GRAMMAR_PROFILE_PATH,
-                "supportsJson": True,
-                "supportsCompact": True,
-                "outputModes": ["compact", "json", "code", "names", "read-packet"],
-                "cacheReplay": True,
-            },
-        ]
-    )
+    descriptors.extend(python_query_method_descriptors())
     descriptors.extend(
         {
             "method": method,

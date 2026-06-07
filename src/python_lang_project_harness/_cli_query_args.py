@@ -10,6 +10,11 @@ from ._cli_query_arg_consume import (
     QueryParseState,
     consume_query_arg,
 )
+from ._cli_query_flow_lite_args import (
+    flow_lite_query_args_error,
+    flow_lite_query_protocol_args,
+    is_flow_lite_query_state,
+)
 from ._cli_query_hook_args import (
     is_broad_hook_query,
     owner_path_from_query_selector,
@@ -57,10 +62,13 @@ def _query_args_result(
             query_set=tuple(state.terms),
             project_root=_query_project_root(state),
             package_path=state.package_path,
+            workspace=state.workspace,
             pipes=tuple(state.surfaces),
             render_mode=state.render_mode,
             source_version=state.source_version,
         )
+    if is_flow_lite_query_state(state):
+        return flow_lite_query_protocol_args(args_type, state)
     if is_tree_sitter_query_state(state):
         return tree_sitter_query_protocol_args(args_type, state)
     owner_path = (
@@ -75,6 +83,7 @@ def _query_args_result(
         query_set=tuple(state.terms),
         project_root=_query_project_root(state),
         package_path=state.package_path,
+        workspace=state.workspace,
         json=state.json_output,
         names_only=_query_names_only(state),
         code_only=state.code_only,
@@ -86,6 +95,8 @@ def _query_args_result(
 def _query_args_error(state: QueryParseState) -> str | None:
     if state.from_hook is not None and state.from_hook != "direct-source-read":
         return f"unsupported query hook route: {state.from_hook}"
+    if is_flow_lite_query_state(state):
+        return flow_lite_query_args_error(state)
     if is_tree_sitter_query_state(state):
         return tree_sitter_query_args_error(state)
     if not state.selector and not state.positionals:

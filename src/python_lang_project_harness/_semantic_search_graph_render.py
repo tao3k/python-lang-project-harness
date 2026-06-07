@@ -8,8 +8,12 @@ import subprocess
 from collections.abc import Callable
 from typing import Any
 
+from ._semantic_search_common import escape_field_value
+from ._semantic_search_render_lines import render_next_action
+
 DEFAULT_GRAPH_SEED_LIMIT = 8
 SEMANTIC_AGENT_PROTOCOL_BIN_ENV = "SEMANTIC_AGENT_PROTOCOL_BIN"
+GRAPH_NATIVE_NEXT_ACTION_KINDS = frozenset({"owner", "tests"})
 
 
 class CompactGraphRenderError(RuntimeError):
@@ -21,7 +25,47 @@ def compact_graph_seed_packet_text(
     render_fields: Callable[[dict[str, Any]], str],
 ) -> str:
     del render_fields
-    return render_compact_graph_packet(packet, seed_limit=DEFAULT_GRAPH_SEED_LIMIT)
+    rendered = render_compact_graph_packet(
+        graph_render_packet(packet),
+        seed_limit=DEFAULT_GRAPH_SEED_LIMIT,
+    )
+    flow_lines = compact_graph_flow_lines(packet)
+    if not flow_lines:
+        return rendered
+    return f"{rendered.rstrip()}\n" + "\n".join(flow_lines) + "\n"
+
+
+def graph_render_packet(packet: dict[str, Any]) -> dict[str, Any]:
+    """Return the packet projection expected by the graph-only renderer."""
+
+    next_actions = [
+        action
+        for action in packet.get("nextActions", [])
+        if action.get("kind") in GRAPH_NATIVE_NEXT_ACTION_KINDS
+    ]
+    if len(next_actions) == len(packet.get("nextActions", [])):
+        return packet
+    return {**packet, "nextActions": next_actions}
+
+
+def compact_graph_flow_lines(packet: dict[str, Any]) -> list[str]:
+    """Render non-graph flow hints after compact graph output."""
+
+    lines = [
+        f"|note kind={note['kind']} message={escape_field_value(note['message'])}"
+        for note in packet.get("notes", [])
+    ]
+    non_graph_actions = [
+        action
+        for action in packet.get("nextActions", [])
+        if action.get("kind") not in GRAPH_NATIVE_NEXT_ACTION_KINDS
+    ]
+    if non_graph_actions:
+        lines.append(
+            "|next "
+            + ",".join(render_next_action(action) for action in non_graph_actions)
+        )
+    return lines
 
 
 def render_compact_graph_packet(

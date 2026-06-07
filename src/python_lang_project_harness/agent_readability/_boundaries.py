@@ -6,10 +6,10 @@ from pathlib import PurePath
 from typing import TYPE_CHECKING
 
 from python_lang_parser import (
+    python_symbol_is_public_callable,
     python_symbol_is_public_callable_boundary,
     python_symbol_is_public_class,
     python_symbol_is_test_function,
-    python_symbol_is_top_level_callable,
 )
 
 if TYPE_CHECKING:
@@ -25,7 +25,7 @@ def agent_readability_function_is_boundary(
 
     if python_symbol_is_test_function(symbol):
         return False
-    return python_symbol_is_top_level_callable(symbol) or (
+    return python_symbol_is_public_callable(symbol) or (
         python_symbol_is_public_callable_boundary(
             symbol,
             public_class_scopes=public_class_scopes,

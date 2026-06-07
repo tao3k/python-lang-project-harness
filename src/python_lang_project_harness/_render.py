@@ -68,7 +68,11 @@ def render_python_lang_harness(
         else ()
     )
     if blocking_findings:
-        rendered = _render_findings(blocking_findings, project_root=project_root)
+        rendered = _render_failure_frontier(
+            report,
+            blocking_findings,
+            project_root=project_root,
+        )
         if advice_findings:
             rendered += "\n[advice]\n" + _render_findings(
                 advice_findings,
@@ -187,6 +191,63 @@ def _render_findings(
         )
         + "\n"
     )
+
+
+def _render_failure_frontier(
+    report: PythonHarnessReport,
+    findings: tuple[PythonHarnessFinding, ...],
+    *,
+    project_root: Path | None,
+) -> str:
+    lines = [
+        (
+            f"[fail] python blockingFindings={len(findings)} "
+            f"parsed={report.parsed_count}/{report.file_count}"
+        )
+    ]
+    for finding in findings[:3]:
+        fields = {
+            "rule": finding.rule_id,
+            "severity": finding.severity.value,
+            "path": _render_display_path(
+                finding.location.path or "<memory>",
+                project_root=project_root,
+            ),
+            "line": finding.location.line,
+            "column": finding.location.column + 1,
+        }
+        lines.append(f"|failureFrontier {_render_line_fields(fields)}")
+        lines.append(f"|message {_failure_frontier_text(finding.title)}")
+        if finding.summary:
+            lines.append(f"|summary {_failure_frontier_text(finding.summary)}")
+        if finding.label:
+            lines.append(f"|repair {_failure_frontier_text(finding.label)}")
+        selector = _failure_frontier_selector(finding, project_root=project_root)
+        if selector is not None:
+            lines.append(f"|hotBlock selector={selector} reason=blocking-finding")
+            lines.append(
+                f"|next action=direct-source-read selector={selector} "
+                f"root={project_root or '.'}"
+            )
+    if len(findings) > 3:
+        lines.append(f"|more blockingFindings={len(findings) - 3}")
+    return "\n".join(lines) + "\n"
+
+
+def _failure_frontier_selector(
+    finding: PythonHarnessFinding,
+    *,
+    project_root: Path | None,
+) -> str | None:
+    if finding.location.path is None:
+        return None
+    line = max(finding.location.line, 1)
+    path = _render_display_path(finding.location.path, project_root=project_root)
+    return f"{path}:{line}:{line}"
+
+
+def _failure_frontier_text(value: str) -> str:
+    return " ".join(value.split())
 
 
 def _render_finding(

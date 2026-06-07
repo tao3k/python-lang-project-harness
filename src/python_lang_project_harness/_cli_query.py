@@ -26,6 +26,16 @@ def run_query_command(
 ) -> int:
     """Run a parsed query command against parser-owned report facts."""
 
+    if args.catalog == "flow-lite":
+        from ._flow_lite_query import write_flow_lite_query_response
+
+        write_flow_lite_query_response(
+            args,
+            project_root=project_root,
+            stdout=stdout,
+        )
+        return 0
+
     if args.catalog is not None or args.tree_sitter_query is not None:
         from ._tree_sitter_query import write_tree_sitter_query_response
 

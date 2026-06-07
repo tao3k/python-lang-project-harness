@@ -25,10 +25,11 @@ def test_render_python_lang_harness_uses_compact_source_diagnostic(
 
     output = render_python_lang_harness(run_python_lang_harness([bad]))
 
-    assert output.startswith("[python.syntax.invalid] Error")
-    assert "[python.syntax.invalid] Error: Python source did not parse" in output
-    assert "def broken(:" in output
-    assert "Required: Python modules must parse with CPython native syntax" in output
+    assert output.startswith("[fail] python blockingFindings=1 parsed=0/1")
+    assert "|failureFrontier rule=python.syntax.invalid severity=error" in output
+    assert "|hotBlock selector=" in output
+    assert "bad.py:1:1 reason=blocking-finding" in output
+    assert "|next action=direct-source-read selector=" in output
     assert "Action:" not in output
     assert "Fix:" not in output
     assert "Evidence:" not in output
@@ -44,7 +45,9 @@ def test_render_python_lang_harness_attaches_agent_advice_by_default(
     default_output = render_python_lang_harness(report)
     quiet_output = render_python_lang_harness(report, include_advice=False)
 
-    assert "[PY-MOD-R002] Warning: Library module uses bare print" in default_output
+    assert default_output.startswith("[fail] python blockingFindings=1 parsed=1/1")
+    assert "|failureFrontier rule=PY-MOD-R002 severity=warning" in default_output
+    assert "|hotBlock selector=" in default_output
     assert "\n[advice]\n[PY-AGENT-R001]" in default_output
     assert (
         "[PY-AGENT-R001] Info: Library module lacks a module intent docstring"
@@ -67,7 +70,7 @@ def test_assert_python_lang_harness_clean_blocks_for_pytest(tmp_path: Path) -> N
     else:
         raise AssertionError("harness should block invalid Python source")
 
-    assert "[python.syntax.invalid] Error" in message
+    assert "[fail] python blockingFindings=1 parsed=0/1" in message
     assert "python.syntax.invalid" in message
 
 
@@ -104,7 +107,8 @@ def test_assert_python_lang_harness_clean_can_disable_agent_advice(
     else:
         raise AssertionError("harness should block warning findings")
 
-    assert "[PY-MOD-R002] Warning: Library module uses bare print" in message
+    assert "[fail] python blockingFindings=1 parsed=1/1" in message
+    assert "|failureFrontier rule=PY-MOD-R002 severity=warning" in message
     assert "[advice]" not in message
 
 
@@ -121,7 +125,8 @@ def test_assert_python_lang_harness_clean_blocks_warning_findings(
     else:
         raise AssertionError("harness should block warning findings")
 
-    assert "[python.project.warning] Warning: Project warning" in message
+    assert "[fail] python blockingFindings=1 parsed=1/1" in message
+    assert "|failureFrontier rule=python.project.warning severity=warning" in message
 
 
 def test_assert_python_lang_harness_clean_honors_configured_blocking_severities(
@@ -163,7 +168,8 @@ def test_assert_python_lang_harness_clean_honors_severities_override(
     else:
         raise AssertionError("severity override should still block warnings")
 
-    assert "[python.project.warning] Warning: Project warning" in message
+    assert "[fail] python blockingFindings=1 parsed=1/1" in message
+    assert "|failureFrontier rule=python.project.warning severity=warning" in message
 
 
 class _WarningRulePack:

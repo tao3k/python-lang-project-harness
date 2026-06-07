@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+import time
+from io import StringIO
 from pathlib import Path
 
-from python_lang_project_harness import python_semantic_language_registration
+import pytest
+
+from python_lang_project_harness import python_semantic_language_registration, run_cli
 from python_lang_project_harness._semantic_search_cli import parse_semantic_search_args
+
+FAST_INGEST_BUDGET_SECONDS = 0.25
 
 
 def test_search_ingest_descriptor_accepts_items_tests_pipes() -> None:
@@ -37,3 +43,39 @@ def test_search_ingest_rejects_extra_positional_root_after_pipes() -> None:
     )
 
     assert parsed.error == "expected at most one PROJECT_ROOT argument"
+
+
+def test_search_ingest_empty_stdin_seeds_explains_prime_route(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\nname = "sample"\nversion = "0.1.0"\n',
+        encoding="utf-8",
+    )
+    from python_lang_project_harness import _cli_protocol
+
+    def fail_full_harness(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("full harness should not run for empty ingest seeds")
+
+    monkeypatch.setattr(_cli_protocol, "_run_search_harness", fail_full_harness)
+    stdout = StringIO()
+
+    started_at = time.perf_counter()
+    exit_code = run_cli(
+        ["search", "ingest", "items", "tests", "--view", "seeds", "."],
+        stdout=stdout,
+        stdin="",
+        cwd=tmp_path,
+    )
+    elapsed = time.perf_counter() - started_at
+
+    output = stdout.getvalue()
+    assert exit_code == 0
+    assert output.startswith("[search-ingest]")
+    assert "|note kind=stdin-required" in output
+    assert "search ingest consumes stdin candidate paths" in output
+    assert "search prime --view seeds" in output
+    assert "|next prime:" in output
+    assert "owner:path(search prime" not in output
+    assert elapsed < FAST_INGEST_BUDGET_SECONDS

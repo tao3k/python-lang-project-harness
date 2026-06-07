@@ -104,16 +104,32 @@ def _item_lines(items: list[dict[str, Any]], names_only: bool) -> list[str]:
 
 def _item_summary_line(item: dict[str, Any]) -> str:
     item_fields = item.get("fields", {})
+    item_name = item["name"]
     return f"|item {item['name']} " + render_fields(
         compact_fields(
             {
                 "kind": item.get("kind"),
                 "public": True if item_fields.get("public") is True else None,
                 "doc": True if item_fields.get("doc") is True else None,
+                "next": f"syntax:{item_name}",
                 "read": item_fields.get("read"),
+                "syn": _syntax_atom_for_kind(item.get("kind")),
+                "tsqRef": "semantic-tree-sitter-query/python-owner-items.v1",
             }
         )
     )
+
+
+def _syntax_atom_for_kind(kind: object) -> str | None:
+    if kind == "function":
+        return "function_definition/name"
+    if kind == "class":
+        return "class_definition/name"
+    if kind == "import":
+        return "import_statement/name"
+    if kind == "import-from":
+        return "import_from_statement/name"
+    return None
 
 
 def _item_code_line(item: dict[str, Any], names_only: bool) -> str | None:

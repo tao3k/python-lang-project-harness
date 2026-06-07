@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from python_lang_parser import (
         PythonProjectMetadata,
         PythonReasoningTreeBranch,
+        PythonReasoningTreeFacts,
         PythonReasoningTreeImportEdge,
         PythonReasoningTreeNode,
         PythonReasoningTreeShadow,
@@ -31,6 +32,15 @@ class _SnapshotTreeLimits:
 
 
 _LIMITS = _SnapshotTreeLimits()
+
+
+@dataclass(frozen=True, slots=True)
+class _SourceTreeFacts:
+    nodes: tuple[PythonReasoningTreeNode, ...]
+    branches: tuple[PythonReasoningTreeBranch, ...]
+    import_edges: tuple[PythonReasoningTreeImportEdge, ...]
+    shadows: tuple[PythonReasoningTreeShadow, ...]
+    test_count: int
 
 
 def render_python_agent_snapshot_tree(
@@ -59,41 +69,52 @@ class _SnapshotTreeRenderer:
         facts = verification_reasoning_tree_facts(self.report)
         if not facts.nodes and facts.project_metadata is None:
             return ""
-        source_nodes = tuple(
-            node for node in facts.nodes if not self.is_test(node.path)
-        )
-        source_branches = tuple(
-            branch for branch in facts.branches if not self.is_test(branch.path)
-        )
-        source_edges = tuple(
-            edge
-            for edge in facts.import_edges
-            if not self.is_test(edge.importer_path)
-            and not self.is_test(edge.imported_path)
-        )
-        source_shadows = tuple(
-            shadow
-            for shadow in facts.shadowed_module_sources
-            if not self.is_test(shadow.module_path)
-            and not self.is_test(shadow.package_init_path)
-        )
-        lines = [f"[tree] {self.target} python"]
-        lines.append(
-            self.module_summary(
-                source_nodes=source_nodes,
-                test_count=len(facts.nodes) - len(source_nodes),
-                branch_count=len(source_branches),
-                dependency_count=len(source_edges),
-                shadowed_count=len(source_shadows),
-            )
-        )
+        source = self.source_tree_facts(facts)
+        lines = self.initial_lines(source)
         if facts.project_metadata is not None:
             lines.extend(self.metadata_lines(facts.project_metadata))
-        self.add_branches(lines, source_branches)
-        self.add_public_owners(lines, source_nodes)
-        self.add_imports(lines, source_edges)
-        self.add_shadows(lines, source_shadows)
+        self.add_branches(lines, source.branches)
+        self.add_public_owners(lines, source.nodes)
+        self.add_imports(lines, source.import_edges)
+        self.add_shadows(lines, source.shadows)
         return "\n".join(lines) + "\n"
+
+    def source_tree_facts(
+        self,
+        facts: PythonReasoningTreeFacts,
+    ) -> _SourceTreeFacts:
+        nodes = tuple(node for node in facts.nodes if not self.is_test(node.path))
+        return _SourceTreeFacts(
+            nodes=nodes,
+            branches=tuple(
+                branch for branch in facts.branches if not self.is_test(branch.path)
+            ),
+            import_edges=tuple(
+                edge
+                for edge in facts.import_edges
+                if not self.is_test(edge.importer_path)
+                and not self.is_test(edge.imported_path)
+            ),
+            shadows=tuple(
+                shadow
+                for shadow in facts.shadowed_module_sources
+                if not self.is_test(shadow.module_path)
+                and not self.is_test(shadow.package_init_path)
+            ),
+            test_count=len(facts.nodes) - len(nodes),
+        )
+
+    def initial_lines(self, source: _SourceTreeFacts) -> list[str]:
+        return [
+            f"[tree] {self.target} python",
+            self.module_summary(
+                source_nodes=source.nodes,
+                test_count=source.test_count,
+                branch_count=len(source.branches),
+                dependency_count=len(source.import_edges),
+                shadowed_count=len(source.shadows),
+            ),
+        ]
 
     def module_summary(
         self,
@@ -115,6 +136,20 @@ class _SnapshotTreeRenderer:
 
     def metadata_lines(self, metadata: PythonProjectMetadata) -> list[str]:
         lines = ["Project:"]
+        self.add_metadata_identity(lines, metadata)
+        self.add_metadata_import_names(lines, metadata)
+        self.add_metadata_package_roots(lines, metadata)
+        self.add_metadata_scripts(lines, metadata)
+        self.add_metadata_entry_points(lines, metadata)
+        if metadata.pytest_options.enables_python_project_harness:
+            lines.append("- pytest=python-project-harness")
+        return lines
+
+    def add_metadata_identity(
+        self,
+        lines: list[str],
+        metadata: PythonProjectMetadata,
+    ) -> None:
         identity = []
         if metadata.project_name:
             identity.append(f"name={metadata.project_name}")
@@ -124,12 +159,24 @@ class _SnapshotTreeRenderer:
             identity.append(f"build-backend={metadata.build_backend}")
         if identity:
             lines.append("- " + " ".join(identity))
+
+    def add_metadata_import_names(
+        self,
+        lines: list[str],
+        metadata: PythonProjectMetadata,
+    ) -> None:
         import_names = (*metadata.import_names, *metadata.import_namespaces)
         if import_names:
             lines.append(
                 "- import-names="
                 + self.compact_values(tuple(item.name for item in import_names))
             )
+
+    def add_metadata_package_roots(
+        self,
+        lines: list[str],
+        metadata: PythonProjectMetadata,
+    ) -> None:
         if metadata.package_roots:
             lines.append(
                 "- package-roots="
@@ -137,17 +184,26 @@ class _SnapshotTreeRenderer:
                     tuple(self.display(path) for path in metadata.package_roots)
                 )
             )
+
+    def add_metadata_scripts(
+        self,
+        lines: list[str],
+        metadata: PythonProjectMetadata,
+    ) -> None:
         script_names = tuple(script.name for script in metadata.scripts)
         if script_names:
             lines.append("- scripts=" + self.compact_values(script_names))
+
+    def add_metadata_entry_points(
+        self,
+        lines: list[str],
+        metadata: PythonProjectMetadata,
+    ) -> None:
         entry_points = tuple(
             f"{entry.group}:{entry.name}" for entry in metadata.entry_points
         )
         if entry_points:
             lines.append("- entry-points=" + self.compact_values(entry_points))
-        if metadata.pytest_options.enables_python_project_harness:
-            lines.append("- pytest=python-project-harness")
-        return lines
 
     def add_branches(
         self,

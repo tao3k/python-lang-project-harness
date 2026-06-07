@@ -7,9 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from ._semantic_search_common import dedupe, header, path_hit
 from ._semantic_search_hits import test_path_hits
-from ._semantic_search_ingest import ingest_hits
 from ._semantic_search_model import (
-    MAX_FZF_HITS,
     MAX_TEST_HITS,
     PythonSemanticSearchOptions,
 )
@@ -19,6 +17,7 @@ from ._semantic_search_owners import (
     owners_for_paths,
     test_edges,
 )
+from ._semantic_search_view_actions import hit_next_actions
 from ._semantic_search_view_fzf_queries import (
     fair_merged_text_hits,
     fzf_query_hits_by_term,
@@ -141,36 +140,6 @@ def text_payload(
     }
 
 
-def ingest_payload(
-    facts: PythonReasoningTreeFacts,
-    project_root: Path,
-    stdin: str,
-) -> dict[str, Any]:
-    """Build stdin ingest payloads."""
-
-    detection, hits = ingest_hits(facts, project_root, stdin)
-    hits = hits[:MAX_FZF_HITS]
-    return {
-        "header": header(
-            "ingest",
-            {
-                "source": detection["source"],
-                "hit": len(hits),
-                "bytes": detection["byteCount"],
-            },
-        ),
-        "inputDetection": detection,
-        "owners": owners_for_paths(
-            facts, project_root, [hit["ownerPath"] for hit in hits]
-        ),
-        "hits": hits,
-        "nextActions": hit_next_actions(hits),
-        "notes": []
-        if hits
-        else [{"kind": "unrecognized-input", "message": "stdin produced no path hits"}],
-    }
-
-
 def generic_hits_payload(
     view: str,
     hits: list[dict[str, Any]],
@@ -192,23 +161,3 @@ def generic_hits_payload(
         "nextActions": hit_next_actions(hits),
         "notes": [] if hits else [{"kind": "not-found", "message": query}],
     }
-
-
-def hit_next_actions(hits: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Return bounded owner/tests follow-up actions for hits."""
-
-    actions: list[dict[str, Any]] = []
-    seen: set[tuple[str, str]] = set()
-    for hit in hits:
-        for action in (
-            {"kind": "owner", "target": hit["ownerPath"]},
-            {"kind": "tests", "target": hit["ownerPath"]},
-        ):
-            key = (action["kind"], action["target"])
-            if key in seen:
-                continue
-            seen.add(key)
-            actions.append(action)
-            if len(actions) >= 8:
-                return actions
-    return actions

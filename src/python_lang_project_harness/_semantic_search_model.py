@@ -30,6 +30,7 @@ class PythonSemanticSearchOptions:
     item_query: str | None = None
     query_set: tuple[str, ...] = ()
     owner_path: str | None = None
+    dependency: str | None = None
     pipes: tuple[str, ...] = ()
     render_mode: str | None = None
     stdin: str = ""

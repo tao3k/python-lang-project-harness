@@ -15,7 +15,9 @@ class ParsedSemanticSearchArgs:
     item_query: str | None = None
     project_root: Path | None = None
     package_path: Path | None = None
+    workspace: bool = False
     owner_path: str | None = None
+    dependency: str | None = None
     query_set: tuple[str, ...] = ()
     pipes: tuple[str, ...] = ()
     json: bool = False
@@ -33,7 +35,9 @@ class _SearchOptionState:
     code_only: bool = False
     render_mode: str | None = None
     package_path: Path | None = None
+    workspace: bool = False
     owner_path: str | None = None
+    dependency: str | None = None
 
 
 @dataclass(slots=True)
@@ -45,40 +49,64 @@ class _ConsumedOption:
 def parse_semantic_search_args(
     args: list[str] | tuple[str, ...],
 ) -> ParsedSemanticSearchArgs:
-    view = args[0] if args else None
-    if view is None or view in {"--help", "-h"}:
-        return ParsedSemanticSearchArgs(
-            error=(
-                "usage: py-harness search "
-                "<workspace|prime|owner|dependency|deps|api|public-external-types|policy|symbol|callsite|import|tests|fzf|text|ingest> "
-                "... [--json] [--code] [--package PATH] [PROJECT_ROOT]"
-            ),
-        )
-    descriptor = python_semantic_search_view_descriptor(view)
-    if descriptor is None:
-        return ParsedSemanticSearchArgs(error=f"unknown search view: {view}")
-
+    view, descriptor, error = _search_view_descriptor(args)
+    if error is not None or view is None or descriptor is None:
+        return ParsedSemanticSearchArgs(error=error)
     state, error = _parse_search_option_state(view, args[1:])
     if error is not None:
         return ParsedSemanticSearchArgs(error=error)
+    error = _validate_search_option_state(view, state)
+    if error is not None:
+        return ParsedSemanticSearchArgs(error=error)
+    return _search_args_for_descriptor(view, descriptor, state)
+
+
+def _search_view_descriptor(
+    args: list[str] | tuple[str, ...],
+) -> tuple[str | None, dict[str, object] | None, str | None]:
+    view = args[0] if args else None
+    if view is None or view in {"--help", "-h"}:
+        return None, None, _semantic_search_usage()
+    descriptor = python_semantic_search_view_descriptor(view)
+    if descriptor is None:
+        return view, None, f"unknown search view: {view}"
+    return view, descriptor, None
+
+
+def _semantic_search_usage() -> str:
+    return (
+        "usage: py-harness search "
+        "<workspace|prime|owner|dependency|deps|api|public-external-types|policy|symbol|callsite|import|tests|fzf|reasoning|text|ingest> "
+        "... [--json] [--code] [--package PATH] [PROJECT_ROOT]"
+    )
+
+
+def _validate_search_option_state(
+    view: str,
+    state: _SearchOptionState,
+) -> str | None:
     if state.query_set and not _search_view_supports_query_set(view):
-        return ParsedSemanticSearchArgs(
-            error=f"search {view} does not support --query-set"
-        )
-    if state.item_query is not None and view != "owner":
-        return ParsedSemanticSearchArgs(
-            error="--query is only supported by search owner items",
-        )
+        return f"search {view} does not support --query-set"
+    if state.item_query is not None and view not in {"owner", "reasoning"}:
+        return "--query is only supported by search owner items"
     if state.code_only and state.json:
-        return ParsedSemanticSearchArgs(error="--code cannot be combined with --json")
+        return "--code cannot be combined with --json"
     if state.code_only and not (view == "owner" and state.item_query is not None):
-        return ParsedSemanticSearchArgs(
-            error="--code requires search owner <path> items --query <symbol>",
-        )
-    if state.owner_path is not None and not (view == "fzf" and state.query_set):
-        return ParsedSemanticSearchArgs(
-            error="--owner is only supported by search fzf --query-set",
-        )
+        return "--code requires search owner <path> items --query <symbol>"
+    if state.owner_path is not None and not (
+        view == "reasoning" or (view == "fzf" and state.query_set)
+    ):
+        return "--owner is only supported by search fzf --query-set"
+    if state.dependency is not None and view != "reasoning":
+        return "--dependency is only supported by search reasoning"
+    return None
+
+
+def _search_args_for_descriptor(
+    view: str,
+    descriptor: dict[str, object],
+    state: _SearchOptionState,
+) -> ParsedSemanticSearchArgs:
     if descriptor["requiresQuery"]:
         return _required_query_args(view, descriptor, state)
     return _project_only_args(view, descriptor, state)
@@ -130,11 +158,19 @@ def _consume_search_option(
                 return _ConsumedOption(error="--package requires a package path")
             state.package_path = Path(value)
             return _ConsumedOption(advance=2)
+        case "--workspace":
+            state.workspace = True
         case "--owner":
             value = _literal_arg(args, index + 1)
             if value is None:
                 return _ConsumedOption(error="--owner requires an owner path")
             state.owner_path = value
+            return _ConsumedOption(advance=2)
+        case "--dependency":
+            value = _literal_arg(args, index + 1)
+            if value is None:
+                return _ConsumedOption(error="--dependency requires a dependency")
+            state.dependency = value
             return _ConsumedOption(advance=2)
         case "--query-set":
             value = _literal_arg(args, index + 1)
@@ -180,9 +216,11 @@ def _required_query_args(
         query=query,
         item_query=state.item_query,
         owner_path=state.owner_path,
+        dependency=state.dependency,
         query_set=tuple(state.query_set),
         project_root=None if project_root is None else Path(project_root),
         package_path=state.package_path,
+        workspace=state.workspace,
         pipes=tuple(pipes),
         json=state.json,
         code_only=state.code_only,
@@ -206,6 +244,7 @@ def _project_only_args(
         view=view,
         project_root=None if project_root is None else Path(project_root),
         package_path=state.package_path,
+        workspace=state.workspace,
         pipes=tuple(pipes),
         json=state.json,
         code_only=state.code_only,
@@ -267,7 +306,9 @@ def _is_flag_like_literal_search_query(
         not in {
             "--view",
             "--package",
+            "--workspace",
             "--owner",
+            "--dependency",
             "--query",
             "--query-set",
             "--code",

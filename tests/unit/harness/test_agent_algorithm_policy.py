@@ -112,7 +112,7 @@ def test_py_agent_r011_native_idiom_snapshot(tmp_path: Path) -> None:
 """Service algorithms."""
 
 
-def _has_admin(values: list[str]) -> bool:
+def has_admin(values: list[str]) -> bool:
     total = 0
     for value in values:
         total += len(value)

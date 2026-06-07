@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
+from pathlib import PurePath
 from typing import TYPE_CHECKING
 
 from python_lang_parser import (
@@ -57,9 +58,16 @@ def collect_agent_namespace_items(
 def _symbol_namespace_items(
     report: PythonModuleReport,
 ) -> tuple[AgentNamespaceItem, ...]:
+    if _report_uses_private_namespace(report):
+        return ()
+    exported_names = _exported_names(report)
     items: list[AgentNamespaceItem] = []
     for symbol in report.symbols:
-        if not python_symbol_is_public_top_level(symbol):
+        if (
+            not python_symbol_is_public_top_level(symbol)
+            or symbol.name == "main"
+            or symbol.name not in exported_names
+        ):
             continue
         surface = _symbol_surface(symbol)
         if surface is None:
@@ -80,9 +88,15 @@ def _symbol_namespace_items(
 def _assignment_namespace_items(
     report: PythonModuleReport,
 ) -> tuple[AgentNamespaceItem, ...]:
+    if _report_uses_private_namespace(report):
+        return ()
+    exported_names = _exported_names(report)
     items: list[AgentNamespaceItem] = []
     for assignment in report.assignments:
-        if not python_assignment_is_public_top_level(assignment):
+        if (
+            not python_assignment_is_public_top_level(assignment)
+            or assignment.name not in exported_names
+        ):
             continue
         items.append(
             AgentNamespaceItem(
@@ -109,3 +123,34 @@ def _module_name(report: PythonModuleReport) -> str:
     if report.path is None:
         return "<memory>"
     return python_module_name_from_path(report.path)
+
+
+def _exported_names(report: PythonModuleReport) -> frozenset[str]:
+    if report.export_contract.is_explicit:
+        return frozenset(report.export_contract.names)
+    return frozenset(
+        symbol.name
+        for symbol in report.symbols
+        if python_symbol_is_public_top_level(symbol)
+    ) | frozenset(
+        assignment.name
+        for assignment in report.assignments
+        if python_assignment_is_public_top_level(assignment)
+    )
+
+
+def _report_uses_private_namespace(report: PythonModuleReport) -> bool:
+    if report.path is None:
+        return False
+    parts = PurePath(report.path.replace("\\", "/")).parts
+    if "tests" in parts:
+        return True
+    if parts and parts[0] == "tools":
+        return True
+    return _contains_subpath(parts, ("packages", "python", "tools", "src", "tools"))
+
+
+def _contains_subpath(parts: tuple[str, ...], needle: tuple[str, ...]) -> bool:
+    return any(
+        parts[index : index + len(needle)] == needle for index in range(len(parts))
+    )
