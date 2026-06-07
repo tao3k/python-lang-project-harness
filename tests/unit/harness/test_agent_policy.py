@@ -32,16 +32,16 @@ def test_agent_policy_reports_compact_repairable_snapshot(tmp_path: Path) -> Non
     assert (
         output
         == """[PY-AGENT-R001] Info: Library module lacks a module intent docstring
-   ,-[ $TMP/service.py:1:1 ]
- 1 | def build(value):
-   | `- add a concise module responsibility docstring
-   |Required: Add a concise module docstring that names the module responsibility for agent search and repair.
+  --> $TMP/service.py:1:1
+   1 | def build(value):
+     | `- add a concise module responsibility docstring
+     | Required: Add a concise module docstring that names the module responsibility for agent search and repair.
 
 [PY-AGENT-R002] Info: Public callable lacks type annotations
-   ,-[ $TMP/service.py:1:1 ]
- 1 | def build(value):
-   | `- add parameter and return annotations to this public callable
-   |Required: Annotate public function and method boundaries so agents can reason from native syntax without guessing shapes.
+  --> $TMP/service.py:1:1
+   1 | def build(value):
+     | `- add parameter and return annotations to this public callable
+     | Required: Annotate public function and method boundaries so agents can reason from native syntax without guessing shapes.
 """
     )
 

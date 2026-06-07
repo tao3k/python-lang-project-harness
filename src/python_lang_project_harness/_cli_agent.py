@@ -8,6 +8,7 @@ from pathlib import Path
 def render_agent_guide(project_root: Path) -> str:
     project = str(project_root)
     root = "."
+    workspace = "--workspace <workspace-root>"
     return (
         "\n".join(
             (
@@ -25,24 +26,24 @@ def render_agent_guide(project_root: Path) -> str:
                     f"returns=locator,capture,frontier code=false cmd=asp python "
                     f"query --treesitter-query "
                     f"'(function_definition name: (identifier) @function.name)' "
-                    f"--selector <path[:line|:start:end]> {root}"
+                    f"--selector <path[:line|:start-end]> {workspace}"
                 ),
                 (
                     f"|route syntax-code selectors=S:tree-sitter-query,R:exact-selector "
                     f"returns=code code=pure cmd=asp python query --treesitter-query "
                     f"'(function_definition name: (identifier) @function.name)' "
-                    f"--selector <path[:line|:start:end]> --code {root}"
+                    f"--selector <path[:line|:start-end]> {workspace} --code"
                 ),
                 (
                     f"|route read-plan selectors=R:selector,T:term "
                     f"returns=owners,tests,window-set code=false cmd=asp python "
                     f"query --from-hook direct-source-read --selector <selector> "
-                    f"--term <term> --surface owners,tests --view seeds {root}"
+                    f"--term <term> --surface owners,tests --view seeds {workspace}"
                 ),
                 (
                     f"|route query-code selectors=O:owner,Q:symbol returns=code "
                     f"code=pure cmd=asp python query <owner-path> --term <symbol> "
-                    f"--code {root}"
+                    f"{workspace} --code"
                 ),
                 f"|cmd prime=asp python search prime --view seeds {root}",
                 f"|cmd owner=asp python search owner <owner-path> --view seeds {root}",
@@ -60,22 +61,22 @@ def render_agent_guide(project_root: Path) -> str:
                     f"query-deps --query <symbol> --dependency <pkg> "
                     f"--view seeds {root}"
                 ),
-                f"|cmd names=asp python query <owner-path> --term <symbol> --names-only {root}",
-                f"|cmd query-code=asp python query <owner-path> --term <symbol> --code {root}",
+                f"|cmd names=asp python query <owner-path> --term <symbol> {workspace} --names-only",
+                f"|cmd query-code=asp python query <owner-path> --term <symbol> {workspace} --code",
                 f"|cmd catalog-json=asp python query --catalog declarations --json {root}",
                 (
                     f"|cmd syntax-locate=asp python query --treesitter-query "
                     f"'(function_definition name: (identifier) @function.name)' "
-                    f"--selector <path[:line|:start:end]> {root}"
+                    f"--selector <path[:line|:start-end]> {workspace}"
                 ),
                 (
                     f"|cmd syntax-code=asp python query --treesitter-query "
                     f"'(function_definition name: (identifier) @function.name)' "
-                    f"--selector <path[:line|:start:end]> --code {root}"
+                    f"--selector <path[:line|:start-end]> {workspace} --code"
                 ),
                 (
                     f"|cmd owner-items-code=asp python search owner <owner-path> items "
-                    f"--query <symbol|a|b> --code {root}"
+                    f"--query <symbol|a|b> {workspace} --code"
                 ),
                 (
                     f"|cmd policy=asp python search policy <rule-id-or-alias> "
@@ -84,7 +85,7 @@ def render_agent_guide(project_root: Path) -> str:
                 (
                     f"|cmd read-plan=asp python query --from-hook direct-source-read "
                     f"--selector <selector> --term <term> --surface owners,tests "
-                    f"--view seeds {root}"
+                    f"--view seeds {workspace}"
                 ),
                 f"|cmd fzf=asp python search fzf <query> owner tests --view seeds {root}",
                 f"|cmd ast-patch=asp python ast-patch dry-run --packet <semantic-ast-patch.json|-> {root}",
@@ -92,7 +93,10 @@ def render_agent_guide(project_root: Path) -> str:
                 f"|pipe <candidate-lines> | asp python search ingest --view seeds {root}",
                 f"|cmd check=asp python check --changed {root}",
                 "|rule agent hook install/runtime is owned by asp",
-                "|rule run guide commands from project root; trailing . is the project root",
+                (
+                    "|rule selector queries do not need a trailing project root; "
+                    "--workspace <workspace-root> is the independent workspace override"
+                ),
                 (
                     "|rule syntax query ABI is compiled by asp; provider projects "
                     "native parser facts into tree-sitter-compatible captures"
@@ -105,6 +109,11 @@ def render_agent_guide(project_root: Path) -> str:
                 (
                     "|rule query --code is pure code; search/read-plan returns "
                     "locators/frontier, not inline code"
+                ),
+                (
+                    "|rule --view metadata is document-only for asp md/org query; "
+                    "Python code query uses search --view seeds for discovery and "
+                    "query <owner-path> --term <symbol> --code|--names-only"
                 ),
                 (
                     "|rule use the asp python facade; run one command at a time; "

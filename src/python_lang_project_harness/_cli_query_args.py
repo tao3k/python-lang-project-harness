@@ -101,6 +101,10 @@ def _query_args_error(state: QueryParseState) -> str | None:
         return tree_sitter_query_args_error(state)
     if not state.selector and not state.positionals:
         return "query requires an owner path"
+    if state.workspace_root is not None and _query_has_positional_project_root(state):
+        return "query accepts project root via --workspace or positional PROJECT_ROOT, not both"
+    if state.code_only and _query_has_positional_project_root(state):
+        return "query --code does not accept a trailing PROJECT_ROOT; use --workspace PROJECT_ROOT"
     if len(state.positionals) > (2 if state.selector is None else 1):
         return "expected owner path and optional PROJECT_ROOT"
     if not state.terms and state.from_hook != "direct-source-read":
@@ -124,9 +128,17 @@ def _query_args_error(state: QueryParseState) -> str | None:
 
 
 def _query_project_root(state: QueryParseState) -> Path | None:
+    if state.workspace_root is not None:
+        return state.workspace_root
     if state.selector is None:
         return None if len(state.positionals) == 1 else Path(state.positionals[1])
     return None if not state.positionals else Path(state.positionals[0])
+
+
+def _query_has_positional_project_root(state: QueryParseState) -> bool:
+    if state.selector is None:
+        return len(state.positionals) > 1
+    return bool(state.positionals)
 
 
 def _query_names_only(state: QueryParseState) -> bool:

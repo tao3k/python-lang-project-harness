@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from ._semantic_search_common import display_path, location
+from ._semantic_search_common import location, semantic_search_display_path
 from ._semantic_search_model import Fields
 from .verification.facts import is_test_path
 
@@ -46,7 +46,7 @@ def ranked_owner_records(
 def owner_record(node: PythonReasoningTreeNode, project_root: Path) -> dict[str, Any]:
     """Return one semantic-search owner record."""
 
-    path = display_path(node.path, project_root)
+    path = semantic_search_display_path(node.path, project_root)
     exports = list(node.public_names)
     fields: Fields = {
         "kind": node.kind,
@@ -85,7 +85,7 @@ def matching_owner_nodes(
     query_folded = query.casefold()
     matches = []
     for node in facts.nodes:
-        path = display_path(node.path, project_root)
+        path = semantic_search_display_path(node.path, project_root)
         namespace = ".".join(node.namespace)
         if (
             query_folded in path.casefold()
@@ -93,7 +93,9 @@ def matching_owner_nodes(
             or any(query_folded in name.casefold() for name in node.public_names)
         ):
             matches.append(node)
-    return sorted(matches, key=lambda node: display_path(node.path, project_root))
+    return sorted(
+        matches, key=lambda node: semantic_search_display_path(node.path, project_root)
+    )
 
 
 def owners_for_paths(
@@ -107,7 +109,7 @@ def owners_for_paths(
     return [
         owner_record(node, project_root)
         for node in facts.nodes
-        if display_path(node.path, project_root) in wanted
+        if semantic_search_display_path(node.path, project_root) in wanted
     ]
 
 
@@ -121,8 +123,8 @@ def import_edges(
 
     edges = []
     for edge in facts.import_edges[:limit]:
-        importer = display_path(edge.importer_path, project_root)
-        imported = display_path(edge.imported_path, project_root)
+        importer = semantic_search_display_path(edge.importer_path, project_root)
+        imported = semantic_search_display_path(edge.imported_path, project_root)
         edges.append(
             {
                 "from": f"O:{importer}",
@@ -149,8 +151,8 @@ def test_edges(
 
     edges = []
     for edge in facts.import_edges:
-        importer = display_path(edge.importer_path, project_root)
-        imported = display_path(edge.imported_path, project_root)
+        importer = semantic_search_display_path(edge.importer_path, project_root)
+        imported = semantic_search_display_path(edge.imported_path, project_root)
         if not is_test_path(importer):
             continue
         if owner_paths and imported not in owner_paths:

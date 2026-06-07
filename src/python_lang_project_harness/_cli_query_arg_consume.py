@@ -14,10 +14,10 @@ from ._tree_sitter_query_predicates import SyntaxQueryPredicate
 
 QUERY_USAGE = (
     "usage: py-harness query <owner-path> --term <symbol> "
-    "[--term <symbol>] [--names-only] [--json] [--package PATH] [PROJECT_ROOT]; "
+    "[--term <symbol>] [--workspace PROJECT_ROOT] [--names-only] [--json] [--package PATH]; "
     "or py-harness query --from-hook direct-source-read --selector PATH:START:END "
-    "[--workspace] [--source worktree|index|head] [--code] [PROJECT_ROOT]; "
-    "or py-harness query (--catalog ID | --treesitter-query EXPR) [--workspace] [--json] [PROJECT_ROOT]; "
+    "[--workspace PROJECT_ROOT] [--source worktree|index|head] [--code]; "
+    "or py-harness query (--catalog ID | --treesitter-query EXPR) [--workspace PROJECT_ROOT] [--json]; "
     "or py-harness query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION' [--json] [PROJECT_ROOT]"
 )
 
@@ -36,6 +36,7 @@ class QueryParseState:
     code_only: bool = False
     package_path: Path | None = None
     workspace: bool = False
+    workspace_root: Path | None = None
     from_hook: str | None = None
     selector: str | None = None
     catalog: str | None = None
@@ -66,8 +67,12 @@ def consume_query_arg(
         _set_query_flag(state, arg)
         return index + 1
     if arg == "--workspace":
+        value = _optional_arg(args, index + 1)
+        if value is None:
+            return ProtocolArgError("--workspace requires a project root")
         state.workspace = True
-        return index + 1
+        state.workspace_root = Path(value)
+        return index + 2
     if arg == "--surface":
         value = _optional_arg(args, index + 1)
         surfaces, error = normalize_query_surfaces(value)

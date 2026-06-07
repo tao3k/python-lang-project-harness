@@ -105,6 +105,16 @@ def python_semantic_language_schemas() -> list[dict[str, str]]:
             "path": "schemas/semantic-type-surface.v1.schema.json",
         },
         {
+            "schemaId": ids.SEMANTIC_FACT_GRAPH_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-fact-graph.v1.schema.json",
+        },
+        {
+            "schemaId": ids.SEMANTIC_FACT_ONTOLOGY_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-fact-ontology.v1.schema.json",
+        },
+        {
             "schemaId": "agent.semantic-protocols.semantic-handle",
             "schemaVersion": "1",
             "path": "schemas/semantic-handle.v1.schema.json",

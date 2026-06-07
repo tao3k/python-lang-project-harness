@@ -62,12 +62,7 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
     """Return method descriptors for the Python provider registry."""
 
     descriptors = [
-        {
-            **descriptor,
-            "outputSchemaIds": _search_output_schema_ids(descriptor["view"]),
-            "supportsJson": True,
-            "supportsCompact": True,
-        }
+        _python_search_method_descriptor(descriptor)
         for descriptor in _PYTHON_SEARCH_VIEW_DESCRIPTORS
     ]
     descriptors.extend(python_query_method_descriptors())
@@ -113,7 +108,27 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
     return descriptors
 
 
+def _python_search_method_descriptor(descriptor: dict[str, Any]) -> dict[str, Any]:
+    rendered = {
+        **descriptor,
+        "outputSchemaIds": _search_output_schema_ids(descriptor["view"]),
+        "supportsJson": True,
+        "supportsCompact": True,
+    }
+    if descriptor["view"] == "semantic-facts":
+        rendered["supportsCompact"] = False
+        rendered["outputModes"] = ["json"]
+        rendered["packetSchemas"] = [
+            "semantic-fact-graph.v1",
+            "semantic-fact-ontology.v1",
+        ]
+        rendered["input"] = "search semantic-facts <query>"
+    return rendered
+
+
 def _search_output_schema_ids(view: str) -> list[str]:
+    if view == "semantic-facts":
+        return [ids.SEMANTIC_FACT_GRAPH_SCHEMA_ID]
     schema_ids = [ids.SEMANTIC_SEARCH_PACKET_SCHEMA_ID]
     if view == "public-external-types":
         schema_ids.append(ids.SEMANTIC_TYPE_SURFACE_SCHEMA_ID)

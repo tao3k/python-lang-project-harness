@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING, Any
 
 from ._semantic_search_common import (
     dedupe_hits,
-    display_path,
     location,
     path_hit,
+    semantic_search_display_path,
 )
 from ._semantic_search_deps import module_owner_path
 from ._semantic_search_symbol_hits import symbol_hits
@@ -72,7 +72,7 @@ def fuzzy_text_hits(
 def _node_text_hits(
     node, project_root: Path, query_folded: str
 ) -> list[dict[str, Any]]:
-    owner_path = display_path(node.path, project_root)
+    owner_path = semantic_search_display_path(node.path, project_root)
     hits = _node_path_hits(node, owner_path, query_folded)
     hits.extend(
         path_hit(
@@ -92,7 +92,7 @@ def _node_text_hits(
 def _node_fuzzy_text_hits(
     node, project_root: Path, query_folded: str
 ) -> list[dict[str, Any]]:
-    owner_path = display_path(node.path, project_root)
+    owner_path = semantic_search_display_path(node.path, project_root)
     hits = _node_fuzzy_path_hits(node, owner_path, query_folded)
     export_hits = []
     for export_name in node.public_names:

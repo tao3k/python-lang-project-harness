@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 from . import _semantic_language_ids as ids
 from ._python_compact import compact_python_item
 from ._semantic_projection import semantic_query_projection
-from ._semantic_search_common import compact_fields, display_path
+from ._semantic_search_common import compact_fields, semantic_search_display_path
 from ._semantic_search_import_routes import import_definition_routes
 from ._semantic_search_model import MAX_OWNER_QUERY_ITEMS
 
@@ -157,7 +157,7 @@ def _module_for_owner(
     for module in report.modules:
         if (
             module.path is not None
-            and display_path(module.path, project_root) == owner_path
+            and semantic_search_display_path(module.path, project_root) == owner_path
         ):
             return module
     return None
@@ -464,7 +464,7 @@ def _item_record(
                 "truncated": truncated,
                 "code": code,
                 "projectionNodes": projection_nodes,
-                "sourcePath": display_path(
+                "sourcePath": semantic_search_display_path(
                     symbol.location.path or owner_path, project_root
                 ),
             }

@@ -125,9 +125,9 @@ def dependency_usage_hits(
 def module_owner_path(module, project_root: Path) -> str:
     """Return a display path for a parsed module."""
 
-    from ._semantic_search_common import display_path
+    from ._semantic_search_common import semantic_search_display_path
 
-    return display_path(module.path or ".", project_root)
+    return semantic_search_display_path(module.path or ".", project_root)
 
 
 def import_root(module: str | None, names) -> str | None:

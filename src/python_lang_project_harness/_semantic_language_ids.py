@@ -13,6 +13,8 @@ SEMANTIC_TREE_SITTER_PROVENANCE_SCHEMA_ID = (
 )
 SEMANTIC_GRAPH_SCHEMA_ID = "agent.semantic-protocols.semantic-graph"
 SEMANTIC_TYPE_SURFACE_SCHEMA_ID = "agent.semantic-protocols.semantic-type-surface"
+SEMANTIC_FACT_GRAPH_SCHEMA_ID = "agent.semantic-protocols.semantic-fact-graph"
+SEMANTIC_FACT_ONTOLOGY_SCHEMA_ID = "agent.semantic-protocols.semantic-fact-ontology"
 SEMANTIC_DETERMINISM_READINESS_SCHEMA_ID = (
     "agent.semantic-protocols.semantic-determinism-readiness"
 )

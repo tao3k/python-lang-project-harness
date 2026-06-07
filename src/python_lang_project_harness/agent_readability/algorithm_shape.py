@@ -11,6 +11,12 @@ from ._boundaries import (
     agent_readability_public_class_scopes,
     agent_readability_report_is_in_scope,
 )
+from ._quality_signals import (
+    CONTROL_FLOW_DECISION_STACK,
+    CONTROL_FLOW_LITERAL_DISPATCH_CHAIN,
+    CONTROL_FLOW_TRAVERSAL_KNOT,
+    finding_labels,
+)
 
 if TYPE_CHECKING:
     from python_lang_parser import (
@@ -44,6 +50,7 @@ def agent_algorithm_shape_findings(
         profile = _agent_algorithm_profile(control_flow)
         if not profile:
             continue
+        signal_ids = _agent_algorithm_quality_signals(profile)
         findings.append(
             PythonHarnessFinding(
                 rule_id=rule.rule_id,
@@ -55,7 +62,7 @@ def agent_algorithm_shape_findings(
                 requirement=f"{rule.requirement} Signals: {', '.join(profile)}.",
                 source_line=report.source_line(symbol.location.line),
                 label="make this algorithm shape explicit",
-                labels=dict(rule.labels),
+                labels=finding_labels(dict(rule.labels), signal_ids),
             )
         )
     return tuple(findings)
@@ -76,6 +83,22 @@ def _agent_algorithm_profile(
     if control_flow.nested_control_flow_count >= 4:
         indicators.append("many nested control-flow blocks")
     return tuple(indicators)
+
+
+def _agent_algorithm_quality_signals(profile: tuple[str, ...]) -> tuple[str, ...]:
+    signal_ids: list[str] = []
+    for indicator in profile:
+        if indicator in {
+            "deep control-flow nesting",
+            "else blocks after terminal branches",
+            "many nested control-flow blocks",
+        }:
+            signal_ids.append(CONTROL_FLOW_DECISION_STACK)
+        elif indicator == "nested loops mixed with branches":
+            signal_ids.append(CONTROL_FLOW_TRAVERSAL_KNOT)
+        elif indicator == "literal dispatch chain without match/case":
+            signal_ids.append(CONTROL_FLOW_LITERAL_DISPATCH_CHAIN)
+    return tuple(dict.fromkeys(signal_ids))
 
 
 def _summary(

@@ -262,15 +262,39 @@ def _render_finding(
     display_column = column + 1
     rendered = (
         f"[{finding.rule_id}] {severity}: {finding.title}\n"
-        f"   ,-[ {path}:{line}:{display_column} ]\n"
+        f"  --> {path}:{line}:{display_column}\n"
     )
     if finding.source_line:
         pointer_column = max(column, 0)
-        rendered += f"{line:>2} | {finding.source_line}\n   | {' ' * pointer_column}`- {finding.label}\n"
+        rendered += (
+            f"{line:>4} | {finding.source_line}\n"
+            f"     | {' ' * pointer_column}`- {finding.label}\n"
+        )
     else:
-        rendered += f"   | {finding.label}\n"
-    rendered += f"   |Required: {finding.requirement}\n"
+        rendered += f"     | {finding.label}\n"
+    rendered += f"     | Required: {finding.requirement}\n"
+    quality_signals = _agent_quality_signal_labels(finding)
+    if quality_signals:
+        rendered += f"     | Signals: {quality_signals}\n"
     return rendered
+
+
+def _agent_quality_signal_labels(finding: PythonHarnessFinding) -> str:
+    value = finding.labels.get("agentQualitySignals")
+    if not value:
+        return ""
+    if isinstance(value, str):
+        return ",".join(_format_agent_quality_signal(item) for item in value.split(","))
+    if isinstance(value, (list, tuple)):
+        return ",".join(_format_agent_quality_signal(str(item)) for item in value)
+    return _format_agent_quality_signal(str(value))
+
+
+def _format_agent_quality_signal(signal_id: str) -> str:
+    signal_id = signal_id.strip()
+    if signal_id.startswith("agent-coding-quality/"):
+        return signal_id
+    return f"agent-coding-quality/{signal_id}"
 
 
 def _reasoning_tree_import_roots(report: PythonHarnessReport) -> tuple[Path | str, ...]:

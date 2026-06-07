@@ -65,12 +65,11 @@ def test_cli_query_direct_source_read_line_selector_returns_source_window(
     )
     assert (
         "|read path=src/pkg/service.py item=alpha kind=function "
-        "lineRange=2:2 reason=direct-selector truncated=false"
+        "lineRange=2:2 read=src/pkg/service.py:2:2 "
+        "next=direct-source-read reason=direct-selector truncated=false"
     ) in rendered
-    assert (
-        "|code path=src/pkg/service.py lineRange=2:2 "
-        'reason=direct-source-read text="    return value.upper()"'
-    ) in rendered
+    assert "|code " not in rendered
+    assert "return value.upper()" not in rendered
     assert "|item alpha" not in rendered
     assert "class Beta" not in rendered
 
@@ -198,11 +197,12 @@ def test_cli_query_direct_source_read_wide_selector_returns_source_windows(
     )
     assert "reason=wide-selector" not in rendered
     assert "|read path=src/pkg/service.py item=alpha kind=function" in rendered
-    assert "|code path=src/pkg/service.py lineRange=1:2" in rendered
-    assert "return value.upper()" in rendered
+    assert "read=src/pkg/service.py:1:2" in rendered
     assert "|read path=src/pkg/service.py item=beta kind=function" in rendered
-    assert "|code path=src/pkg/service.py lineRange=4:5" in rendered
-    assert "return value.lower()" in rendered
+    assert "read=src/pkg/service.py:4:5" in rendered
+    assert "|code " not in rendered
+    assert "return value.upper()" not in rendered
+    assert "return value.lower()" not in rendered
 
 
 def test_cli_query_direct_source_read_read_packet_wide_selector_emits_source_windows(

@@ -6,7 +6,10 @@ from collections import Counter
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from ._semantic_search_common import display_path, location_from_source
+from ._semantic_search_common import (
+    location_from_source,
+    semantic_search_display_path,
+)
 from ._semantic_search_model import MAX_FINDINGS
 
 if TYPE_CHECKING:
@@ -24,7 +27,7 @@ def finding_facts(
     counter: Counter[tuple[str, str, str, str]] = Counter()
     finding_by_key: dict[tuple[str, str, str, str], PythonHarnessFinding] = {}
     for finding in report.findings:
-        path = display_path(finding.location.path or ".", project_root)
+        path = semantic_search_display_path(finding.location.path or ".", project_root)
         if owner_paths is not None and path not in owner_paths:
             continue
         key = (finding.rule_id, finding.severity.value, finding.title, path)

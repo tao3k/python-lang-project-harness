@@ -25,6 +25,7 @@ python_lang_project_harness = "python_lang_project_harness.pytest_plugin"
 test = [
     "pytest>=8.0",
     "ruff>=0.13",
+    "syrupy>=5.0",
 ]
 
 [build-system]

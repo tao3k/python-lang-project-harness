@@ -33,41 +33,22 @@ def run_protocol_cli(
     if args.command == "agent":
         return _run_agent_command(args, project_root=project_root, stdout=stdout)
     if args.command == "ast-patch":
-        from ._cli_ast_patch import run_ast_patch_command
-
-        return run_ast_patch_command(
+        return _run_ast_patch_command(
             args, project_root=project_root, stdout=stdout, stdin=stdin
         )
 
     try:
-        from ._cli_query_fast import render_fast_query_code
-        from ._semantic_search_ingest_fast import render_fast_empty_ingest_search
-        from ._semantic_search_prime_fast import render_fast_prime_search
-
-        fast_empty_ingest = render_fast_empty_ingest_search(args, project_root, stdin)
-        if fast_empty_ingest is not None:
-            stdout.write(fast_empty_ingest)
-            return 0
-        fast_prime = render_fast_prime_search(args, project_root)
-        if fast_prime is not None:
-            stdout.write(fast_prime)
-            return 0
-        fast_query_code = render_fast_query_code(args, project_root)
-        if fast_query_code is not None:
-            stdout.write(fast_query_code)
-            return 0
-
-        report, runtime_cost = _run_search_harness(project_root, args)
-        if args.command == "query":
-            return _run_query_command(
-                args, report=report, project_root=project_root, stdout=stdout
-            )
-        if args.command == "check":
-            return _run_check_command(args, report=report, stdout=stdout)
-        return _run_search_command(
+        fast_exit = _run_fast_protocol_command(
             args,
-            report=report,
-            runtime_cost=runtime_cost,
+            project_root=project_root,
+            stdout=stdout,
+            stdin=stdin,
+        )
+        if fast_exit is not None:
+            return fast_exit
+        return _run_harness_protocol_command(
+            args,
+            project_root=project_root,
             stdout=stdout,
             stdin=stdin,
         )
@@ -97,6 +78,80 @@ def _run_agent_command(
     else:
         stdout.write(render_agent_doctor(project_root))
     return 0
+
+
+def _run_ast_patch_command(
+    args: ProtocolArgs,
+    *,
+    project_root: Path,
+    stdout: TextIO,
+    stdin: str,
+) -> int:
+    from ._cli_ast_patch import run_ast_patch_command
+
+    return run_ast_patch_command(
+        args, project_root=project_root, stdout=stdout, stdin=stdin
+    )
+
+
+def _run_fast_protocol_command(
+    args: ProtocolArgs,
+    *,
+    project_root: Path,
+    stdout: TextIO,
+    stdin: str,
+) -> int | None:
+    rendered = _render_fast_protocol_command(
+        args,
+        project_root=project_root,
+        stdin=stdin,
+    )
+    if rendered is None:
+        return None
+    stdout.write(rendered)
+    return 0
+
+
+def _render_fast_protocol_command(
+    args: ProtocolArgs,
+    *,
+    project_root: Path,
+    stdin: str,
+) -> str | None:
+    from ._cli_query_fast import render_fast_query_code
+    from ._semantic_graph_facts import render_semantic_graph_facts
+    from ._semantic_search_ingest_fast import render_fast_empty_ingest_search
+    from ._semantic_search_prime_fast import render_fast_prime_search
+
+    return (
+        render_semantic_graph_facts(args, project_root=project_root, stdin=stdin)
+        or render_fast_empty_ingest_search(args, project_root, stdin)
+        or render_fast_prime_search(args, project_root)
+        or render_fast_query_code(args, project_root)
+    )
+
+
+def _run_harness_protocol_command(
+    args: ProtocolArgs,
+    *,
+    project_root: Path,
+    stdout: TextIO,
+    stdin: str,
+) -> int:
+    report, runtime_cost = _run_search_harness(project_root, args)
+    if args.command == "query":
+        return _run_query_command(
+            args, report=report, project_root=project_root, stdout=stdout
+        )
+    if args.command == "check":
+        return _run_check_command(args, report=report, stdout=stdout)
+    return _run_search_command(
+        args,
+        report=report,
+        runtime_cost=runtime_cost,
+        stdout=stdout,
+        stdin=stdin,
+    )
 
 
 def _run_query_command(

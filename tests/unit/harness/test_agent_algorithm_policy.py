@@ -49,11 +49,75 @@ def classify(kind: str, rows: list[object]) -> int:
     rendered = normalize_temp_root(render_python_lang_harness(filtered), tmp_path)
 
     assert filtered.findings, "expected PY-AGENT-R009 finding"
+    assert (
+        "control-flow.literal-dispatch-chain"
+        in filtered.findings[0].labels["agentQualitySignals"]
+    )
     assert_snapshot(
         "unit_test__agent_policy_snapshot__py_agent_r009_algorithm_shape",
         rendered,
         source="tests/unit/harness/test_agent_algorithm_policy.py",
     )
+
+
+def test_py_agent_r009_decision_stack_signal_label(tmp_path: Path) -> None:
+    source = tmp_path / "service.py"
+    source.write_text(
+        '''
+"""Service algorithms."""
+
+
+def classify(enabled: bool, ready: bool, valid: bool, active: bool) -> int:
+    if enabled:
+        if ready:
+            if valid:
+                if active:
+                    return 1
+    return 0
+''',
+        encoding="utf-8",
+    )
+
+    report = run_python_lang_harness([source])
+
+    findings = tuple(
+        finding for finding in report.findings if finding.rule_id == "PY-AGENT-R009"
+    )
+    assert len(findings) == 1
+    assert findings[0].labels["agentQualitySignals"] == "control-flow.decision-stack"
+
+
+def test_py_agent_r009_traversal_knot_signal_label(tmp_path: Path) -> None:
+    source = tmp_path / "service.py"
+    source.write_text(
+        '''
+"""Service algorithms."""
+
+
+def classify(groups: list[list[int]]) -> int:
+    total = 0
+    for group in groups:
+        for value in group:
+            if value > 10:
+                total += value
+            elif value < 0:
+                total -= value
+            elif value == 0:
+                total += 0
+            else:
+                total += 1
+    return total
+''',
+        encoding="utf-8",
+    )
+
+    report = run_python_lang_harness([source])
+
+    findings = tuple(
+        finding for finding in report.findings if finding.rule_id == "PY-AGENT-R009"
+    )
+    assert len(findings) == 1
+    assert findings[0].labels["agentQualitySignals"] == "control-flow.traversal-knot"
 
 
 def test_py_agent_r009_accepts_explicit_match_dispatch(tmp_path: Path) -> None:
@@ -98,6 +162,10 @@ def test_py_agent_r010_function_compactness_snapshot(tmp_path: Path) -> None:
     rendered = normalize_temp_root(render_python_lang_harness(filtered), tmp_path)
 
     assert filtered.findings, "expected PY-AGENT-R010 finding"
+    assert (
+        filtered.findings[0].labels["agentQualitySignals"]
+        == "control-flow.broad-linear-phase"
+    )
     assert_snapshot(
         "unit_test__agent_policy_snapshot__py_agent_r010_function_compactness",
         rendered,
@@ -148,6 +216,10 @@ def has_admin(values: list[str]) -> bool:
     rendered = normalize_temp_root(render_python_lang_harness(filtered), tmp_path)
 
     assert filtered.findings, "expected PY-AGENT-R011 finding"
+    assert (
+        filtered.findings[0].labels["agentQualitySignals"]
+        == "native-idiom.manual-transform-loop"
+    )
     assert_snapshot(
         "unit_test__agent_policy_snapshot__py_agent_r011_native_idiom",
         rendered,

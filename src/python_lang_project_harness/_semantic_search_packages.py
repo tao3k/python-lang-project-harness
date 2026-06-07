@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from ._semantic_search_common import display_path
+from ._semantic_search_common import semantic_search_display_path
 from ._semantic_search_model import MAX_WORKSPACE_PACKAGES
 from .verification.facts import is_test_path
 
@@ -56,11 +56,13 @@ def workspace_packages(
     ]
     roots = () if metadata is None else metadata.package_roots
     for path in roots:
-        shown = display_path(path, project_root)
+        shown = semantic_search_display_path(path, project_root)
         packages.append(_workspace_package(shown, name=Path(shown).name))
     if len(packages) == 1 and report.project_scope is not None:
         packages.extend(
-            _workspace_package(display_path(path, project_root), name=path.name)
+            _workspace_package(
+                semantic_search_display_path(path, project_root), name=path.name
+            )
             for path in report.project_scope.source_paths
         )
     return _dedupe_packages(packages)[:MAX_WORKSPACE_PACKAGES]

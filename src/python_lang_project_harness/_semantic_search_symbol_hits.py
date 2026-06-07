@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING, Any
 
 from ._semantic_search_common import (
     dedupe_hits,
-    display_path,
     location_from_source,
     path_hit,
+    semantic_search_display_path,
 )
 from ._semantic_search_deps import module_owner_path
 
@@ -30,8 +30,8 @@ def api_hits(
     query_folded = query.casefold()
     hits = [
         path_hit(
-            display_path(node.path, project_root),
-            display_path(node.path, project_root),
+            semantic_search_display_path(node.path, project_root),
+            semantic_search_display_path(node.path, project_root),
             kind="api",
             symbol=name,
             score=4,

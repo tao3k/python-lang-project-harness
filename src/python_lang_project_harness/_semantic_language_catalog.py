@@ -155,6 +155,15 @@ def python_search_view_descriptors() -> list[dict[str, Any]]:
                 _semantic("owner-grouped-ingest"),
             ],
         ),
+        _view(
+            "semantic-facts",
+            requires_query=True,
+            accepts_stdin=True,
+            capabilities=[
+                _semantic("graph-turbo-provider-facts"),
+                _python("python-ast-field-type-collection-facts"),
+            ],
+        ),
     ]
 
 

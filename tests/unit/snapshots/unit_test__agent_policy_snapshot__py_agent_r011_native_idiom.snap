@@ -4,7 +4,8 @@ expression: rendered
 ---
 [advice]
 [PY-AGENT-R011] Info: Function manually spells a native Python transform
-   ,-[ $TEMP/service.py:5:1 ]
- 5 | def has_admin(values: list[str]) -> bool:
-   | `- replace this boilerplate loop with a native Python idiom
-   |Required: Use comprehensions, generator expressions, built-ins such as sum/any/all, collections.Counter/defaultdict, or named iterator pipeline helpers when a loop only maps, filters, counts, groups, accumulates, or answers a predicate. Signals: manual collection accumulator loop, manual predicate loop, manual mapping counter loop, manual mapping grouping loop, manual numeric sum loop.
+  --> $TEMP/service.py:5:1
+   5 | def has_admin(values: list[str]) -> bool:
+     | `- replace this boilerplate loop with a native Python idiom
+     | Required: Use comprehensions, generator expressions, built-ins such as sum/any/all, collections.Counter/defaultdict, or named iterator pipeline helpers when a loop only maps, filters, counts, groups, accumulates, or answers a predicate. Signals: manual collection accumulator loop, manual predicate loop, manual mapping counter loop, manual mapping grouping loop, manual numeric sum loop.
+     | Signals: native-idiom.manual-transform-loop

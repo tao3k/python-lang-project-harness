@@ -152,10 +152,8 @@ def _direct_read_item_lines(window: dict[str, Any]) -> list[str]:
     item = window["item"]
     start_line = window["start_line"]
     end_line = window["end_line"]
-    text = window["text"]
     return [
         _direct_read_summary_line(item, start_line, end_line),
-        _direct_read_code_line(item, start_line, end_line, text),
     ]
 
 
@@ -289,26 +287,10 @@ def _direct_read_summary_line(
                 "item": item.get("name", ""),
                 "kind": item.get("kind", ""),
                 "lineRange": f"{start_line}:{end_line}",
+                "read": f"{item.get('ownerPath', '')}:{start_line}:{end_line}",
+                "next": "direct-source-read",
                 "reason": "direct-selector",
                 "truncated": False,
-            }
-        )
-    )
-
-
-def _direct_read_code_line(
-    item: dict[str, Any],
-    start_line: int,
-    end_line: int,
-    text: str,
-) -> str:
-    return "|code " + _render_fields(
-        _compact_fields(
-            {
-                "path": item.get("ownerPath", ""),
-                "lineRange": f"{start_line}:{end_line}",
-                "reason": "direct-source-read",
-                "text": text,
             }
         )
     )

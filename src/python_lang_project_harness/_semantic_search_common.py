@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from python_lang_parser import SourceLocation
 
 
-def display_path(path: str | Path, project_root: Path) -> str:
+def semantic_search_display_path(path: str | Path, project_root: Path) -> str:
     """Return an agent-facing path relative to the project root when possible."""
 
     return _render_display_path(path, project_root=project_root)
@@ -44,7 +44,7 @@ def location_from_source(
     """Return a packet location from a parser source location."""
 
     return location(
-        display_path(source_location.path or ".", project_root),
+        semantic_search_display_path(source_location.path or ".", project_root),
         source_location.line,
         source_location.column,
     )

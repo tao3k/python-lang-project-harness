@@ -127,6 +127,6 @@ def ingest_owner_path(path: str, owner_paths: set[str]) -> str:
 
 
 def _display_path(path: str, project_root: Path) -> str:
-    from ._semantic_search_common import display_path
+    from ._semantic_search_common import semantic_search_display_path
 
-    return display_path(path, project_root)
+    return semantic_search_display_path(path, project_root)

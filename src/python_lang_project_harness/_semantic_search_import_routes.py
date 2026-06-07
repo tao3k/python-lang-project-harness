@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from ._semantic_search_common import display_path
+from ._semantic_search_common import semantic_search_display_path
 
 if TYPE_CHECKING:
     from python_lang_parser import PythonModuleReport
@@ -69,7 +69,7 @@ def _report_owner_paths(
         path = report_module.path
         if path is None:
             continue
-        owner_paths.append(display_path(path, project_root))
+        owner_paths.append(semantic_search_display_path(path, project_root))
     return owner_paths
 
 

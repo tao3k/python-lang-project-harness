@@ -120,8 +120,25 @@ def test_cli_agent_guide_prints_provider_owned_searchflow(tmp_path: Path) -> Non
         "asp python query --from-hook direct-source-read --selector <selector> "
         "--term <term> --surface owners,tests --view seeds" in rendered
     )
+    assert (
+        "|cmd syntax-code=asp python query --treesitter-query "
+        "'(function_definition name: (identifier) @function.name)' "
+        "--selector <path[:line|:start-end]> --workspace <workspace-root> --code"
+    ) in rendered
+    assert (
+        "|cmd query-code=asp python query <owner-path> --term <symbol> "
+        "--workspace <workspace-root> --code"
+    ) in rendered
+    assert (
+        "|rule selector queries do not need a trailing project root; "
+        "--workspace <workspace-root> is the independent workspace override"
+    ) in rendered
+    assert "trailing . is the project root" not in rendered
+    assert "--code --workspace" not in rendered
     assert "asp python search fzf <query> owner tests --view seeds" in rendered
     assert "asp python search fzf <query> owner tests --view seeds" in rendered
+    assert "--view metadata is document-only for asp md/org query" in rendered
+    assert "query <owner-path> --term <symbol> --code|--names-only" in rendered
     assert "|rule use the asp python facade" in rendered
 
 

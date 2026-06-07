@@ -26,7 +26,7 @@ def python_query_method_descriptors() -> list[dict[str, Any]]:
             "packetSchemas": ["semantic-tree-sitter-query.v1"],
             "supportsJson": True,
             "supportsCompact": True,
-            "outputModes": ["compact", "json", "code"],
+            "outputModes": ["frontier", "json", "code"],
             "queryInputForms": ["catalog-id", "s-expression"],
             "grammarId": PYTHON_TREE_SITTER_GRAMMAR_ID,
             "grammarProfileVersion": PYTHON_TREE_SITTER_GRAMMAR_PROFILE_VERSION,
@@ -79,7 +79,7 @@ def python_query_method_descriptors() -> list[dict[str, Any]]:
             "supportsQuerySet": True,
             "acceptedQuerySetSelectors": ["exact-set"],
             "querySetScopes": ["owner"],
-            "outputModes": ["compact", "json", "code", "names"],
+            "outputModes": ["frontier", "json", "code", "names"],
             "cacheReplay": True,
             "codeOutput": {
                 "mode": "pure-code",
@@ -113,7 +113,7 @@ def python_query_method_descriptors() -> list[dict[str, Any]]:
             "renderProfiles": ["corpus-locator"],
             "supportsJson": True,
             "supportsCompact": True,
-            "outputModes": ["compact", "json", "code", "names", "read-packet"],
+            "outputModes": ["frontier", "json", "code", "names", "read-packet"],
             "cacheReplay": True,
             "codeOutput": {
                 "mode": "pure-code",

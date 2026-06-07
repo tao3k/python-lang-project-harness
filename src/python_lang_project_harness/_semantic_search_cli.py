@@ -36,6 +36,7 @@ class _SearchOptionState:
     render_mode: str | None = None
     package_path: Path | None = None
     workspace: bool = False
+    workspace_root: Path | None = None
     owner_path: str | None = None
     dependency: str | None = None
 
@@ -76,7 +77,7 @@ def _search_view_descriptor(
 def _semantic_search_usage() -> str:
     return (
         "usage: py-harness search "
-        "<workspace|prime|owner|dependency|deps|api|public-external-types|policy|symbol|callsite|import|tests|fzf|reasoning|text|ingest> "
+        "<workspace|prime|owner|dependency|deps|api|public-external-types|policy|symbol|callsite|import|tests|fzf|reasoning|text|ingest|semantic-facts> "
         "... [--json] [--code] [--package PATH] [PROJECT_ROOT]"
     )
 
@@ -159,7 +160,12 @@ def _consume_search_option(
             state.package_path = Path(value)
             return _ConsumedOption(advance=2)
         case "--workspace":
+            value = _optional_arg(args, index + 1)
+            if value is None:
+                return _ConsumedOption(error="--workspace requires a project root")
             state.workspace = True
+            state.workspace_root = Path(value)
+            return _ConsumedOption(advance=2)
         case "--owner":
             value = _literal_arg(args, index + 1)
             if value is None:
@@ -211,6 +217,17 @@ def _required_query_args(
     )
     if error is not None:
         return ParsedSemanticSearchArgs(error=error)
+    if state.workspace_root is not None and project_root is not None:
+        return ParsedSemanticSearchArgs(
+            error="search accepts project root via --workspace or positional PROJECT_ROOT, not both",
+        )
+    if state.code_only and project_root is not None:
+        return ParsedSemanticSearchArgs(
+            error="search --code does not accept a trailing PROJECT_ROOT; use --workspace PROJECT_ROOT",
+        )
+    project_root = (
+        str(state.workspace_root) if state.workspace_root is not None else project_root
+    )
     return ParsedSemanticSearchArgs(
         view=view,
         query=query,
@@ -240,6 +257,13 @@ def _project_only_args(
     )
     if error is not None:
         return ParsedSemanticSearchArgs(error=error)
+    if state.workspace_root is not None and project_root is not None:
+        return ParsedSemanticSearchArgs(
+            error="search accepts project root via --workspace or positional PROJECT_ROOT, not both",
+        )
+    project_root = (
+        str(state.workspace_root) if state.workspace_root is not None else project_root
+    )
     return ParsedSemanticSearchArgs(
         view=view,
         project_root=None if project_root is None else Path(project_root),

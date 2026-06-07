@@ -47,6 +47,8 @@
             "python-package-root-search",
             "package-prime-map",
             "python-reasoning-tree-prime",
+            "graph-turbo-provider-facts",
+            "python-ast-field-type-collection-facts",
             "python-entry-point-search",
             "reasoning-owner-search",
             "parser-visible-module-owner-search",
