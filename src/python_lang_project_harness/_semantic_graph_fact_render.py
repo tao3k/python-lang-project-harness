@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Dict, List, Set
 
 from ._semantic_graph_fact_model import FieldFact
 from ._semantic_graph_fact_render_fields import (
-    collection_fact,
-    collection_family,
-    field_fact,
-    type_fact,
+    render_collection_fact,
+    render_collection_family,
+    render_field_fact,
+    render_type_fact,
 )
 
 LANGUAGE_ID = "python"
@@ -17,11 +17,11 @@ PROVIDER_ID = "py-harness"
 
 
 def graph_payload(
-    query: str, facts: list[FieldFact]
-) -> dict[str, list[dict[str, Any]]]:
-    nodes: list[dict[str, Any]] = []
-    edges: list[dict[str, Any]] = []
-    collection_ids: set[str] = set()
+    query: str, facts: List[FieldFact]
+) -> Dict[str, List[Dict[str, Any]]]:
+    nodes: List[Dict[str, Any]] = []
+    edges: List[Dict[str, Any]] = []
+    collection_ids: Set[str] = set()
     for fact in facts:
         field_id = field_id_for(fact)
         type_id = type_id_for(fact)
@@ -42,9 +42,9 @@ def graph_payload(
     return {"nodes": nodes, "edges": edges}
 
 
-def graph_fields(fact: FieldFact) -> dict[str, Any]:
-    family = collection_family(fact.collection_kind)
-    fields: dict[str, Any] = {
+def graph_fields(fact: FieldFact) -> Dict[str, Any]:
+    family = render_collection_family(fact.collection_kind)
+    fields: Dict[str, Any] = {
         "languageId": LANGUAGE_ID,
         "providerId": PROVIDER_ID,
         "semanticFactKind": "field",
@@ -58,7 +58,7 @@ def graph_fields(fact: FieldFact) -> dict[str, Any]:
         "contextLocator": f"{fact.path}:{fact.context_start}:{fact.context_end}",
         "contextStartLine": fact.context_start,
         "contextEndLine": fact.context_end,
-        "field": field_fact(fact, family),
+        "field": render_field_fact(fact, family),
     }
     if fact.collection_kind is not None:
         fields["collectionKind"] = fact.collection_kind
@@ -71,8 +71,8 @@ def field_node(
     fact: FieldFact,
     field_id: str,
     locator: str,
-    fields: dict[str, Any],
-) -> dict[str, Any]:
+    fields: Dict[str, Any],
+) -> Dict[str, Any]:
     return {
         "id": field_id,
         "kind": "field",
@@ -94,12 +94,12 @@ def type_node(
     fact: FieldFact,
     type_id: str,
     locator: str,
-    fields: dict[str, Any],
-) -> dict[str, Any]:
+    fields: Dict[str, Any],
+) -> Dict[str, Any]:
     type_fields = {
         **fields,
         "semanticFactKind": "type",
-        "type": type_fact(fact),
+        "type": render_type_fact(fact),
     }
     type_fields.pop("field", None)
     return {
@@ -119,9 +119,9 @@ def type_node(
 
 
 def append_collection(
-    nodes: list[dict[str, Any]],
-    edges: list[dict[str, Any]],
-    collection_ids: set[str],
+    nodes: List[Dict[str, Any]],
+    edges: List[Dict[str, Any]],
+    collection_ids: Set[str],
     fact: FieldFact,
     field_id: str,
     type_id: str,
@@ -146,10 +146,10 @@ def append_collection(
                     "provenance": "parser",
                     "confidence": "exact",
                     "freshness": "fresh",
-                    "collectionFamily": collection_family(fact.collection_kind),
+                    "collectionFamily": render_collection_family(fact.collection_kind),
                     "collectionImpl": fact.collection_kind,
                     "collectionKind": fact.collection_kind,
-                    "collection": collection_fact(fact),
+                    "collection": render_collection_fact(fact),
                 },
             }
         )
