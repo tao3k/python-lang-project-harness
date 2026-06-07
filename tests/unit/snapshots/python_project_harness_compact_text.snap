@@ -1,5 +1,7 @@
-[PY-MOD-R002] Warning: Library module uses bare print
-   ,-[ $TEMP/src/service.py:5:5 ]
- 5 |     print("debug")
-   |     `- replace bare print with a project-owned reporting surface
-   |Required: Use a logger, returned value, or explicit test assertion instead of bare `print` in library modules.
+[fail] python blockingFindings=1 parsed=1/1
+|failureFrontier rule=PY-MOD-R002 severity=warning path=$TEMP/src/service.py line=5 column=5
+|message Library module uses bare print
+|summary $TEMP/src/service.py calls bare print().
+|repair replace bare print with a project-owned reporting surface
+|hotBlock selector=$TEMP/src/service.py:5:5 reason=blocking-finding
+|next action=direct-source-read selector=$TEMP/src/service.py:5:5 root=.

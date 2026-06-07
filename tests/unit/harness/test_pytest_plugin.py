@@ -80,12 +80,16 @@ def test_pytest_plugin_reports_compact_harness_failure(
     result = _run_pytest_plugin(tmp_path, "--python-project-harness")
 
     assert result.returncode == 1
-    assert "[PY-MOD-R002] Warning: Library module uses bare print" in result.stdout
+    assert "rule=PY-MOD-R002 severity=warning" in result.stdout
+    assert "|message Library module uses bare print" in result.stdout
     assert "src/library.py" in result.stdout
     assert str(tmp_path) not in result.stdout
     assert "../" not in result.stdout
     assert "FAILED python-project-harness" in result.stdout
-    assert "Required:" in result.stdout
+    assert (
+        "|repair replace bare print with a project-owned reporting surface"
+        in result.stdout
+    )
 
 
 def test_pytest_plugin_honors_dev_dependency_options(

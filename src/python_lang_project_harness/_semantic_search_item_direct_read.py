@@ -15,6 +15,10 @@ from ._semantic_search_direct_read_render import (
     render_direct_read_packet,
     render_direct_read_windows,
 )
+from ._semantic_search_item_direct_read_ast import (
+    ast_selector_range_items,
+    prefer_ast_range_items,
+)
 from ._semantic_search_items import (
     _module_for_owner,
     _selector_line_range,
@@ -132,6 +136,8 @@ def _direct_read_windows(
             [direct_read_range_window(source.lines, owner_path, selector_range)],
         )
     items = _selector_range_items(report, project_root, owner_path, selector_range)
+    ast_items = ast_selector_range_items(source.lines, owner_path, selector_range)
+    items = prefer_ast_range_items(items, ast_items)
     if items:
         windows = [
             direct_read_item_window(source.lines, item, selector_range)

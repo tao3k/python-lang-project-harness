@@ -130,7 +130,8 @@ def test_cli_exits_nonzero_for_blocking_findings(tmp_path: Path) -> None:
 
     assert exit_code == 1
     assert "PY-MOD-R002" in stdout.getvalue()
-    assert stdout.getvalue().startswith("[PY-MOD-R002] Warning")
+    assert stdout.getvalue().startswith("[fail] python")
+    assert "severity=warning" in stdout.getvalue()
     assert "src/service.py" in stdout.getvalue()
     assert str(tmp_path) not in stdout.getvalue()
 
@@ -238,7 +239,8 @@ def test_cli_can_promote_policy_rule_ids(tmp_path: Path) -> None:
 
     assert exit_code == 1
     assert "PY-AGENT-R001" in stdout.getvalue()
-    assert stdout.getvalue().startswith("[PY-AGENT-R001] Info")
+    assert stdout.getvalue().startswith("[fail] python")
+    assert "severity=info" in stdout.getvalue()
 
 
 def test_cli_help_and_argument_errors_are_stable(tmp_path: Path) -> None:

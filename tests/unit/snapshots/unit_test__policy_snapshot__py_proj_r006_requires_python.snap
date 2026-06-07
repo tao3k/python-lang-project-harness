@@ -2,8 +2,10 @@
 source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
-[PY-PROJ-R006] Warning: Project metadata should declare supported Python versions
-   ,-[ pyproject.toml:1:1 ]
- 1 | [project]
-   | `- declare [project].requires-python
-   |Required: Declare `[project].requires-python` so installers, CI, and agents can resolve the intended supported Python range.
+[fail] python blockingFindings=1 parsed=0/0
+|failureFrontier rule=PY-PROJ-R006 severity=warning path=pyproject.toml line=1 column=1
+|message Project metadata should declare supported Python versions
+|summary pyproject.toml has [project] metadata without requires-python.
+|repair declare [project].requires-python
+|hotBlock selector=pyproject.toml:1:1 reason=blocking-finding
+|next action=direct-source-read selector=pyproject.toml:1:1 root=.

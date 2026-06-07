@@ -2,8 +2,10 @@
 source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
-[PY-MOD-R001] Warning: Wildcard import hides the dependency surface
-   ,-[ src/module.py:3:1 ]
- 3 | from tools import *
-   | `- replace wildcard import with explicit imported names
-   |Required: Import explicit names from 'tools'; do not use `*` in project modules.
+[fail] python blockingFindings=1 parsed=1/1
+|failureFrontier rule=PY-MOD-R001 severity=warning path=src/module.py line=3 column=1
+|message Wildcard import hides the dependency surface
+|summary Wildcard import from 'tools' makes exported names implicit.
+|repair replace wildcard import with explicit imported names
+|hotBlock selector=src/module.py:3:3 reason=blocking-finding
+|next action=direct-source-read selector=src/module.py:3:3 root=.

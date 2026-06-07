@@ -204,7 +204,15 @@ def test_policy_snapshots_cover_every_catalog_rule() -> None:
     )
 
     for rule_id in _all_default_rule_ids():
-        assert f"[{rule_id}]" in snapshot_text, rule_id
+        assert any(
+            token in snapshot_text
+            for token in (
+                f"rule={rule_id} ",
+                f'"rule_id":"{rule_id}"',
+                f'"rule_id": "{rule_id}"',
+                f"[{rule_id}]",
+            )
+        ), rule_id
 
 
 def test_rule_snapshot_files_have_no_stale_policy_baselines() -> None:

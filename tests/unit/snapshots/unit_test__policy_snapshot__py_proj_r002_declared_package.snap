@@ -2,8 +2,10 @@
 source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
-[PY-PROJ-R002] Warning: Declared wheel package root is not importable
-   ,-[ pyproject.toml:1:1 ]
- 1 | [project]
-   | `- make this declared package root importable
-   |Required: Ensure each declared wheel package root exists and contains `__init__.py` so agents can map project metadata to import namespaces.
+[fail] python blockingFindings=1 parsed=0/0
+|failureFrontier rule=PY-PROJ-R002 severity=warning path=pyproject.toml line=1 column=1
+|message Declared wheel package root is not importable
+|summary Declared wheel package root $TEMP/src/missing_pkg is not an importable package directory.
+|repair make this declared package root importable
+|hotBlock selector=pyproject.toml:1:1 reason=blocking-finding
+|next action=direct-source-read selector=pyproject.toml:1:1 root=.

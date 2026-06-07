@@ -13,10 +13,10 @@ from ._semantic_search_view_core import owner_payload, prime_payload, workspace_
 from ._semantic_search_view_deps_imports import dependency_payload, import_payload
 from ._semantic_search_view_hits import (
     generic_hits_payload,
-    ingest_payload,
     tests_payload,
     text_payload,
 )
+from ._semantic_search_view_ingest import ingest_payload
 
 if TYPE_CHECKING:
     from python_lang_parser import PythonReasoningTreeFacts

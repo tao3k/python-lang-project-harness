@@ -35,7 +35,8 @@ def test_cli_search_owner_items_without_query_returns_inventory(
     assert "|hit " not in rendered
     assert "|synthesis " not in rendered
     assert "|next " not in rendered
-    assert " next=" not in rendered
+    assert " next=syntax:SessionClient " in rendered
+    assert " tsqRef=semantic-tree-sitter-query/python-owner-items.v1" in rendered
 
 
 def _write_fixture(root: Path) -> None:

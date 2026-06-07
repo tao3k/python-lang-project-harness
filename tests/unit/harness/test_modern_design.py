@@ -28,27 +28,27 @@ def test_modern_design_rule_pack_reports_numbered_rules_in_compact_snapshot(
     )
     output = output.replace(str(source), "$TMP/module.py")
 
+    assert output.startswith("[fail] python blockingFindings=3 parsed=1/1\n")
     assert (
-        output
-        == """[PY-MOD-R001] Warning: Wildcard import hides the dependency surface
-   ,-[ $TMP/module.py:1:1 ]
- 1 | from tools import *
-   | `- replace wildcard import with explicit imported names
-   |Required: Import explicit names from 'tools'; do not use `*` in project modules.
-
-[PY-MOD-R002] Warning: Library module uses bare print
-   ,-[ $TMP/module.py:5:5 ]
- 5 |     print("debug")
-   |     `- replace bare print with a project-owned reporting surface
-   |Required: Use a logger, returned value, or explicit test assertion instead of bare `print` in library modules.
-
-[PY-MOD-R004] Warning: Library module contains breakpoint()
-   ,-[ $TMP/module.py:6:5 ]
- 6 |     breakpoint()
-   |     `- remove breakpoint() from library code
-   |Required: Remove `breakpoint()` from library modules; use test-only debug tooling or a project-owned diagnostic surface.
-"""
-    )
+        "|failureFrontier rule=PY-MOD-R001 severity=warning "
+        "path=$TMP/module.py line=1 column=1"
+    ) in output
+    assert "|message Wildcard import hides the dependency surface" in output
+    assert "|repair replace wildcard import with explicit imported names" in output
+    assert (
+        "|failureFrontier rule=PY-MOD-R002 severity=warning "
+        "path=$TMP/module.py line=5 column=5"
+    ) in output
+    assert "|message Library module uses bare print" in output
+    assert (
+        "|repair replace bare print with a project-owned reporting surface"
+    ) in output
+    assert (
+        "|failureFrontier rule=PY-MOD-R004 severity=warning "
+        "path=$TMP/module.py line=6 column=5"
+    ) in output
+    assert "|message Library module contains breakpoint()" in output
+    assert "|repair remove breakpoint() from library code" in output
 
 
 def test_modern_design_rule_pack_requires_all_for_package_facade(

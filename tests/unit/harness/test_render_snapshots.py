@@ -122,7 +122,7 @@ def test_compact_text_render_uses_project_relative_finding_paths(
     rendered = render_python_lang_harness(report)
 
     assert str(tmp_path) not in rendered
-    assert "src/library.py:3:5" in rendered
+    assert "path=src/library.py line=3 column=5" in rendered
 
 
 def _snapshot_report() -> PythonHarnessReport:

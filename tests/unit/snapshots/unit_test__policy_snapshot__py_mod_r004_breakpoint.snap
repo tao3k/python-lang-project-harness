@@ -2,8 +2,10 @@
 source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
-[PY-MOD-R004] Warning: Library module contains breakpoint()
-   ,-[ src/module.py:5:5 ]
- 5 |     breakpoint()
-   |     `- remove breakpoint() from library code
-   |Required: Remove `breakpoint()` from library modules; use test-only debug tooling or a project-owned diagnostic surface.
+[fail] python blockingFindings=1 parsed=1/1
+|failureFrontier rule=PY-MOD-R004 severity=warning path=src/module.py line=5 column=5
+|message Library module contains breakpoint()
+|summary breakpoint() can halt library execution inside an interactive debugger.
+|repair remove breakpoint() from library code
+|hotBlock selector=src/module.py:5:5 reason=blocking-finding
+|next action=direct-source-read selector=src/module.py:5:5 root=.

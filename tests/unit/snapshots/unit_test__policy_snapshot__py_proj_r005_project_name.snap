@@ -2,8 +2,10 @@
 source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
-[PY-PROJ-R005] Warning: Project metadata should declare package name
-   ,-[ pyproject.toml:1:1 ]
- 1 | [project]
-   | `- declare [project].name
-   |Required: Declare `[project].name` in `pyproject.toml` so package identity is explicit for build tools, agents, and release metadata.
+[fail] python blockingFindings=1 parsed=0/0
+|failureFrontier rule=PY-PROJ-R005 severity=warning path=pyproject.toml line=1 column=1
+|message Project metadata should declare package name
+|summary pyproject.toml has [project] metadata without a package name.
+|repair declare [project].name
+|hotBlock selector=pyproject.toml:1:1 reason=blocking-finding
+|next action=direct-source-read selector=pyproject.toml:1:1 root=.

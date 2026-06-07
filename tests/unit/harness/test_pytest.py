@@ -75,7 +75,8 @@ def test_python_project_harness_test_blocks_with_compact_snapshot(
     else:
         raise AssertionError("pytest harness callable should block policy findings")
 
-    assert "[PY-MOD-R002] Warning: Library module uses bare print" in message
+    assert "rule=PY-MOD-R002 severity=warning" in message
+    assert "|message Library module uses bare print" in message
     assert "src/library.py" in message
     assert str(source) not in message
     assert "[advice]" in message
@@ -97,7 +98,8 @@ def test_python_project_harness_test_can_disable_agent_advice(
     else:
         raise AssertionError("pytest harness callable should block policy findings")
 
-    assert "[PY-MOD-R002] Warning: Library module uses bare print" in message
+    assert "rule=PY-MOD-R002 severity=warning" in message
+    assert "|message Library module uses bare print" in message
     assert "[advice]" not in message
 
 

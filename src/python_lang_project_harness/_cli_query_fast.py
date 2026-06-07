@@ -6,6 +6,11 @@ import tokenize
 from pathlib import Path
 
 from ._cli_args import ProtocolArgs
+from ._semantic_search_direct_read_render import (
+    direct_read_item_window,
+    render_direct_read_windows,
+)
+from ._semantic_search_item_direct_read_ast import ast_selector_range_items
 
 
 def render_fast_query_code(args: ProtocolArgs, project_root: Path) -> str | None:
@@ -55,7 +60,46 @@ def _render_selector_line_range(
     if start_line > len(source_lines):
         raise ValueError(f"query selector is outside source: {owner_path}")
     end_line = min(end_line, len(source_lines))
+    ast_items = ast_selector_range_items(
+        source_lines, owner_path, (start_line, end_line)
+    )
+    if ast_items and start_line >= _first_item_start_line(ast_items):
+        windows = [
+            direct_read_item_window(source_lines, item, (start_line, end_line))
+            for item in ast_items
+        ]
+        rendered = render_direct_read_windows(
+            owner_path=owner_path,
+            selector=args.selector or owner_path,
+            source_lines=source_lines,
+            selector_range=(start_line, end_line),
+            windows=windows,
+            code_only=True,
+        )
+        if rendered:
+            return rendered + "\n"
     return "\n".join(source_lines[start_line - 1 : end_line]).rstrip() + "\n"
+
+
+def _first_item_start_line(items: list[dict[str, object]]) -> int:
+    starts = [
+        _item_start_line(item) for item in items if _item_start_line(item) is not None
+    ]
+    return min(starts) if starts else 1
+
+
+def _item_start_line(item: dict[str, object]) -> int | None:
+    location = item.get("location")
+    if not isinstance(location, dict):
+        return None
+    line_range = location.get("lineRange")
+    if not isinstance(line_range, str):
+        return None
+    start_text, _separator, _end_text = line_range.partition(":")
+    try:
+        return int(start_text)
+    except ValueError:
+        return None
 
 
 def _supports_fast_query_code(args: ProtocolArgs) -> bool:

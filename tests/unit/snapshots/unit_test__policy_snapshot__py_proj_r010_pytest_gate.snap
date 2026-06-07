@@ -2,8 +2,10 @@
 source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
-[PY-PROJ-R010] Warning: Harness dev dependency should mount a pytest gate
-   ,-[ pyproject.toml:1:1 ]
- 1 | [project]
-   | `- mount the parser-backed harness in pytest
-   |Required: Enable `--python-project-harness` in pytest addopts or expose `python_project_harness_test()` so the dev dependency actually gates project policy.
+[fail] python blockingFindings=1 parsed=0/0
+|failureFrontier rule=PY-PROJ-R010 severity=warning path=pyproject.toml line=1 column=1
+|message Harness dev dependency should mount a pytest gate
+|summary pyproject.toml declares the Python project harness surface without a parser-visible pytest gate.
+|repair mount the parser-backed harness in pytest
+|hotBlock selector=pyproject.toml:1:1 reason=blocking-finding
+|next action=direct-source-read selector=pyproject.toml:1:1 root=.
