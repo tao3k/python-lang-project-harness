@@ -1,4 +1,4 @@
-"""Fast query paths that do not require project-wide parser facts."""
+"""Exact selector source query path that does not require project-wide facts."""
 
 from __future__ import annotations
 
@@ -13,10 +13,12 @@ from ._semantic_search_direct_read_render import (
 from ._semantic_search_item_direct_read_ast import ast_selector_range_items
 
 
-def render_fast_query_code(args: ProtocolArgs, project_root: Path) -> str | None:
+def render_exact_source_query_code(
+    args: ProtocolArgs, project_root: Path
+) -> str | None:
     """Render exact selector code without running the full project harness."""
 
-    if not _supports_fast_query_code(args):
+    if not _supports_exact_source_query_code(args):
         return None
     selector = args.selector
     if selector is None:
@@ -102,7 +104,7 @@ def _item_start_line(item: dict[str, object]) -> int | None:
         return None
 
 
-def _supports_fast_query_code(args: ProtocolArgs) -> bool:
+def _supports_exact_source_query_code(args: ProtocolArgs) -> bool:
     return (
         args.command == "query"
         and args.selector is not None

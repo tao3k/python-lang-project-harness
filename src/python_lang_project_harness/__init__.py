@@ -8,6 +8,13 @@ from typing import Any
 DISTRIBUTION_NAME = "python-lang-project-harness"
 
 _CLI_EXPORTS = frozenset({"run_cli", "run_cli_from_env"})
+_HARNESS_RULES_EXPORTS = frozenset(
+    {
+        "python_harness_rules_markdown",
+        "render_python_harness_rules_markdown",
+        "write_python_harness_rules_to_unit_tests",
+    }
+)
 
 _PARSER_EXPORTS = frozenset(
     {
@@ -169,6 +176,7 @@ __all__ = [
     "python_symbol_is_test_function",
     "python_symbol_is_top_level_callable",
     "python_agent_policy_rules",
+    "python_harness_rules_markdown",
     "python_modern_design_rules",
     "python_modularity_rules",
     "python_project_harness_paths",
@@ -183,6 +191,7 @@ __all__ = [
     "render_python_lang_harness",
     "render_python_lang_harness_advice",
     "render_python_lang_harness_json",
+    "render_python_harness_rules_markdown",
     "render_python_project_harness_agent_snapshot",
     "render_python_project_harness_agent_snapshot_with_config",
     "render_python_reasoning_tree",
@@ -202,6 +211,7 @@ __all__ = [
     "run_python_lang_harness",
     "run_python_project_harness",
     "semantic_language_registry_document",
+    "write_python_harness_rules_to_unit_tests",
     "write_python_verification_reports",
 ]
 
@@ -213,6 +223,8 @@ def __getattr__(name: str) -> Any:
         return _load_export("._version", name)
     if name in _CLI_EXPORTS:
         return _load_export("._cli", name)
+    if name in _HARNESS_RULES_EXPORTS:
+        return _load_export("._harness_rules", name)
     if name in _PARSER_EXPORTS:
         return _load_export("python_lang_parser", name)
     if name in __all__:

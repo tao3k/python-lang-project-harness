@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ._semantic_graph_fact_model import FieldFact
 
 
-def render_field_fact(fact: FieldFact, family: Optional[str]) -> Dict[str, Any]:
+def render_field_fact(fact: FieldFact, family: str | None) -> dict[str, Any]:
     return {
         "ownerKind": "class",
         "name": fact.field_name,
@@ -16,9 +16,9 @@ def render_field_fact(fact: FieldFact, family: Optional[str]) -> Dict[str, Any]:
     }
 
 
-def render_type_fact(fact: FieldFact) -> Dict[str, str]:
+def render_type_fact(fact: FieldFact) -> dict[str, str]:
     args = render_collection_type_args(fact.type_value)
-    rendered: Dict[str, str] = {"name": fact.type_value}
+    rendered: dict[str, str] = {"name": fact.type_value}
     if render_collection_family(fact.collection_kind) == "map":
         if args:
             rendered["key"] = args[0]
@@ -29,9 +29,9 @@ def render_type_fact(fact: FieldFact) -> Dict[str, str]:
     return rendered
 
 
-def render_collection_fact(fact: FieldFact) -> Dict[str, Any]:
+def render_collection_fact(fact: FieldFact) -> dict[str, Any]:
     family = render_collection_family(fact.collection_kind)
-    rendered: Dict[str, Any] = {
+    rendered: dict[str, Any] = {
         "family": family,
         "impl": fact.collection_kind,
         "mutation": render_mutation_modes(family),
@@ -47,7 +47,7 @@ def render_collection_fact(fact: FieldFact) -> Dict[str, Any]:
     return rendered
 
 
-def render_collection_family(collection_kind: Optional[str]) -> Optional[str]:
+def render_collection_family(collection_kind: str | None) -> str | None:
     if collection_kind in {"list", "tuple"}:
         return "sequence"
     if collection_kind == "dict":
@@ -57,13 +57,13 @@ def render_collection_family(collection_kind: Optional[str]) -> Optional[str]:
     return None
 
 
-def render_access_modes(family: Optional[str]) -> List[str]:
+def render_access_modes(family: str | None) -> list[str]:
     if family == "map":
         return ["read", "write", "validate"]
     return ["read", "append", "validate"]
 
 
-def render_mutation_modes(family: Optional[str]) -> List[str]:
+def render_mutation_modes(family: str | None) -> list[str]:
     if family == "map":
         return ["insert", "remove", "update"]
     if family == "set":
@@ -71,7 +71,7 @@ def render_mutation_modes(family: Optional[str]) -> List[str]:
     return ["append", "remove"]
 
 
-def render_collection_type_args(type_value: str) -> List[str]:
+def render_collection_type_args(type_value: str) -> list[str]:
     if "[" not in type_value or not type_value.endswith("]"):
         return []
     return [

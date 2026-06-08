@@ -23,6 +23,17 @@ def owner_item_query_lines(
     """Render compact owner item query lines for the top-level query command."""
 
     payload = owner_item_query_payload(report, project_root, owner_path, item_query)
+    return owner_item_payload_lines(owner_path, item_query, payload, names_only)
+
+
+def owner_item_payload_lines(
+    owner_path: str,
+    item_query: str,
+    payload: dict[str, Any],
+    names_only: bool = False,
+) -> str:
+    """Render compact owner item query lines from a precomputed payload."""
+
     lines = [_header_line(owner_path, item_query, payload, names_only)]
     lines.append(_query_line(item_query, payload, names_only))
     lines.extend(_note_lines(payload))

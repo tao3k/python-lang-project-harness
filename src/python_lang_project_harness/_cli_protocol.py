@@ -118,17 +118,24 @@ def _render_fast_protocol_command(
     project_root: Path,
     stdin: str,
 ) -> str | None:
-    from ._cli_query_fast import render_fast_query_code
+    from ._cli_exact_source_query import render_exact_source_query_code
     from ._semantic_graph_facts import render_semantic_graph_facts
     from ._semantic_search_ingest_fast import render_fast_empty_ingest_search
     from ._semantic_search_prime_fast import render_fast_prime_search
 
-    return (
-        render_semantic_graph_facts(args, project_root=project_root, stdin=stdin)
-        or render_fast_empty_ingest_search(args, project_root, stdin)
-        or render_fast_prime_search(args, project_root)
-        or render_fast_query_code(args, project_root)
+    renderers = (
+        lambda: render_semantic_graph_facts(
+            args, project_root=project_root, stdin=stdin
+        ),
+        lambda: render_fast_empty_ingest_search(args, project_root, stdin),
+        lambda: render_fast_prime_search(args, project_root),
+        lambda: render_exact_source_query_code(args, project_root),
     )
+    for render in renderers:
+        rendered = render()
+        if rendered is not None:
+            return rendered
+    return None
 
 
 def _run_harness_protocol_command(
