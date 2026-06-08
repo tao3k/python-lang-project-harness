@@ -1,37 +1,37 @@
 [
   {
-    "agentQualitySignals": "control-flow.decision-stack",
     "label": "make this algorithm shape explicit",
     "line": 4,
     "rule_id": "PY-AGENT-R009",
+    "softwareCriteria": "control-flow.decision-stack",
     "summary": "nested has nesting depth 4, loop nesting 0, 4 branches, and literal dispatch chain 0."
   },
   {
-    "agentQualitySignals": "control-flow.literal-dispatch-chain",
     "label": "make this algorithm shape explicit",
     "line": 13,
     "rule_id": "PY-AGENT-R009",
+    "softwareCriteria": "control-flow.literal-dispatch-chain",
     "summary": "route has nesting depth 1, loop nesting 0, 4 branches, and literal dispatch chain 4."
   },
   {
-    "agentQualitySignals": "control-flow.traversal-knot",
     "label": "make this algorithm shape explicit",
     "line": 25,
     "rule_id": "PY-AGENT-R009",
+    "softwareCriteria": "control-flow.traversal-knot",
     "summary": "traverse has nesting depth 3, loop nesting 2, 3 branches, and literal dispatch chain 1."
   },
   {
-    "agentQualitySignals": "control-flow.broad-linear-phase",
     "label": "split this broad function into named algorithm steps",
     "line": 40,
     "rule_id": "PY-AGENT-R010",
+    "softwareCriteria": "control-flow.broad-linear-phase",
     "summary": "summarize spans 33 lines with 16 statements and a 16-statement linear block."
   },
   {
-    "agentQualitySignals": "native-idiom.manual-transform-loop",
     "label": "replace this boilerplate loop with a native Python idiom",
     "line": 75,
     "rule_id": "PY-AGENT-R011",
+    "softwareCriteria": "native-idiom.manual-transform-loop",
     "summary": "has_admin has 1 manual collection loops 1 manual predicate loops, 1 manual counter loops, 1 manual grouping loops, and 1 manual sum loops."
   }
 ]

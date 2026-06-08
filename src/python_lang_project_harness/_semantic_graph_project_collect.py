@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import ast
-import tomllib
 from pathlib import Path
 from typing import Any
 
+from ._project_config import read_pyproject_payload
 from ._semantic_graph_fact_collect import SKIP_DIRS
 from ._semantic_graph_fact_model import (
     DependencyFact,
@@ -42,10 +42,7 @@ def collect_project_facts(project_root: Path) -> ProjectFact | None:
 
 
 def _read_pyproject(path: Path) -> dict[str, Any]:
-    try:
-        return tomllib.loads(path.read_text(encoding="utf-8"))
-    except (OSError, tomllib.TOMLDecodeError, UnicodeDecodeError):
-        return {}
+    return read_pyproject_payload(path)
 
 
 def _dependency_facts(

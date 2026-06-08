@@ -11,7 +11,7 @@ from ._boundaries import (
     agent_readability_public_class_scopes,
     agent_readability_report_is_in_scope,
 )
-from ._quality_signals import CONTROL_FLOW_BROAD_LINEAR_PHASE, finding_labels
+from ._software_criteria import CONTROL_FLOW_BROAD_LINEAR_PHASE, finding_labels
 
 if TYPE_CHECKING:
     from python_lang_parser import (
@@ -59,7 +59,7 @@ def agent_function_compactness_findings(
                 title=rule.title,
                 summary=_summary(symbol, control_flow, line_span=line_span),
                 location=symbol.location,
-                requirement=f"{rule.requirement} Signals: {', '.join(profile)}.",
+                requirement=f"{rule.requirement} Criteria: {', '.join(profile)}.",
                 source_line=report.source_line(symbol.location.line),
                 label="split this broad function into named algorithm steps",
                 labels=finding_labels(

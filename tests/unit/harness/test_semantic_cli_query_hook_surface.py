@@ -37,6 +37,7 @@ def test_query_from_hook_accepts_workspace_selector_scope() -> None:
             "--from-hook",
             "direct-source-read",
             "--workspace",
+            ".",
             "--selector",
             "packages/example/src/example.py:1:20",
             "--source",
@@ -44,7 +45,6 @@ def test_query_from_hook_accepts_workspace_selector_scope() -> None:
             "--package",
             "packages/example",
             "--code",
-            ".",
         ]
     )
 
@@ -64,11 +64,11 @@ def test_tree_sitter_query_accepts_workspace_selector_scope() -> None:
             "--treesitter-query",
             "(function_definition name: (identifier) @function.name)",
             "--workspace",
+            ".",
             "--selector",
             "packages/example/src/example.py:1:20",
             "--package",
             "packages/example",
-            ".",
         ]
     )
 

@@ -4,7 +4,7 @@ expression: rendered
 ---
 [advice]
 [PY-PROJ-R011] Info: Verification profile hints are not configured
-   ,-[ pyproject.toml:1:1 ]
- 1 | [project]
-   | `- configure parser-backed verification profile hints
-   |Required: Configure `[tool.python-lang-project-harness.verification].profile_hints` from parser-suggested owners, or run `py-harness --agent-snapshot` to copy the compact `[verify-profile]` hints.
+  --> pyproject.toml:1:1
+   1 | [project]
+     | `- configure parser-backed verification profile hints
+     | Required: Configure `[tool.python-lang-project-harness.verification].profile_hints` from parser-suggested owners, or run `py-harness --agent-snapshot` to copy the compact `[verify-profile]` hints.

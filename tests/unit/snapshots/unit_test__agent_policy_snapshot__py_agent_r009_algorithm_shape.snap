@@ -7,5 +7,5 @@ expression: rendered
   --> $TEMP/service.py:5:1
    5 | def classify(kind: str, rows: list[object]) -> int:
      | `- make this algorithm shape explicit
-     | Required: Flatten deeply nested if/loop logic into guard clauses, explicit dispatch, match/case, or small named pipeline steps so agents can reason about the algorithm shape. Signals: literal dispatch chain without match/case, else blocks after terminal branches, many nested control-flow blocks.
-     | Signals: control-flow.literal-dispatch-chain,control-flow.decision-stack
+     | Required: Flatten deeply nested if/loop logic into guard clauses, explicit dispatch, match/case, or small named pipeline steps so agents can reason about the algorithm shape. Criteria: literal dispatch chain without match/case, else blocks after terminal branches, many nested control-flow blocks.
+     | Criteria: software-criterion/control-flow.literal-dispatch-chain,software-criterion/control-flow.decision-stack

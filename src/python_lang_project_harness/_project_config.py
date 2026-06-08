@@ -39,6 +39,18 @@ def read_python_project_harness_config(
     return PythonHarnessConfig(**_harness_config_kwargs(table))
 
 
+def read_pyproject_payload(pyproject_path: Path) -> dict[str, Any]:
+    """Read a project `pyproject.toml` payload at the parser boundary."""
+
+    if not pyproject_path.exists():
+        return {}
+    try:
+        payload = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError, UnicodeDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
 def apply_asp_project_discovery_config(
     project_root: str | Path,
     config: PythonHarnessConfig,
@@ -60,12 +72,8 @@ def apply_asp_project_discovery_config(
 
 
 def _read_project_config_table(pyproject_path: Path) -> dict[str, Any] | None:
-    if not pyproject_path.exists():
-        return None
-
-    try:
-        payload = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
-    except (OSError, tomllib.TOMLDecodeError, UnicodeDecodeError):
+    payload = read_pyproject_payload(pyproject_path)
+    if not payload:
         return None
 
     table = _table(_table(payload.get("tool")).get(_TOOL_TABLE_NAME))

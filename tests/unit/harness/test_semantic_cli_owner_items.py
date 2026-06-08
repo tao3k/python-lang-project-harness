@@ -82,6 +82,7 @@ def test_cli_search_owner_items_code_flag_returns_pure_compact_code(
             "--query",
             "build",
             "--code",
+            "--workspace",
             str(tmp_path),
         ],
         stdout=stdout,

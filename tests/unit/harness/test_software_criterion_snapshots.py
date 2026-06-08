@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 _SCENARIO = (
-    Path(__file__).parent / "scenarios" / "agent_quality_signals" / "control_flow_v1"
+    Path(__file__).parent / "scenarios" / "software_criteria" / "control_flow_v1"
 )
 
 
@@ -51,27 +51,27 @@ class _ScenarioTextSnapshotExtension(SingleFileSnapshotExtension):
         return super().get_file_basename(test_location=test_location, index=index)
 
 
-def test_py_agent_quality_signal_control_flow_v1_snapshot(
+def test_py_software_criterion_control_flow_v1_snapshot(
     tmp_path: Path,
     snapshot: SnapshotAssertion,
 ) -> None:
     _copy_inputs(_SCENARIO / "inputs", tmp_path)
 
-    report = run_python_lang_harness([tmp_path / "quality.py"])
-    filtered = _filter_quality_signal_findings(report)
+    report = run_python_lang_harness([tmp_path / "criterion.py"])
+    filtered = _filter_software_criterion_findings(report)
     findings = [
         {
             "rule_id": finding.rule_id,
             "summary": finding.summary,
             "line": finding.location.line,
             "label": finding.label,
-            "agentQualitySignals": finding.labels.get("agentQualitySignals"),
+            "softwareCriteria": finding.labels.get("softwareCriteria"),
         }
         for finding in filtered.findings
     ]
     rendered = normalize_temp_root(render_python_lang_harness(filtered), tmp_path)
 
-    assert {finding["agentQualitySignals"] for finding in findings} == {
+    assert {finding["softwareCriteria"] for finding in findings} == {
         "control-flow.decision-stack",
         "control-flow.traversal-knot",
         "control-flow.literal-dispatch-chain",
@@ -97,7 +97,7 @@ def _copy_inputs(source_dir: Path, destination_dir: Path) -> None:
         destination.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
 
 
-def _filter_quality_signal_findings(
+def _filter_software_criterion_findings(
     report: PythonHarnessReport,
 ) -> PythonHarnessReport:
     return replace(

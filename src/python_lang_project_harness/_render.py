@@ -273,28 +273,28 @@ def _render_finding(
     else:
         rendered += f"     | {finding.label}\n"
     rendered += f"     | Required: {finding.requirement}\n"
-    quality_signals = _agent_quality_signal_labels(finding)
-    if quality_signals:
-        rendered += f"     | Signals: {quality_signals}\n"
+    software_criteria = _software_criterion_labels(finding)
+    if software_criteria:
+        rendered += f"     | Criteria: {software_criteria}\n"
     return rendered
 
 
-def _agent_quality_signal_labels(finding: PythonHarnessFinding) -> str:
-    value = finding.labels.get("agentQualitySignals")
+def _software_criterion_labels(finding: PythonHarnessFinding) -> str:
+    value = finding.labels.get("softwareCriteria")
     if not value:
         return ""
     if isinstance(value, str):
-        return ",".join(_format_agent_quality_signal(item) for item in value.split(","))
+        return ",".join(_format_software_criterion(item) for item in value.split(","))
     if isinstance(value, (list, tuple)):
-        return ",".join(_format_agent_quality_signal(str(item)) for item in value)
-    return _format_agent_quality_signal(str(value))
+        return ",".join(_format_software_criterion(str(item)) for item in value)
+    return _format_software_criterion(str(value))
 
 
-def _format_agent_quality_signal(signal_id: str) -> str:
-    signal_id = signal_id.strip()
-    if signal_id.startswith("agent-coding-quality/"):
-        return signal_id
-    return f"agent-coding-quality/{signal_id}"
+def _format_software_criterion(criterion_id: str) -> str:
+    criterion_id = criterion_id.strip()
+    if criterion_id.startswith("software-criterion/"):
+        return criterion_id
+    return f"software-criterion/{criterion_id}"
 
 
 def _reasoning_tree_import_roots(report: PythonHarnessReport) -> tuple[Path | str, ...]:

@@ -11,7 +11,7 @@ from ._boundaries import (
     agent_readability_public_class_scopes,
     agent_readability_report_is_in_scope,
 )
-from ._quality_signals import NATIVE_IDIOM_MANUAL_TRANSFORM_LOOP, finding_labels
+from ._software_criteria import NATIVE_IDIOM_MANUAL_TRANSFORM_LOOP, finding_labels
 
 if TYPE_CHECKING:
     from python_lang_parser import (
@@ -53,7 +53,7 @@ def agent_native_idiom_findings(
                 title=rule.title,
                 summary=_summary(symbol, control_flow),
                 location=symbol.location,
-                requirement=f"{rule.requirement} Signals: {', '.join(profile)}.",
+                requirement=f"{rule.requirement} Criteria: {', '.join(profile)}.",
                 source_line=report.source_line(symbol.location.line),
                 label="replace this boilerplate loop with a native Python idiom",
                 labels=finding_labels(

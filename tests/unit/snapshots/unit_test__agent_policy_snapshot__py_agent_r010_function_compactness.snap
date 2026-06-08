@@ -7,5 +7,5 @@ expression: rendered
   --> $TEMP/service.py:4:1
    4 | def summarize(value: int) -> int:
      | `- split this broad function into named algorithm steps
-     | Required: Split long public functions with broad linear statement blocks into small named helpers or pipeline steps so agents can edit one algorithm responsibility at a time. Signals: large linear statement block.
-     | Signals: control-flow.broad-linear-phase
+     | Required: Split long public functions with broad linear statement blocks into small named helpers or pipeline steps so agents can edit one algorithm responsibility at a time. Criteria: large linear statement block.
+     | Criteria: software-criterion/control-flow.broad-linear-phase

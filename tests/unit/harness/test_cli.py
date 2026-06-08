@@ -17,7 +17,7 @@ def test_cli_help_advertises_code_flag() -> None:
     assert exit_code == 0
     assert "py-harness search <view> ... [--json] [--code]" in rendered
     assert (
-        "py-harness query <owner-path> --term <symbol> [--term <symbol>] [--names-only | --code]"
+        "py-harness query <owner-path> --term <symbol> [--term <symbol>] [--workspace PROJECT_ROOT] [--names-only | --code]"
         in rendered
     )
     assert (
@@ -43,9 +43,12 @@ def test_cli_agent_guide_advertises_code_route(tmp_path: Path) -> None:
     rendered = stdout.getvalue()
 
     assert exit_code == 0
-    assert "asp python query <owner-path> --term <symbol> --code" in rendered
     assert (
-        "asp python search owner <owner-path> items --query <symbol|a|b> --code"
+        "asp python query <owner-path> --term <symbol> --workspace <workspace-root> --code"
+        in rendered
+    )
+    assert (
+        "asp python search owner <owner-path> items --query <symbol|a|b> --workspace <workspace-root> --code"
         in rendered
     )
 

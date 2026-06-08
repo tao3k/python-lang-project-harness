@@ -42,6 +42,7 @@ def test_query_from_hook_line_range_code_uses_ast_projection(tmp_path: Path) -> 
             "--selector",
             "src/sample.py:5-10",
             "--code",
+            "--workspace",
             str(tmp_path),
         ],
         stdout=stdout,

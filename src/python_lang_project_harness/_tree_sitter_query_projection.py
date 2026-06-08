@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ._python_expr import _expr
-from ._semantic_search_common import display_path
+from ._semantic_search_common import semantic_search_display_path
 from ._tree_sitter_query_model import (
     LEAF_TREE_SITTER_QUERY_NODES,
     MAX_SYNTAX_QUERY_ROWS,
@@ -114,7 +114,7 @@ def _module_syntax_query_rows(
 ) -> list[SyntaxQueryRow]:
     if module.path is None:
         return []
-    owner_path = display_path(module.path, project_root)
+    owner_path = semantic_search_display_path(module.path, project_root)
     effective = effective_selector(
         owner_path,
         selector,
