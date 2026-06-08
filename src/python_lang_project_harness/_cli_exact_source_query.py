@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import ast
 import tokenize
+from collections.abc import Iterable
 from pathlib import Path
 
 from ._cli_args import ProtocolArgs
@@ -11,6 +13,8 @@ from ._semantic_search_direct_read_render import (
     render_direct_read_windows,
 )
 from ._semantic_search_item_direct_read_ast import ast_selector_range_items
+from ._semantic_search_item_lines import owner_item_payload_lines
+from ._semantic_search_model import MAX_OWNER_QUERY_ITEMS
 
 
 def render_exact_source_query_code(
@@ -30,6 +34,29 @@ def render_exact_source_query_code(
     if line_range is None:
         return _render_full_selector_file(source_lines, args)
     return _render_selector_line_range(source_lines, owner_path, line_range, args)
+
+
+def render_exact_source_query_names(
+    args: ProtocolArgs, project_root: Path
+) -> str | None:
+    """Render exact owner item names without running project-wide analysis."""
+
+    if not _supports_exact_source_query_names(args):
+        return None
+    owner_path, selector_range = _exact_query_owner_path_and_range(args)
+    if owner_path is None or not owner_path.endswith(".py"):
+        return None
+    source_lines = _read_source_lines(project_root, owner_path)
+    payload = _source_owner_item_payload(source_lines, owner_path, selector_range, args)
+    return (
+        owner_item_payload_lines(
+            owner_path,
+            "|".join(args.query_set),
+            payload,
+            names_only=True,
+        )
+        + "\n"
+    )
 
 
 def _read_source_lines(project_root: Path, owner_path: str) -> list[str]:
@@ -118,6 +145,27 @@ def _supports_exact_source_query_code(args: ProtocolArgs) -> bool:
     )
 
 
+def _supports_exact_source_query_names(args: ProtocolArgs) -> bool:
+    return (
+        args.command == "query"
+        and args.names_only
+        and not args.code_only
+        and not args.json
+        and args.catalog is None
+        and args.tree_sitter_query is None
+        and args.source_version == "worktree"
+        and args.render_mode is None
+    )
+
+
+def _exact_query_owner_path_and_range(
+    args: ProtocolArgs,
+) -> tuple[str | None, tuple[int, int] | None]:
+    if args.selector is not None:
+        return _selector_owner_and_line_range(args.selector)
+    return args.owner_path, None
+
+
 def _selector_owner_and_line_range(
     selector: str,
 ) -> tuple[str | None, tuple[int, int] | None]:
@@ -138,6 +186,124 @@ def _selector_owner_and_line_range(
     if start_line < 1 or end_line < start_line:
         return None, None
     return path_text or None, (start_line, end_line)
+
+
+def _source_owner_item_payload(
+    source_lines: list[str],
+    owner_path: str,
+    selector_range: tuple[int, int] | None,
+    args: ProtocolArgs,
+) -> dict[str, object]:
+    items = (
+        ast_selector_range_items(source_lines, owner_path, selector_range)
+        if selector_range is not None
+        else _source_file_items(source_lines, owner_path)
+    )
+    terms = tuple(term for term in args.query_set if term)
+    selected, match = _select_source_items(items, terms)
+    fallback = False
+    if not selected:
+        selected = items[:MAX_OWNER_QUERY_ITEMS]
+        match = "none" if terms else "top-items"
+        fallback = bool(terms)
+    selected = selected[:MAX_OWNER_QUERY_ITEMS]
+    return {
+        "items": selected,
+        "fields": {
+            "item": len(selected),
+            "itemQuery": "|".join(terms),
+            "itemStatus": "hit" if selected and not fallback else "miss",
+            "itemMatch": match if selected else "none",
+            "fallback": "owner-top-items" if fallback and selected else None,
+        },
+        "notes": []
+        if selected
+        else [{"kind": "item-not-found", "message": owner_path}],
+    }
+
+
+def _source_file_items(
+    source_lines: list[str], owner_path: str
+) -> list[dict[str, object]]:
+    source_text = "\n".join(source_lines)
+    try:
+        module = ast.parse(source_text)
+    except SyntaxError:
+        return []
+    return [
+        item
+        for item in (
+            _source_item_record(owner_path, node)
+            for node in module.body
+            if isinstance(node, (ast.AsyncFunctionDef, ast.ClassDef, ast.FunctionDef))
+        )
+        if item is not None
+    ]
+
+
+def _source_item_record(
+    owner_path: str,
+    node: ast.AsyncFunctionDef | ast.ClassDef | ast.FunctionDef,
+) -> dict[str, object] | None:
+    end_line = getattr(node, "end_lineno", None)
+    if not isinstance(end_line, int):
+        return None
+    return {
+        "name": node.name,
+        "kind": "class" if isinstance(node, ast.ClassDef) else "function",
+        "ownerPath": owner_path,
+        "location": {
+            "path": owner_path,
+            "lineRange": f"{node.lineno}:{end_line}",
+        },
+        "fields": {
+            "public": not node.name.startswith("_"),
+            "read": f"{owner_path}:{node.lineno}:{end_line}",
+            "reason": "ast-file-query",
+            "truncated": False,
+        },
+    }
+
+
+def _select_source_items(
+    items: list[dict[str, object]],
+    terms: tuple[str, ...],
+) -> tuple[list[dict[str, object]], str]:
+    if not terms:
+        return items, "top-items"
+    exact = _dedupe_source_items(
+        item for term in terms for item in items if _item_name(item) == term
+    )
+    if exact:
+        return exact, "exact"
+    folded_terms = tuple(term.casefold() for term in terms)
+    contains = _dedupe_source_items(
+        item
+        for term in folded_terms
+        for item in items
+        if term in _item_name(item).casefold()
+    )
+    return contains, "fallback-contains" if contains else "none"
+
+
+def _dedupe_source_items(items: Iterable[object]) -> list[dict[str, object]]:
+    selected: list[dict[str, object]] = []
+    seen: set[tuple[str, str]] = set()
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        location = item.get("location", {})
+        line_range = location.get("lineRange") if isinstance(location, dict) else None
+        key = (_item_name(item), str(line_range or ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        selected.append(item)
+    return selected
+
+
+def _item_name(item: dict[str, object]) -> str:
+    return str(item.get("name") or "")
 
 
 def _source_path(project_root: Path, owner_path: str) -> Path:
