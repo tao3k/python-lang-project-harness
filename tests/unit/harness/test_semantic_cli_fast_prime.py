@@ -40,10 +40,27 @@ def test_cli_search_prime_seed_view_uses_fast_frontier(
     assert exit_code == 0
     assert rendered.startswith("[search-prime]")
     assert "alg=fast-prime-frontier-v1" in rendered
+    assert "|decision purpose=decision-primer" in rendered
+    assert "answer=false code=false" in rendered
+    assert (
+        "capabilities=pipe,fzf,fd-query,rg-query,owner-items,selector-code,treesitter-query"
+        in rendered
+    )
+    assert "ladder=pipe>fzf>fd-query|rg-query>owner-items>selector-code" in rendered
+    assert (
+        "history=asp-artifacts:directReadRisk,repeatedPrime,repeatedPipe,bestPath"
+        in rendered
+    )
+    assert "risk=broad-direct-read,manual-window-scan,repeat-prime" in rendered
+    assert (
+        "next=\"asp python search pipe '<question-or-feature-term>' --view seeds .\""
+        in rendered
+    )
     assert "owner:path(src/pkg/service.py)" in rendered
     assert "frontier=O1.owner" in rendered
     assert (
         "entries=owner-tests(O=>covering-tests+test-entrypoints+fixtures)" in rendered
     )
-    assert "owner-items" not in rendered
+    assert "A1=owner-items" not in rendered
+    assert "recommendedNext=owner-items" not in rendered
     assert elapsed < FAST_SEARCH_BUDGET_SECONDS

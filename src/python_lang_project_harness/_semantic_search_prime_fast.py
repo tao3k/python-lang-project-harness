@@ -153,6 +153,14 @@ def _render_fast_prime_seed_text(project_root: Path, owners: tuple[str, ...]) ->
             f"[search-prime] root={root_label} alg=fast-prime-frontier-v1 "
             f"budget=owners:{_MAX_FAST_PRIME_OWNERS} mode=seeds"
         ),
+        (
+            "|decision purpose=decision-primer answer=false code=false "
+            "capabilities=pipe,fzf,fd-query,rg-query,owner-items,selector-code,treesitter-query "
+            "ladder=pipe>fzf>fd-query|rg-query>owner-items>selector-code "
+            "history=asp-artifacts:directReadRisk,repeatedPrime,repeatedPipe,bestPath "
+            "risk=broad-direct-read,manual-window-scan,repeat-prime "
+            "next=\"asp python search pipe '<question-or-feature-term>' --view seeds .\""
+        ),
         "legend: ID=kind:role(value)!next; edge SRC>{DST:rel}; frontier ID.next",
         "aliases: graph:{G=search,O=owner}",
     ]
