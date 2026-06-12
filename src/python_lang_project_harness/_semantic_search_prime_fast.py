@@ -161,7 +161,7 @@ def _render_fast_prime_seed_text(project_root: Path, owners: tuple[str, ...]) ->
             "risk=broad-direct-read,manual-window-scan,repeat-prime "
             "next=\"asp python search pipe '<question-or-feature-term>' --view seeds .\""
         ).replace("--view seeds .", "--view seeds --workspace <workspace-root>"),
-        "legend: ID=kind:role(value)!next; edge SRC>{DST:rel}; frontier ID.next",
+        "legend: ID=kind:role(value)!next; entries profile(selectors=>returns); frontier ID.next",
         "aliases: graph:{G=search,O=owner}",
     ]
     owner_ids = [f"O{index}" for index, _ in enumerate(owners, start=1)]

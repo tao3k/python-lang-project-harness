@@ -59,6 +59,10 @@ def test_cli_search_prime_seed_view_uses_fast_frontier(
     assert "owner:path(src/pkg/service.py)" in rendered
     assert "frontier=O1.owner" in rendered
     assert (
+        "legend: ID=kind:role(value)!next; entries profile(selectors=>returns); frontier ID.next"
+        in rendered
+    )
+    assert (
         "entries=owner-tests(O=>covering-tests+test-entrypoints+fixtures)" in rendered
     )
     assert "A1=owner-items" not in rendered
