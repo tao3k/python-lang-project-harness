@@ -99,6 +99,31 @@ def test_cli_query_catalog_code_flag_returns_pure_python_code(
     )
 
 
+def test_cli_query_catalog_accepts_positional_workspace(tmp_path: Path) -> None:
+    write_search_fixture(tmp_path)
+    stdout = io.StringIO()
+
+    exit_code = run_cli(
+        [
+            "query",
+            "--catalog",
+            "declarations",
+            "--term",
+            "build",
+            "--selector",
+            "src/pkg/service.py",
+            "--code",
+            str(tmp_path),
+        ],
+        stdout=stdout,
+    )
+
+    assert exit_code == 0
+    assert stdout.getvalue() == (
+        "def build(value: str) -> str:\n    return value.strip()\n"
+    )
+
+
 def test_cli_query_catalog_json_projects_native_capture_rows(
     tmp_path: Path,
 ) -> None:

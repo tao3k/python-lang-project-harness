@@ -17,8 +17,8 @@ QUERY_USAGE = (
     "[--term <symbol>] [--workspace <workspace-root>] [--names-only] [--json] [--package PATH]; "
     "or py-harness query --from-hook direct-source-read --selector PATH:START:END "
     "[--workspace <workspace-root>] [--source worktree|index|head] [--code]; "
-    "or py-harness query (--catalog ID | --treesitter-query EXPR) [--workspace <workspace-root>] [--json]; "
-    "or py-harness query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION' [--json] [--workspace <workspace-root>]"
+    "or py-harness query (--catalog ID | --treesitter-query EXPR) [<workspace-root>] [--workspace <workspace-root>] [--json]; "
+    "or py-harness query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION' [<workspace-root>] [--json] [--workspace <workspace-root>]"
 )
 
 

@@ -60,6 +60,26 @@ def test_cli_query_flow_lite_json_emits_bounded_packet(tmp_path: Path) -> None:
     assert packet["fields"]["where"]["scope.fn"] == "collect_tool_actions"
 
 
+def test_cli_query_flow_lite_accepts_positional_workspace(tmp_path: Path) -> None:
+    _write_flow_lite_fixture(tmp_path)
+    stdout = io.StringIO()
+
+    exit_code = run_cli(
+        [
+            "query",
+            "--catalog",
+            "flow-lite",
+            "--where",
+            "source.call=payload_string sink.constructs=ToolAction scope.fn=collect_tool_actions",
+            str(tmp_path),
+        ],
+        stdout=stdout,
+    )
+
+    assert exit_code == 0
+    assert "[query-flow-lite]" in stdout.getvalue()
+
+
 def test_cli_query_flow_lite_rejects_code_output_and_open_where_key(
     tmp_path: Path,
 ) -> None:

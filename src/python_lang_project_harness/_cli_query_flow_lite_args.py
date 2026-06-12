@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 _FLOW_LITE_CATALOG_ID = "flow-lite"
@@ -16,11 +17,13 @@ def flow_lite_query_args_error(state: Any) -> str | None:
         return "query --catalog flow-lite cannot be combined with --treesitter-query"
     if state.from_hook is not None:
         return "query --catalog flow-lite cannot be combined with --from-hook"
-    if state.positionals:
+    if state.workspace_root is not None and state.positionals:
         return (
-            "query --catalog flow-lite does not accept positional WORKSPACE; "
-            "use --workspace <workspace-root>"
+            "query accepts either --workspace <workspace-root> or one positional "
+            "WORKSPACE, not both"
         )
+    if len(state.positionals) > 1:
+        return "query accepts at most one positional WORKSPACE"
     if state.names_only:
         return "--names-only cannot be combined with --catalog flow-lite"
     if state.code_only:
@@ -42,11 +45,19 @@ def flow_lite_query_protocol_args(args_type: type[Any], state: Any) -> Any:
         "query",
         catalog=state.catalog,
         flow_lite_where=state.flow_lite_where,
-        project_root=state.workspace_root,
+        project_root=_flow_lite_query_project_root(state),
         package_path=state.package_path,
-        workspace=state.workspace,
+        workspace=state.workspace or bool(state.positionals),
         json=state.json_output,
     )
+
+
+def _flow_lite_query_project_root(state: Any) -> Path | None:
+    if state.workspace_root is not None:
+        return state.workspace_root
+    if len(state.positionals) == 1:
+        return Path(state.positionals[0])
+    return None
 
 
 def flow_lite_where_error(value: str) -> str | None:
