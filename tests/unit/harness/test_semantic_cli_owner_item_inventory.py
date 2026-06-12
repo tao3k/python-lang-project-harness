@@ -20,6 +20,7 @@ def test_cli_search_owner_items_without_query_returns_inventory(
             "owner",
             "src/pkg/service.py",
             "items",
+            "--workspace",
             str(tmp_path),
         ],
         stdout=stdout,

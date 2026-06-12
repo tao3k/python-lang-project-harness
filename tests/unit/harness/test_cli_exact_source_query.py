@@ -31,6 +31,7 @@ def test_query_names_only_explicit_owner_bypasses_full_harness(
             "--term",
             "missing_owner",
             "--names-only",
+            "--workspace",
             str(project),
         ],
         project,

@@ -17,6 +17,7 @@ def test_query_from_hook_broad_selector_accepts_shared_surfaces() -> None:
             "owners,tests",
             "--view",
             "seeds",
+            "--workspace",
             ".",
         ]
     )

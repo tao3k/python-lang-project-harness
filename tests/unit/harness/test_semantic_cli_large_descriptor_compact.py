@@ -132,6 +132,7 @@ import-names = ["pkg"]
             "--term",
             "python_view_descriptors|python_view_index",
             "--json",
+            "--workspace",
             str(tmp_path),
         ],
         stdout=json_stdout,

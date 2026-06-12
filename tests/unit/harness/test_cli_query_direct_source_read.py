@@ -112,4 +112,4 @@ def test_cli_query_code_rejects_trailing_project_root(tmp_path: Path) -> None:
         exit_code = run_cli(args, stdout=io.StringIO(), stderr=stderr, cwd=tmp_path)
 
         assert exit_code == 2
-        assert "does not accept a trailing PROJECT_ROOT" in stderr.getvalue()
+        assert "does not accept positional WORKSPACE" in stderr.getvalue()

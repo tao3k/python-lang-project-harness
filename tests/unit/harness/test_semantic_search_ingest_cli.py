@@ -25,9 +25,9 @@ def test_search_ingest_descriptor_accepts_items_tests_pipes() -> None:
     )
 
 
-def test_search_ingest_accepts_pipes_before_project_root() -> None:
+def test_search_ingest_accepts_pipes_with_explicit_workspace() -> None:
     parsed = parse_semantic_search_args(
-        ["ingest", "items", "tests", "--view", "seeds", "."]
+        ["ingest", "items", "tests", "--view", "seeds", "--workspace", "."]
     )
 
     assert parsed.error is None
@@ -37,12 +37,15 @@ def test_search_ingest_accepts_pipes_before_project_root() -> None:
     assert parsed.render_mode == "seeds"
 
 
-def test_search_ingest_rejects_extra_positional_root_after_pipes() -> None:
+def test_search_ingest_rejects_positional_workspace_after_pipes() -> None:
     parsed = parse_semantic_search_args(
         ["ingest", "items", "tests", "extra", "--view", "seeds", "."]
     )
 
-    assert parsed.error == "expected at most one PROJECT_ROOT argument"
+    assert (
+        parsed.error
+        == "search does not accept positional WORKSPACE; use --workspace <workspace-root>"
+    )
 
 
 def test_search_ingest_empty_stdin_seeds_explains_prime_route(
@@ -63,7 +66,16 @@ def test_search_ingest_empty_stdin_seeds_explains_prime_route(
 
     started_at = time.perf_counter()
     exit_code = run_cli(
-        ["search", "ingest", "items", "tests", "--view", "seeds", "."],
+        [
+            "search",
+            "ingest",
+            "items",
+            "tests",
+            "--view",
+            "seeds",
+            "--workspace",
+            ".",
+        ],
         stdout=stdout,
         stdin="",
         cwd=tmp_path,

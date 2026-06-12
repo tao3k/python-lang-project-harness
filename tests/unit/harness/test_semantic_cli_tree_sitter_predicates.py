@@ -127,6 +127,7 @@ def _function_name_query_args(
         "--treesitter-query",
         query,
         *extra_args,
+        "--workspace",
         str(project_root),
         "--asp-syntax-query-captures",
         "function.name",

@@ -7,8 +7,8 @@ from pathlib import Path
 
 def render_agent_guide(project_root: Path) -> str:
     project = str(project_root)
-    root = "."
     workspace = "--workspace <workspace-root>"
+    root = workspace
     return (
         "\n".join(
             (
@@ -88,10 +88,10 @@ def render_agent_guide(project_root: Path) -> str:
                     f"--view seeds {workspace}"
                 ),
                 f"|cmd fzf=asp python search fzf <query> owner tests --view seeds {root}",
-                f"|cmd ast-patch=asp python ast-patch dry-run --packet <semantic-ast-patch.json|-> {root}",
+                "|cmd ast-patch=asp python ast-patch dry-run --packet <semantic-ast-patch.json|->",
                 f"|cmd deps=asp python search deps <pkg[@ver][::api]> {root}",
                 f"|pipe <candidate-lines> | asp python search ingest --view seeds {root}",
-                f"|cmd check=asp python check --changed {root}",
+                "|cmd check=asp python check --changed",
                 "|rule agent hook install/runtime is owned by asp",
                 (
                     "|rule selector queries do not need a trailing project root; "

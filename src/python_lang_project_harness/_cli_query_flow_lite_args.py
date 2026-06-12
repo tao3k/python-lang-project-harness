@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 _FLOW_LITE_CATALOG_ID = "flow-lite"
@@ -17,8 +16,11 @@ def flow_lite_query_args_error(state: Any) -> str | None:
         return "query --catalog flow-lite cannot be combined with --treesitter-query"
     if state.from_hook is not None:
         return "query --catalog flow-lite cannot be combined with --from-hook"
-    if len(state.positionals) > 1:
-        return "query --catalog flow-lite accepts at most one project root"
+    if state.positionals:
+        return (
+            "query --catalog flow-lite does not accept positional WORKSPACE; "
+            "use --workspace <workspace-root>"
+        )
     if state.names_only:
         return "--names-only cannot be combined with --catalog flow-lite"
     if state.code_only:
@@ -40,7 +42,7 @@ def flow_lite_query_protocol_args(args_type: type[Any], state: Any) -> Any:
         "query",
         catalog=state.catalog,
         flow_lite_where=state.flow_lite_where,
-        project_root=None if not state.positionals else Path(state.positionals[0]),
+        project_root=state.workspace_root,
         package_path=state.package_path,
         workspace=state.workspace,
         json=state.json_output,

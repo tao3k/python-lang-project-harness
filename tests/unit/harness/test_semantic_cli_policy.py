@@ -56,6 +56,7 @@ def test_cli_search_policy_renders_semantic_handles(
                     "tests",
                     "--view",
                     "seeds",
+                    "--workspace",
                     str(tmp_path),
                 ],
                 stdout=seeds_stdout,
@@ -64,7 +65,15 @@ def test_cli_search_policy_renders_semantic_handles(
         )
     assert (
         run_cli(
-            ["search", "policy", "src layout", "owner", "tests", str(tmp_path)],
+            [
+                "search",
+                "policy",
+                "src layout",
+                "owner",
+                "tests",
+                "--workspace",
+                str(tmp_path),
+            ],
             stdout=compact_stdout,
         )
         == 0
@@ -78,6 +87,7 @@ def test_cli_search_policy_renders_semantic_handles(
                 "owner",
                 "tests",
                 "--json",
+                "--workspace",
                 str(tmp_path),
             ],
             stdout=json_stdout,

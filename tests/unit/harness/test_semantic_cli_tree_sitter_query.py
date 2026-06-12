@@ -17,7 +17,7 @@ def test_cli_query_catalog_packet_uses_provider_embedded_sources(
     stdout = io.StringIO()
 
     exit_code = run_cli(
-        ["query", "--catalog", "calls", "--json", str(tmp_path)],
+        ["query", "--catalog", "calls", "--json", "--workspace", str(tmp_path)],
         stdout=stdout,
     )
 
@@ -64,7 +64,7 @@ def test_cli_query_inline_s_expression_requires_asp_compiled_plan(
     query = "(function_definition name: (identifier) @function.name)"
 
     exit_code = run_cli(
-        ["query", "--treesitter-query", query, str(tmp_path)],
+        ["query", "--treesitter-query", query, "--workspace", str(tmp_path)],
         stdout=stdout,
     )
 
@@ -113,6 +113,7 @@ def test_cli_query_catalog_json_projects_native_capture_rows(
             "--term",
             "SessionClient",
             "--json",
+            "--workspace",
             str(tmp_path),
         ],
         stdout=stdout,
@@ -146,6 +147,7 @@ def test_cli_query_inline_call_target_uses_target_capture_node_and_field(
             "--treesitter-query",
             query,
             "--json",
+            "--workspace",
             str(tmp_path),
             "--asp-syntax-query-captures",
             "call.target",
@@ -175,7 +177,15 @@ def test_cli_owner_item_query_packet_links_python_syntax_refs(
     stdout = io.StringIO()
 
     exit_code = run_cli(
-        ["query", "src/pkg/service.py", "--term", "build", "--json", str(tmp_path)],
+        [
+            "query",
+            "src/pkg/service.py",
+            "--term",
+            "build",
+            "--json",
+            "--workspace",
+            str(tmp_path),
+        ],
         stdout=stdout,
     )
 
@@ -208,6 +218,7 @@ def test_cli_search_owner_items_packet_links_python_syntax_refs(
             "--query",
             "build",
             "--json",
+            "--workspace",
             str(tmp_path),
         ],
         stdout=stdout,

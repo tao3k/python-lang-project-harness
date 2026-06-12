@@ -19,11 +19,18 @@ def test_cli_search_public_external_types_uses_public_api_facts(
     json_stdout = io.StringIO()
 
     exit_code = run_cli(
-        ["search", "public-external-types", "requests", str(tmp_path)],
+        ["search", "public-external-types", "requests", "--workspace", str(tmp_path)],
         stdout=stdout,
     )
     json_exit_code = run_cli(
-        ["search", "public-external-types", "requests", "--json", str(tmp_path)],
+        [
+            "search",
+            "public-external-types",
+            "requests",
+            "--json",
+            "--workspace",
+            str(tmp_path),
+        ],
         stdout=json_stdout,
     )
 

@@ -31,7 +31,7 @@ def test_cli_search_prime_seed_view_uses_fast_frontier(
 
     started_at = time.perf_counter()
     exit_code = run_cli(
-        ["search", "prime", "--view", "seeds", str(tmp_path)],
+        ["search", "prime", "--view", "seeds", "--workspace", str(tmp_path)],
         stdout=stdout,
     )
     elapsed = time.perf_counter() - started_at
@@ -53,7 +53,7 @@ def test_cli_search_prime_seed_view_uses_fast_frontier(
     )
     assert "risk=broad-direct-read,manual-window-scan,repeat-prime" in rendered
     assert (
-        "next=\"asp python search pipe '<question-or-feature-term>' --view seeds .\""
+        "next=\"asp python search pipe '<question-or-feature-term>' --view seeds --workspace <workspace-root>\""
         in rendered
     )
     assert "owner:path(src/pkg/service.py)" in rendered

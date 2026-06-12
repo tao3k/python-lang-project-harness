@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 
@@ -15,12 +14,8 @@ def tree_sitter_query_args_error(state: Any) -> str | None:
         return "query accepts only one of --catalog or --treesitter-query"
     if state.from_hook is not None:
         return "query --catalog/--treesitter-query cannot be combined with --from-hook"
-    if state.workspace_root is not None and state.positionals:
-        return "query accepts project root via --workspace or positional PROJECT_ROOT, not both"
-    if state.code_only and state.positionals:
-        return "query --code does not accept a trailing PROJECT_ROOT; use --workspace PROJECT_ROOT"
-    if len(state.positionals) > 1:
-        return "expected optional PROJECT_ROOT for tree-sitter query"
+    if state.positionals:
+        return "query does not accept positional WORKSPACE; use --workspace <workspace-root>"
     if state.names_only:
         return "--names-only cannot be combined with --catalog or --treesitter-query"
     if state.json_output and state.code_only:
@@ -43,9 +38,7 @@ def tree_sitter_query_protocol_args(args_type: type[Any], state: Any) -> Any:
         asp_syntax_query_fields=tuple(state.asp_syntax_query_fields),
         asp_syntax_query_predicates=tuple(state.asp_syntax_query_predicates),
         query_set=tuple(state.terms),
-        project_root=state.workspace_root
-        if state.workspace_root is not None
-        else (None if not state.positionals else Path(state.positionals[0])),
+        project_root=state.workspace_root,
         package_path=state.package_path,
         workspace=state.workspace,
         json=state.json_output,

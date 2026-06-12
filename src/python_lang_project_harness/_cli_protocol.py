@@ -59,7 +59,7 @@ def run_protocol_cli(
 
 def _resolve_project_root(args: ProtocolArgs, cwd: Path) -> Path:
     project_root = (cwd / args.project_root).resolve() if args.project_root else cwd
-    if args.package_path is not None and not args.workspace:
+    if args.package_path is not None:
         return (project_root / args.package_path).resolve()
     return project_root
 

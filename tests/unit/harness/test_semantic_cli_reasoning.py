@@ -34,15 +34,15 @@ def test_cli_agent_guide_prints_reasoning_entry_commands(tmp_path: Path) -> None
     rendered = stdout.getvalue()
     assert (
         "|cmd reasoning-owner-tests=asp python search reasoning owner-tests "
-        "--owner <owner-path> --view seeds ."
+        "--owner <owner-path> --view seeds --workspace <workspace-root>"
     ) in rendered
     assert (
         "|cmd reasoning-owner-query=asp python search reasoning owner-query "
-        "--owner <owner-path> --query <symbol> --view seeds ."
+        "--owner <owner-path> --query <symbol> --view seeds --workspace <workspace-root>"
     ) in rendered
     assert (
         "|cmd reasoning-query-deps=asp python search reasoning query-deps "
-        "--query <symbol> --dependency <pkg> --view seeds ."
+        "--query <symbol> --dependency <pkg> --view seeds --workspace <workspace-root>"
     ) in rendered
 
 
@@ -60,6 +60,7 @@ def test_cli_search_reasoning_profiles_are_executable(tmp_path: Path) -> None:
                 "owner-tests",
                 "--owner",
                 "src/pkg/service.py",
+                "--workspace",
                 str(tmp_path),
             ],
             stdout=owner_tests_stdout,
@@ -76,6 +77,7 @@ def test_cli_search_reasoning_profiles_are_executable(tmp_path: Path) -> None:
                 "src/pkg/service.py",
                 "--query",
                 "build",
+                "--workspace",
                 str(tmp_path),
             ],
             stdout=owner_query_stdout,
@@ -92,6 +94,7 @@ def test_cli_search_reasoning_profiles_are_executable(tmp_path: Path) -> None:
                 "Session",
                 "--dependency",
                 "requests",
+                "--workspace",
                 str(tmp_path),
             ],
             stdout=query_deps_stdout,

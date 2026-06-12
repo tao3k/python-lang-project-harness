@@ -361,13 +361,13 @@ def help_text() -> str:
     return (
         "py-harness — Python semantic search and project harness\n\n"
         "Usage:\n"
-        "  py-harness search <view> ... [--json] [--code] [--package PATH] [PROJECT_ROOT]\n"
-        "  py-harness query <owner-path> --term <symbol> [--term <symbol>] [--workspace PROJECT_ROOT] [--names-only | --code]\n"
-        "  py-harness query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION' [--json] [PROJECT_ROOT]\n"
-        "  py-harness check [--changed | --full] [--json] [PROJECT_ROOT]\n"
-        "  py-harness ast-patch dry-run --packet <semantic-ast-patch.json|-> [PROJECT_ROOT]\n"
-        "  py-harness agent doctor [--json] [PROJECT_ROOT]\n"
-        "  py-harness agent guide [PROJECT_ROOT]\n"
+        "  py-harness search <view> ... [--json] [--code] [--package PATH] [--workspace <workspace-root>]\n"
+        "  py-harness query <owner-path> --term <symbol> [--term <symbol>] [--workspace <workspace-root>] [--names-only | --code]\n"
+        "  py-harness query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION' [--json] [--workspace <workspace-root>]\n"
+        "  py-harness check [--changed | --full] [--json]\n"
+        "  py-harness ast-patch dry-run --packet <semantic-ast-patch.json|->\n"
+        "  py-harness agent doctor [--json]\n"
+        "  py-harness agent guide\n"
         "  py-harness [--json | --agent-snapshot] [--no-tests] "
         "[--source-dir DIR] [--test-dir DIR] [--extra-path PATH] "
         "[--disable-rule RULE_ID] [--block-rule RULE_ID] [PROJECT_ROOT]\n\n"
@@ -404,7 +404,7 @@ def help_text() -> str:
         "                             Owner-local item discovery without code windows\n"
         "  query <owner-path> --term <symbol> --code\n"
         "                             Pure compact parser-owned code output\n\n"
-        "  query --from-hook direct-source-read --selector <workspace-path:start-end> [--workspace PROJECT_ROOT] --code\n"
+        "  query --from-hook direct-source-read --selector <workspace-path:start-end> [--workspace <workspace-root>] --code\n"
         "                             Source-preserved pure code read; --code consumes no path argument\n\n"
         "  query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION'\n"
         "                             Flow-lite ABI compatibility surface; Python executor is not enabled yet\n\n"
@@ -433,7 +433,7 @@ def help_text() -> str:
         "  py-harness search prime .\n"
         "  py-harness search public-external-types pytest .\n"
         "  py-harness search callsite PythonSemanticSearchOptions .\n"
-        "  py-harness search fzf PythonSemanticSearchOptions owner tests .\n"
+        "  py-harness search fzf PythonSemanticSearchOptions owner tests --workspace .\n"
         "  py-harness search reasoning owner-tests --owner src/python_lang_project_harness/_cli.py .\n"
         "  py-harness search reasoning owner-query --owner src/python_lang_project_harness/_cli.py --query run_cli .\n"
         "  py-harness search reasoning query-deps --query Session --dependency requests .\n"
@@ -443,7 +443,7 @@ def help_text() -> str:
         '  rg -n "PythonSemanticSearchOptions" src tests | py-harness search ingest .\n'
         "  py-harness check --full .\n"
         "  py-harness agent doctor --json .\n"
-        "  py-harness agent guide .\n"
+        "  py-harness agent guide\n"
     )
 
 

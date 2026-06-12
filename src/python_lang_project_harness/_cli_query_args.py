@@ -100,13 +100,14 @@ def _query_args_error(state: QueryParseState) -> str | None:
     if is_tree_sitter_query_state(state):
         return tree_sitter_query_args_error(state)
     if not state.selector and not state.positionals:
+        if state.names_only and state.terms:
+            return (
+                "query --names-only requires an owner selector; workspace term discovery is "
+                "`search fzf '<term>' owner --view seeds --workspace <workspace-root>`"
+            )
         return "query requires an owner path"
-    if state.workspace_root is not None and _query_has_positional_project_root(state):
-        return "query accepts project root via --workspace or positional PROJECT_ROOT, not both"
-    if state.code_only and _query_has_positional_project_root(state):
-        return "query --code does not accept a trailing PROJECT_ROOT; use --workspace PROJECT_ROOT"
-    if len(state.positionals) > (2 if state.selector is None else 1):
-        return "expected owner path and optional PROJECT_ROOT"
+    if _query_has_positional_workspace(state):
+        return "query does not accept positional WORKSPACE; use --workspace <workspace-root>"
     if not state.terms and state.from_hook != "direct-source-read":
         return "query requires at least one --term"
     broad_hook_query = is_broad_hook_query(state.from_hook, state.selector, state.terms)
@@ -130,12 +131,10 @@ def _query_args_error(state: QueryParseState) -> str | None:
 def _query_project_root(state: QueryParseState) -> Path | None:
     if state.workspace_root is not None:
         return state.workspace_root
-    if state.selector is None:
-        return None if len(state.positionals) == 1 else Path(state.positionals[1])
-    return None if not state.positionals else Path(state.positionals[0])
+    return None
 
 
-def _query_has_positional_project_root(state: QueryParseState) -> bool:
+def _query_has_positional_workspace(state: QueryParseState) -> bool:
     if state.selector is None:
         return len(state.positionals) > 1
     return bool(state.positionals)

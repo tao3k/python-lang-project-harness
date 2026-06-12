@@ -29,6 +29,7 @@ def test_cli_query_hook_wildcard_seeds_use_shared_compact_graph(
             "owners,tests",
             "--view",
             "seeds",
+            "--workspace",
             str(tmp_path),
         ],
         stdout=stdout,

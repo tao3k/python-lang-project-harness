@@ -17,7 +17,7 @@ def test_cli_help_advertises_code_flag() -> None:
     assert exit_code == 0
     assert "py-harness search <view> ... [--json] [--code]" in rendered
     assert (
-        "py-harness query <owner-path> --term <symbol> [--term <symbol>] [--workspace PROJECT_ROOT] [--names-only | --code]"
+        "py-harness query <owner-path> --term <symbol> [--term <symbol>] [--workspace <workspace-root>] [--names-only | --code]"
         in rendered
     )
     assert (

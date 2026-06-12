@@ -24,7 +24,14 @@ def test_search_semantic_facts_emits_field_type_collection_graph(tmp_path):
     stdout = io.StringIO()
 
     exit_code = run_cli(
-        ["search", "semantic-facts", "list collection fields", "--json", str(tmp_path)],
+        [
+            "search",
+            "semantic-facts",
+            "list collection fields",
+            "--json",
+            "--workspace",
+            str(tmp_path),
+        ],
         stdout=stdout,
         cwd=tmp_path,
         stdin="models.py:5:1:items\n",
@@ -130,6 +137,7 @@ def test_search_semantic_facts_emits_package_build_dependency_and_tests(tmp_path
             "semantic-facts",
             "field pytest requests dependency",
             "--json",
+            "--workspace",
             str(tmp_path),
         ],
         stdout=stdout,

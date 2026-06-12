@@ -84,6 +84,7 @@ def test_cli_query_flow_lite_rejects_code_output_and_open_where_key(
             "flow-lite",
             "--where",
             "source.call=payload sink.constructs=Action scope.fn=collect guard.eq=is_safe",
+            "--workspace",
             str(tmp_path),
         ],
         stdout=open_where_stdout,
@@ -104,6 +105,7 @@ def _flow_lite_query_args(project_root: Path, *extra_args: str) -> list[str]:
         "--where",
         "source.call=payload_string sink.constructs=ToolAction scope.fn=collect_tool_actions",
         *extra_args,
+        "--workspace",
         str(project_root),
     ]
 
