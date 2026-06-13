@@ -40,6 +40,11 @@ def python_semantic_language_schemas() -> list[dict[str, str]]:
             "path": "schemas/semantic-graph.v1.schema.json",
         },
         {
+            "schemaId": ids.SEMANTIC_GRAPH_TURBO_REQUEST_SCHEMA_ID,
+            "schemaVersion": "1",
+            "path": "schemas/semantic-graph-turbo-request.v1.schema.json",
+        },
+        {
             "schemaId": "agent.semantic-protocols.semantic-verification-receipt",
             "schemaVersion": "1",
             "path": "schemas/semantic-verification-receipt.v1.schema.json",

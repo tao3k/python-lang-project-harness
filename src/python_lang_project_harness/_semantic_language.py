@@ -12,6 +12,7 @@ from ._semantic_language_schemas import python_semantic_language_schemas
 _PYTHON_CHECK_METHODS = ("check/changed", "check/full")
 _PYTHON_QUERY_METHODS = ("query", "query/owner-items", "query/direct-source-read")
 _PYTHON_AST_PATCH_METHODS = ("ast-patch/dry-run",)
+_PYTHON_EVIDENCE_METHODS = ("evidence/graph", "evidence/analyze")
 _PYTHON_AGENT_METHODS = ("agent/doctor", "agent/guide")
 _PYTHON_SEARCH_VIEW_DESCRIPTORS = python_search_view_descriptors()
 _PYTHON_SEARCH_VIEWS = tuple(
@@ -51,6 +52,7 @@ def python_semantic_language_registration() -> dict[str, Any]:
             *_PYTHON_QUERY_METHODS,
             *_PYTHON_CHECK_METHODS,
             *_PYTHON_AST_PATCH_METHODS,
+            *_PYTHON_EVIDENCE_METHODS,
             *_PYTHON_AGENT_METHODS,
         ],
         "methodDescriptors": python_semantic_language_method_descriptors(),
@@ -87,6 +89,28 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
             "mutationAvailable": False,
         }
         for method in _PYTHON_AST_PATCH_METHODS
+    )
+    descriptors.extend(
+        [
+            {
+                "method": "evidence/graph",
+                "command": "evidence",
+                "input": "provider project root",
+                "outputSchemaIds": [ids.SEMANTIC_EVIDENCE_GRAPH_SCHEMA_ID],
+                "supportsJson": True,
+                "supportsCompact": True,
+            },
+            {
+                "method": "evidence/analyze",
+                "command": "evidence",
+                "input": "provider project root",
+                "outputSchemaIds": [ids.SEMANTIC_GRAPH_TURBO_REQUEST_SCHEMA_ID],
+                "packetSchemas": ["semantic-graph-turbo-request.v1"],
+                "clients": ["asp-graph-turbo"],
+                "supportsJson": True,
+                "supportsCompact": True,
+            },
+        ]
     )
     descriptors.extend(
         [

@@ -32,6 +32,8 @@ def run_protocol_cli(
     project_root = _resolve_project_root(args, cwd)
     if args.command == "agent":
         return _run_agent_command(args, project_root=project_root, stdout=stdout)
+    if args.command == "evidence":
+        return _run_evidence_command(args, project_root=project_root, stdout=stdout)
     if args.command == "ast-patch":
         return _run_ast_patch_command(
             args, project_root=project_root, stdout=stdout, stdin=stdin
@@ -78,6 +80,42 @@ def _run_agent_command(
     else:
         stdout.write(render_agent_doctor(project_root))
     return 0
+
+
+def _run_evidence_command(
+    args: ProtocolArgs,
+    *,
+    project_root: Path,
+    stdout: TextIO,
+) -> int:
+    from ._evidence_graph import (
+        build_python_evidence_graph,
+        render_python_evidence_graph,
+        render_python_evidence_graph_json,
+    )
+    from ._evidence_graph_turbo import (
+        build_python_evidence_analysis_request,
+        render_python_evidence_analysis_request,
+        render_python_evidence_analysis_request_json,
+    )
+
+    if args.action == "graph":
+        graph = build_python_evidence_graph(project_root)
+        stdout.write(
+            render_python_evidence_graph_json(graph)
+            if args.json
+            else render_python_evidence_graph(graph)
+        )
+        return 0
+    if args.action == "analyze":
+        request = build_python_evidence_analysis_request(project_root)
+        stdout.write(
+            render_python_evidence_analysis_request_json(request)
+            if args.json
+            else render_python_evidence_analysis_request(request)
+        )
+        return 0
+    raise ValueError("expected evidence <graph|analyze>")
 
 
 def _run_ast_patch_command(

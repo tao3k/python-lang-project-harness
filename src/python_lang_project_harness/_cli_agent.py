@@ -46,6 +46,7 @@ def render_agent_guide(project_root: Path) -> str:
                     f"{workspace} --code"
                 ),
                 f"|cmd prime=asp python search prime --view seeds {root}",
+                f"|cmd pipe=asp python search pipe <query> --view seeds {root}",
                 f"|cmd owner=asp python search owner <owner-path> --view seeds {root}",
                 (
                     f"|cmd reasoning-owner-tests=asp python search reasoning "
@@ -89,6 +90,8 @@ def render_agent_guide(project_root: Path) -> str:
                 ),
                 f"|cmd fzf=asp python search fzf <query> owner tests --view seeds {root}",
                 "|cmd ast-patch=asp python ast-patch dry-run --packet <semantic-ast-patch.json|->",
+                f"|cmd evidence-graph=asp python evidence graph --json {root}",
+                f"|cmd evidence-analyze=asp python evidence analyze --json {root}",
                 f"|cmd deps=asp python search deps <pkg[@ver][::api]> {root}",
                 f"|pipe <candidate-lines> | asp python search ingest --view seeds {root}",
                 "|cmd check=asp python check --changed",

@@ -52,6 +52,8 @@ class ProtocolArgs:
             return cls._parse_query(args[1:])
         if command == "check":
             return cls._parse_check(args[1:])
+        if command == "evidence":
+            return cls._parse_evidence(args[1:])
         if command == "agent":
             return cls._parse_agent(args[1:])
         if command == "ast-patch":
@@ -146,6 +148,33 @@ class ProtocolArgs:
             return cls("error", error="expected at most one PROJECT_ROOT argument")
         return cls(
             "check",
+            project_root=None if not positionals else Path(positionals[0]),
+            json=json_output,
+        )
+
+    @classmethod
+    def _parse_evidence(cls, args: list[str] | tuple[str, ...]) -> ProtocolArgs:
+        action = args[0] if args else None
+        if action in {"--help", "-h"}:
+            return cls("help")
+        if action not in {"graph", "analyze", "analysis"}:
+            return cls("error", error="expected evidence <graph|analyze>")
+        json_output = False
+        positionals: list[str] = []
+        for arg in args[1:]:
+            if arg == "--json":
+                json_output = True
+            elif arg in {"--help", "-h"}:
+                return cls("help")
+            elif arg.startswith("-"):
+                return cls("error", error=f"unknown evidence option: {arg}")
+            else:
+                positionals.append(arg)
+        if len(positionals) > 1:
+            return cls("error", error="expected at most one PROJECT_ROOT argument")
+        return cls(
+            "evidence",
+            action="analyze" if action == "analysis" else action,
             project_root=None if not positionals else Path(positionals[0]),
             json=json_output,
         )
@@ -365,6 +394,8 @@ def help_text() -> str:
         "  py-harness query <owner-path> --term <symbol> [--term <symbol>] [--workspace <workspace-root>] [--names-only | --code]\n"
         "  py-harness query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION' [--json] [--workspace <workspace-root>]\n"
         "  py-harness check [--changed | --full] [--json]\n"
+        "  py-harness evidence graph [--json] [PROJECT_ROOT]\n"
+        "  py-harness evidence analyze [--json] [PROJECT_ROOT]\n"
         "  py-harness ast-patch dry-run --packet <semantic-ast-patch.json|->\n"
         "  py-harness agent doctor [--json]\n"
         "  py-harness agent guide\n"
@@ -412,6 +443,9 @@ def help_text() -> str:
         "  check --changed           Fast lane alias; currently delegates to project check\n"
         "  check --full              Full project harness check\n"
         "  check --json              Structured PythonHarnessReport JSON\n\n"
+        "EVIDENCE\n"
+        "  evidence graph --json     Portable semantic-evidence-graph packet\n"
+        "  evidence analyze --json   Graph-turbo request for evidence-quality ranking\n\n"
         "AST PATCH\n"
         "  ast-patch dry-run --packet <path|->\n"
         "                             Provider-native structural patch receipt; never mutates files\n\n"
@@ -442,6 +476,8 @@ def help_text() -> str:
         "  py-harness query --catalog flow-lite --where 'source.call=payload sink.constructs=Action scope.fn=collect' .\n"
         '  rg -n "PythonSemanticSearchOptions" src tests | py-harness search ingest .\n'
         "  py-harness check --full .\n"
+        "  py-harness evidence graph --json .\n"
+        "  py-harness evidence analyze --json .\n"
         "  py-harness agent doctor --json .\n"
         "  py-harness agent guide\n"
     )
