@@ -95,6 +95,10 @@ def _query_args_result(
 def _query_args_error(state: QueryParseState) -> str | None:
     if state.from_hook is not None and state.from_hook != "direct-source-read":
         return f"unsupported query hook route: {state.from_hook}"
+    if _query_has_positional_workspace(
+        state
+    ) and not _query_allows_positional_workspace(state):
+        return "query does not accept positional WORKSPACE; use --workspace <workspace-root>"
     if is_flow_lite_query_state(state):
         return flow_lite_query_args_error(state)
     if is_tree_sitter_query_state(state):
@@ -106,8 +110,6 @@ def _query_args_error(state: QueryParseState) -> str | None:
                 "`search fzf '<term>' owner --view seeds --workspace <workspace-root>`"
             )
         return "query requires an owner path"
-    if _query_has_positional_workspace(state):
-        return "query does not accept positional WORKSPACE; use --workspace <workspace-root>"
     if not state.terms and state.from_hook != "direct-source-read":
         return "query requires at least one --term"
     broad_hook_query = is_broad_hook_query(state.from_hook, state.selector, state.terms)
@@ -138,6 +140,10 @@ def _query_has_positional_workspace(state: QueryParseState) -> bool:
     if state.selector is None:
         return len(state.positionals) > 1
     return bool(state.positionals)
+
+
+def _query_allows_positional_workspace(state: QueryParseState) -> bool:
+    return state.catalog is not None and state.tree_sitter_query is None
 
 
 def _query_names_only(state: QueryParseState) -> bool:

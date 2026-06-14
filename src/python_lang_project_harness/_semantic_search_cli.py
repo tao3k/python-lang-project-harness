@@ -77,7 +77,7 @@ def _search_view_descriptor(
 def _semantic_search_usage() -> str:
     return (
         "usage: py-harness search "
-        "<workspace|prime|owner|dependency|deps|api|public-external-types|policy|symbol|callsite|import|tests|fzf|reasoning|text|ingest|semantic-facts> "
+        "<workspace|prime|owner|dependency|deps|api|public-external-types|policy|symbol|callsite|import|tests|fzf|reasoning|env|runtime-source|lang|std|capability|extension|pattern|compare|text|ingest|semantic-facts> "
         "... [--json] [--code] [--package PATH] [--workspace <workspace-root>]"
     )
 
@@ -202,6 +202,9 @@ def _required_query_args(
     descriptor: dict[str, object],
     state: _SearchOptionState,
 ) -> ParsedSemanticSearchArgs:
+    if _search_view_accepts_optional_terms(view):
+        return _required_term_query_args(view, state)
+
     query = (
         ",".join(state.query_set)
         if state.query_set
@@ -241,11 +244,39 @@ def _required_query_args(
     )
 
 
+def _required_term_query_args(
+    view: str,
+    state: _SearchOptionState,
+) -> ParsedSemanticSearchArgs:
+    query = " ".join(state.positionals)
+    if not query:
+        return ParsedSemanticSearchArgs(error=f"search {view} requires a query")
+    project_root = (
+        str(state.workspace_root) if state.workspace_root is not None else None
+    )
+    return ParsedSemanticSearchArgs(
+        view=view,
+        query=query,
+        item_query=state.item_query,
+        owner_path=state.owner_path,
+        dependency=state.dependency,
+        query_set=tuple(state.query_set),
+        project_root=None if project_root is None else Path(project_root),
+        package_path=state.package_path,
+        workspace=state.workspace,
+        json=state.json,
+        code_only=state.code_only,
+        render_mode=state.render_mode,
+    )
+
+
 def _project_only_args(
     view: str,
     descriptor: dict[str, object],
     state: _SearchOptionState,
 ) -> ParsedSemanticSearchArgs:
+    if _search_view_accepts_optional_terms(view):
+        return _optional_query_args(view, state)
     accepted_pipes = descriptor.get("acceptedPipes", ())
     pipes, project_root, error = _parse_search_pipe_positionals(
         state.positionals,
@@ -266,6 +297,25 @@ def _project_only_args(
         package_path=state.package_path,
         workspace=state.workspace,
         pipes=tuple(pipes),
+        json=state.json,
+        code_only=state.code_only,
+        render_mode=state.render_mode,
+    )
+
+
+def _optional_query_args(
+    view: str,
+    state: _SearchOptionState,
+) -> ParsedSemanticSearchArgs:
+    project_root = (
+        str(state.workspace_root) if state.workspace_root is not None else None
+    )
+    return ParsedSemanticSearchArgs(
+        view=view,
+        query=" ".join(state.positionals) if state.positionals else None,
+        project_root=None if project_root is None else Path(project_root),
+        package_path=state.package_path,
+        workspace=state.workspace,
         json=state.json,
         code_only=state.code_only,
         render_mode=state.render_mode,
@@ -344,3 +394,16 @@ def _is_flag_like_literal_search_query(
 
 def _search_view_supports_query_set(view: str) -> bool:
     return view == "fzf"
+
+
+def _search_view_accepts_optional_terms(view: str) -> bool:
+    return view in {
+        "env",
+        "runtime-source",
+        "lang",
+        "std",
+        "capability",
+        "extension",
+        "pattern",
+        "compare",
+    }

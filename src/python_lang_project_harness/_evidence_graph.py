@@ -186,12 +186,9 @@ def _package_name(root: Path) -> str | None:
     pyproject = root / "pyproject.toml"
     if not pyproject.is_file():
         return None
-    try:
-        import tomllib
+    from ._project_config import read_pyproject_payload
 
-        value = tomllib.loads(pyproject.read_text(encoding="utf-8"))
-    except Exception:
-        return None
+    value = read_pyproject_payload(pyproject)
     name = value.get("project", {}).get("name")
     return str(name) if name else None
 

@@ -93,6 +93,14 @@ def render_agent_guide(project_root: Path) -> str:
                 f"|cmd evidence-graph=asp python evidence graph --json {root}",
                 f"|cmd evidence-analyze=asp python evidence analyze --json {root}",
                 f"|cmd deps=asp python search deps <pkg[@ver][::api]> {root}",
+                f"|cmd env=asp python search env [term ...] --view seeds {workspace}",
+                f"|cmd runtime-source=asp python search runtime-source [term ...] --view seeds {workspace}",
+                f"|cmd lang=asp python search lang [term ...] --view seeds {workspace}",
+                f"|cmd std=asp python search std [term ...] --view seeds {workspace}",
+                f"|cmd capability=asp python search capability [term ...] --view seeds {workspace}",
+                f"|cmd extension=asp python search extension <extension> [term ...] --view seeds {workspace}",
+                f"|cmd pattern=asp python search pattern <feature-or-extension> [term ...] --view seeds {workspace}",
+                f"|cmd compare=asp python search compare <axis> [left right] --view seeds {workspace}",
                 f"|pipe <candidate-lines> | asp python search ingest --view seeds {root}",
                 "|cmd check=asp python check --changed",
                 "|rule agent hook install/runtime is owned by asp",
@@ -117,6 +125,11 @@ def render_agent_guide(project_root: Path) -> str:
                     "|rule --view metadata is document-only for asp md/org query; "
                     "Python code query uses search --view seeds for discovery and "
                     "query <owner-path> --term <symbol> --code|--names-only"
+                ),
+                (
+                    "|rule provider-knowledge-axes env/lang/std/pattern/runtime-source "
+                    "return facts or explicit frontier gaps; do not fill missing "
+                    "facts from memory"
                 ),
                 (
                     "|rule use the asp python facade; run one command at a time; "

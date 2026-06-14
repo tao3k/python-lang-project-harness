@@ -11,7 +11,7 @@ _PYTHON_LANGUAGE_ID = "python"
 def python_search_view_descriptors() -> list[dict[str, Any]]:
     """Return implemented Python search view descriptors."""
 
-    return [
+    descriptors = [
         _view(
             "workspace",
             capabilities=[
@@ -165,6 +165,11 @@ def python_search_view_descriptors() -> list[dict[str, Any]]:
             ],
         ),
     ]
+    from ._semantic_language_knowledge import python_knowledge_search_view_descriptors
+
+    return (
+        descriptors[:-2] + python_knowledge_search_view_descriptors() + descriptors[-2:]
+    )
 
 
 def _view(

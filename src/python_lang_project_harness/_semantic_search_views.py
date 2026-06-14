@@ -17,6 +17,7 @@ from ._semantic_search_view_hits import (
     text_payload,
 )
 from ._semantic_search_view_ingest import ingest_payload
+from ._semantic_search_view_knowledge import knowledge_payload
 
 if TYPE_CHECKING:
     from python_lang_parser import PythonReasoningTreeFacts
@@ -31,6 +32,17 @@ def payload_for_view(
     options: PythonSemanticSearchOptions,
 ) -> dict[str, Any]:
     """Dispatch one semantic-search view."""
+
+    return _payload_for_view(report, facts, project_root, options)
+
+
+def _payload_for_view(
+    report: PythonHarnessReport,
+    facts: PythonReasoningTreeFacts,
+    project_root: Path,
+    options: PythonSemanticSearchOptions,
+) -> dict[str, Any]:
+    """Dispatch one semantic-search view behind the thin public facade."""
 
     query = options.query or ""
     match options.view:
@@ -80,6 +92,17 @@ def payload_for_view(
             from ._semantic_search_reasoning import reasoning_payload
 
             return reasoning_payload(report, facts, project_root, options)
+        case (
+            "env"
+            | "runtime-source"
+            | "lang"
+            | "std"
+            | "capability"
+            | "extension"
+            | "pattern"
+            | "compare"
+        ):
+            return knowledge_payload(project_root, options)
         case "ingest":
             return ingest_payload(facts, project_root, options.stdin)
         case _:

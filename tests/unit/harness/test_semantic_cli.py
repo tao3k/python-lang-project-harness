@@ -169,6 +169,39 @@ def test_python_capability_schema_covers_registry_descriptors() -> None:
             assert ingest_surface["name"] in ingest_names
 
 
+def test_cli_search_knowledge_axes_accept_multi_term_queries(tmp_path: Path) -> None:
+    (tmp_path / "pyproject.toml").write_text(
+        "[project]\nname = 'demo'\ndependencies = ['pytest']\n",
+        encoding="utf-8",
+    )
+
+    cases = [
+        (["search", "compare", "ast", "tokenize"], "search/compare", "ast tokenize"),
+        (
+            ["search", "extension", "pytest", "fixture"],
+            "search/extension",
+            "pytest fixture",
+        ),
+        (
+            ["search", "pattern", "dependency", "api"],
+            "search/pattern",
+            "dependency api",
+        ),
+    ]
+    for argv, expected_method, expected_query in cases:
+        stdout = io.StringIO()
+        exit_code = run_cli(
+            [*argv, "--json", "--workspace", str(tmp_path)],
+            stdout=stdout,
+        )
+
+        assert exit_code == 0
+        packet = json.loads(stdout.getvalue())
+        assert packet["method"] == expected_method
+        assert packet["query"] == expected_query
+        assert packet["header"]["fields"]["evidenceGrade"] == "fact"
+
+
 def test_cli_search_callsite_uses_parser_call_facts(tmp_path: Path) -> None:
     write_search_fixture(tmp_path)
     stdout = io.StringIO()
