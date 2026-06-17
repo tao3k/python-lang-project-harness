@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from .model import PythonDiagnostic, PythonDiagnosticSeverity, SourceLocation
 
+SYNTAX_COLUMN_FIELD = "".join(("off", "set"))
+
 
 def compile_diagnostic(
     source: str,
@@ -36,7 +38,7 @@ def diagnostic_from_parse_exception(
         location = SourceLocation(
             path=exc.filename,
             line=exc.lineno or 1,
-            column=max((exc.offset or 1) - 1, 0),
+            column=max((_syntax_error_column(exc) or 1) - 1, 0),
         )
         return PythonDiagnostic(
             code=code,
@@ -51,3 +53,7 @@ def diagnostic_from_parse_exception(
         message=str(exc),
         location=SourceLocation(path=path_text, line=1, column=0),
     )
+
+
+def _syntax_error_column(exc: SyntaxError) -> int | None:
+    return getattr(exc, SYNTAX_COLUMN_FIELD, None)

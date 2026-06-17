@@ -53,7 +53,7 @@ def test_cli_search_prime_seed_view_uses_fast_frontier(
     )
     assert "risk=broad-direct-read,manual-window-scan,repeat-prime" in rendered
     assert (
-        "next=\"asp python search pipe '<question-or-feature-term>' --view seeds --workspace <workspace-root>\""
+        "next=\"asp python search pipe '<question-or-feature-term>' --workspace <workspace-root> --view seeds\""
         in rendered
     )
     assert "owner:path(src/pkg/service.py)" in rendered

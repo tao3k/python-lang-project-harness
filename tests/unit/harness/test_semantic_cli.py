@@ -113,18 +113,19 @@ def test_cli_agent_guide_prints_provider_owned_searchflow(tmp_path: Path) -> Non
     ) in rendered
     assert "|route query-code selectors=O:owner,Q:symbol" in rendered
     assert (
-        "|cmd prime=asp python search prime --view seeds --workspace <workspace-root>"
+        "|cmd prime=asp python search prime --workspace <workspace-root> --view seeds"
         in rendered
     )
     assert f"|cmd asp python search prime --view seeds {tmp_path}" not in rendered
     assert (
-        "|cmd owner=asp python search owner <owner-path> --view seeds --workspace <workspace-root>"
+        "|cmd owner=asp python search owner <owner-path> --workspace <workspace-root> --view seeds"
         in rendered
     )
     assert "asp python search owner <owner-path> items --query <symbol|a|b>" in rendered
     assert (
         "asp python query --from-hook direct-source-read --selector <selector> "
-        "--term <term> --surface owners,tests --view seeds" in rendered
+        "--term <term> --surface owners,tests --workspace <workspace-root> --view seeds"
+        in rendered
     )
     assert (
         "|cmd syntax-code=asp python query --treesitter-query "
@@ -141,8 +142,10 @@ def test_cli_agent_guide_prints_provider_owned_searchflow(tmp_path: Path) -> Non
     ) in rendered
     assert "trailing . is the project root" not in rendered
     assert "--code --workspace" not in rendered
-    assert "asp python search fzf <query> owner tests --view seeds" in rendered
-    assert "asp python search fzf <query> owner tests --view seeds" in rendered
+    assert (
+        "asp python search fzf <query> owner tests "
+        "--workspace <workspace-root> --view seeds"
+    ) in rendered
     assert "--view metadata is document-only for asp md/org query" in rendered
     assert "query <owner-path> --term <symbol> --code|--names-only" in rendered
     assert "|rule use the asp python facade" in rendered

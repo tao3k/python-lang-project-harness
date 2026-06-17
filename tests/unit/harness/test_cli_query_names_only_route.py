@@ -27,5 +27,5 @@ def test_cli_query_names_only_without_owner_reports_fzf_route(
     assert stdout.getvalue() == ""
     assert stderr.getvalue() == (
         "query --names-only requires an owner selector; workspace term discovery is "
-        "`search fzf '<term>' owner --view seeds --workspace <workspace-root>`\n"
+        "`search fzf '<term>' owner --workspace <workspace-root> --view seeds`\n"
     )

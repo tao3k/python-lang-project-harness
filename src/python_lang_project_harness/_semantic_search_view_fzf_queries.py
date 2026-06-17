@@ -76,28 +76,28 @@ def fair_merged_text_hits(
         key=lambda term: (-_term_specificity(term), term.casefold()),
     )
     depth = max((len(hits) for hits in hits_by_term.values()), default=0)
-    for offset in range(depth):
-        _merge_text_hits_at_offset(
+    for depth_index in range(depth):
+        _merge_text_hits_at_depth(
             hits_by_term,
             ordered_terms,
-            offset,
+            depth_index,
             merged,
             ordered_keys,
         )
     return [merged[key] for key in ordered_keys]
 
 
-def _merge_text_hits_at_offset(
+def _merge_text_hits_at_depth(
     hits_by_term: dict[str, list[dict[str, Any]]],
     ordered_terms: list[str],
-    offset: int,
+    depth_index: int,
     merged: dict[tuple[str, str, str, str], dict[str, Any]],
     ordered_keys: list[tuple[str, str, str, str]],
 ) -> None:
     for term in ordered_terms:
         hits = hits_by_term[term]
-        if offset < len(hits):
-            _merge_text_hit(term, hits[offset], merged, ordered_keys)
+        if depth_index < len(hits):
+            _merge_text_hit(term, hits[depth_index], merged, ordered_keys)
 
 
 def _merge_text_hit(

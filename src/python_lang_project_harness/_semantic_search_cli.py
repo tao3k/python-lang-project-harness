@@ -78,7 +78,8 @@ def _semantic_search_usage() -> str:
     return (
         "usage: py-harness search "
         "<workspace|prime|owner|dependency|deps|api|public-external-types|policy|symbol|callsite|import|tests|fzf|reasoning|env|runtime-source|lang|std|capability|extension|pattern|compare|text|ingest|semantic-facts> "
-        "... [--json] [--code] [--package PATH] [--workspace <workspace-root>]"
+        "... [--json] [--code] [--package PATH] [--workspace <workspace-root>]; "
+        "dependency/deps are manifest-first, import-usage backed, and cache hashes not raw source"
     )
 
 

@@ -34,15 +34,15 @@ def test_cli_agent_guide_prints_reasoning_entry_commands(tmp_path: Path) -> None
     rendered = stdout.getvalue()
     assert (
         "|cmd reasoning-owner-tests=asp python search reasoning owner-tests "
-        "--owner <owner-path> --view seeds --workspace <workspace-root>"
+        "--owner <owner-path> --workspace <workspace-root> --view seeds"
     ) in rendered
     assert (
         "|cmd reasoning-owner-query=asp python search reasoning owner-query "
-        "--owner <owner-path> --query <symbol> --view seeds --workspace <workspace-root>"
+        "--owner <owner-path> --query <symbol> --workspace <workspace-root> --view seeds"
     ) in rendered
     assert (
         "|cmd reasoning-query-deps=asp python search reasoning query-deps "
-        "--query <symbol> --dependency <pkg> --view seeds --workspace <workspace-root>"
+        "--query <symbol> --dependency <pkg> --workspace <workspace-root> --view seeds"
     ) in rendered
 
 

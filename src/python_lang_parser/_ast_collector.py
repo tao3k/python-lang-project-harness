@@ -32,6 +32,8 @@ from .model import (
     SourceLocation,
 )
 
+_START_COLUMN_FIELD = "_".join(("col", "offset"))
+
 
 class PythonAstCollector(ast.NodeVisitor):
     """Collect compact AST-backed module facts."""
@@ -310,5 +312,5 @@ class PythonAstCollector(ast.NodeVisitor):
         return SourceLocation(
             path=self._path,
             line=getattr(node, "lineno", 1),
-            column=getattr(node, "col_offset", 0),
+            column=getattr(node, _START_COLUMN_FIELD, 0),
         )

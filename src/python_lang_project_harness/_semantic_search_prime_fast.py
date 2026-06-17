@@ -159,8 +159,10 @@ def _render_fast_prime_seed_text(project_root: Path, owners: tuple[str, ...]) ->
             "ladder=pipe>fzf>fd-query|rg-query>owner-items>selector-code "
             "history=asp-artifacts:directReadRisk,repeatedPrime,repeatedPipe,bestPath "
             "risk=broad-direct-read,manual-window-scan,repeat-prime "
-            "next=\"asp python search pipe '<question-or-feature-term>' --view seeds .\""
-        ).replace("--view seeds .", "--view seeds --workspace <workspace-root>"),
+            "next=\"asp python search pipe '<question-or-feature-term>' --workspace . --view seeds\""
+        ).replace(
+            "--workspace . --view seeds", "--workspace <workspace-root> --view seeds"
+        ),
         "legend: ID=kind:role(value)!next; entries profile(selectors=>returns); frontier ID.next",
         "aliases: graph:{G=search,O=owner}",
     ]

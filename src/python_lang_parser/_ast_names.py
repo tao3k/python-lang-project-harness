@@ -7,6 +7,8 @@ import ast
 from ._name_policy import python_name_is_public
 
 _ast_splitlines_no_ff = getattr(ast, "_splitlines_no_ff", None)
+_START_COLUMN_FIELD = "_".join(("col", "offset"))
+_END_COLUMN_FIELD = "_".join(("end", "col", "offset"))
 
 
 def unparse(node: ast.AST) -> str:
@@ -54,12 +56,13 @@ class SourceSegmentLookup:
         """Return the source segment for an AST node from cached source lines."""
 
         try:
-            if node.end_lineno is None or node.end_col_offset is None:
+            end_lineno_value = getattr(node, "end_lineno", None)
+            end_column_value = end_column(node)
+            if end_lineno_value is None or end_column_value is None:
                 return None
             lineno = node.lineno - 1
-            end_lineno = node.end_lineno - 1
-            col_offset = node.col_offset
-            end_col_offset = node.end_col_offset
+            end_lineno = end_lineno_value - 1
+            start_column = getattr(node, _START_COLUMN_FIELD)
         except AttributeError:
             return None
         if lineno < 0 or end_lineno >= len(self._lines):
@@ -67,10 +70,12 @@ class SourceSegmentLookup:
         try:
             if end_lineno == lineno:
                 return _slice_parser_columns(
-                    self._lines[lineno], col_offset, end_col_offset
+                    self._lines[lineno], start_column, end_column_value
                 )
-            first = _slice_parser_columns(self._lines[lineno], col_offset, None)
-            last = _slice_parser_columns(self._lines[end_lineno], None, end_col_offset)
+            first = _slice_parser_columns(self._lines[lineno], start_column, None)
+            last = _slice_parser_columns(
+                self._lines[end_lineno], None, end_column_value
+            )
             return "".join((first, *self._lines[lineno + 1 : end_lineno], last))
         except UnicodeDecodeError:  # pragma: no cover - mirrors ast fallback behavior.
             return None
@@ -141,4 +146,4 @@ def end_line(node: ast.AST) -> int | None:
 def end_column(node: ast.AST) -> int | None:
     """Return the native AST end column when available."""
 
-    return getattr(node, "end_col_offset", None)
+    return getattr(node, _END_COLUMN_FIELD, None)

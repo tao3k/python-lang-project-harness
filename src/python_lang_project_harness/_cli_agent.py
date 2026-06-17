@@ -38,29 +38,29 @@ def render_agent_guide(project_root: Path) -> str:
                     f"|route read-plan selectors=R:selector,T:term "
                     f"returns=owners,tests,window-set code=false cmd=asp python "
                     f"query --from-hook direct-source-read --selector <selector> "
-                    f"--term <term> --surface owners,tests --view seeds {workspace}"
+                    f"--term <term> --surface owners,tests {workspace} --view seeds"
                 ),
                 (
                     f"|route query-code selectors=O:owner,Q:symbol returns=code "
                     f"code=pure cmd=asp python query <owner-path> --term <symbol> "
                     f"{workspace} --code"
                 ),
-                f"|cmd prime=asp python search prime --view seeds {root}",
-                f"|cmd pipe=asp python search pipe <query> --view seeds {root}",
-                f"|cmd owner=asp python search owner <owner-path> --view seeds {root}",
+                f"|cmd prime=asp python search prime {root} --view seeds",
+                f"|cmd pipe=asp python search pipe <query> {root} --view seeds",
+                f"|cmd owner=asp python search owner <owner-path> {root} --view seeds",
                 (
                     f"|cmd reasoning-owner-tests=asp python search reasoning "
-                    f"owner-tests --owner <owner-path> --view seeds {root}"
+                    f"owner-tests --owner <owner-path> {root} --view seeds"
                 ),
                 (
                     f"|cmd reasoning-owner-query=asp python search reasoning "
                     f"owner-query --owner <owner-path> --query <symbol> "
-                    f"--view seeds {root}"
+                    f"{root} --view seeds"
                 ),
                 (
                     f"|cmd reasoning-query-deps=asp python search reasoning "
                     f"query-deps --query <symbol> --dependency <pkg> "
-                    f"--view seeds {root}"
+                    f"{root} --view seeds"
                 ),
                 f"|cmd names=asp python query <owner-path> --term <symbol> {workspace} --names-only",
                 f"|cmd query-code=asp python query <owner-path> --term <symbol> {workspace} --code",
@@ -81,27 +81,27 @@ def render_agent_guide(project_root: Path) -> str:
                 ),
                 (
                     f"|cmd policy=asp python search policy <rule-id-or-alias> "
-                    f"owner tests --view seeds {root}"
+                    f"owner tests {root} --view seeds"
                 ),
                 (
                     f"|cmd read-plan=asp python query --from-hook direct-source-read "
                     f"--selector <selector> --term <term> --surface owners,tests "
-                    f"--view seeds {workspace}"
+                    f"{workspace} --view seeds"
                 ),
-                f"|cmd fzf=asp python search fzf <query> owner tests --view seeds {root}",
+                f"|cmd fzf=asp python search fzf <query> owner tests {root} --view seeds",
                 "|cmd ast-patch=asp python ast-patch dry-run --packet <semantic-ast-patch.json|->",
                 f"|cmd evidence-graph=asp python evidence graph --json {root}",
                 f"|cmd evidence-analyze=asp python evidence analyze --json {root}",
                 f"|cmd deps=asp python search deps <pkg[@ver][::api]> {root}",
-                f"|cmd env=asp python search env [term ...] --view seeds {workspace}",
-                f"|cmd runtime-source=asp python search runtime-source [term ...] --view seeds {workspace}",
-                f"|cmd lang=asp python search lang [term ...] --view seeds {workspace}",
-                f"|cmd std=asp python search std [term ...] --view seeds {workspace}",
-                f"|cmd capability=asp python search capability [term ...] --view seeds {workspace}",
-                f"|cmd extension=asp python search extension <extension> [term ...] --view seeds {workspace}",
-                f"|cmd pattern=asp python search pattern <feature-or-extension> [term ...] --view seeds {workspace}",
-                f"|cmd compare=asp python search compare <axis> [left right] --view seeds {workspace}",
-                f"|pipe <candidate-lines> | asp python search ingest --view seeds {root}",
+                f"|cmd env=asp python search env [term ...] {workspace} --view seeds",
+                f"|cmd runtime-source=asp python search runtime-source [term ...] {workspace} --view seeds",
+                f"|cmd lang=asp python search lang [term ...] {workspace} --view seeds",
+                f"|cmd std=asp python search std [term ...] {workspace} --view seeds",
+                f"|cmd capability=asp python search capability [term ...] {workspace} --view seeds",
+                f"|cmd extension=asp python search extension <extension> [term ...] {workspace} --view seeds",
+                f"|cmd pattern=asp python search pattern <feature-or-extension> [term ...] {workspace} --view seeds",
+                f"|cmd compare=asp python search compare <axis> [left right] {workspace} --view seeds",
+                f"|pipe <candidate-lines> | asp python search ingest {root} --view seeds",
                 "|cmd check=asp python check --changed",
                 "|rule agent hook install/runtime is owned by asp",
                 (

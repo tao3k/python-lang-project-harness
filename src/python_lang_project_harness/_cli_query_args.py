@@ -107,7 +107,7 @@ def _query_args_error(state: QueryParseState) -> str | None:
         if state.names_only and state.terms:
             return (
                 "query --names-only requires an owner selector; workspace term discovery is "
-                "`search fzf '<term>' owner --view seeds --workspace <workspace-root>`"
+                "`search fzf '<term>' owner --workspace <workspace-root> --view seeds`"
             )
         return "query requires an owner path"
     if not state.terms and state.from_hook != "direct-source-read":
