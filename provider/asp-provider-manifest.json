@@ -11,10 +11,38 @@
   "binary": "py-harness",
   "execution": "external-process",
   "source": {
-    "defaultExtensions": [".py"],
-    "defaultConfigFiles": ["pyproject.toml", "setup.py", "setup.cfg"],
-    "defaultSourceRoots": ["src", "tests"],
-    "defaultIgnoredPathPrefixes": [".venv", "venv", "__pycache__", ".mypy_cache"]
+    "defaultExtensions": [
+      ".py"
+    ],
+    "defaultConfigFiles": [
+      "pyproject.toml",
+      "setup.py",
+      "setup.cfg"
+    ],
+    "defaultSourceRoots": [
+      "src",
+      "tests"
+    ],
+    "defaultIgnoredPathPrefixes": [
+      ".venv",
+      "venv",
+      "__pycache__",
+      ".mypy_cache"
+    ],
+    "defaultProjectMarkers": [
+      "pyproject.toml",
+      "setup.py",
+      "setup.cfg"
+    ],
+    "defaultDependencyMarkers": [
+      "pyproject.toml",
+      "requirements.txt",
+      "requirements-dev.txt",
+      "uv.lock",
+      "poetry.lock",
+      "Pipfile",
+      "Pipfile.lock"
+    ]
   },
   "searchCapabilities": {
     "semanticFacts": true
@@ -27,26 +55,87 @@
   },
   "routes": {
     "prime": {
-      "argv": ["py-harness", "search", "prime", "--workspace", "{projectRoot}", "--view", "seeds"]
+      "argv": [
+        "py-harness",
+        "search",
+        "prime",
+        "--workspace",
+        "{projectRoot}",
+        "--view",
+        "seeds"
+      ]
     },
     "owner": {
-      "argv": ["py-harness", "search", "owner", "{path}", "--workspace", "{projectRoot}", "--view", "seeds"]
+      "argv": [
+        "py-harness",
+        "search",
+        "owner",
+        "{path}",
+        "--workspace",
+        "{projectRoot}",
+        "--view",
+        "seeds"
+      ]
     },
     "fzf": {
-      "argv": ["py-harness", "search", "fzf", "{query}", "owner", "tests", "--workspace", "{projectRoot}", "--view", "seeds"]
+      "argv": [
+        "py-harness",
+        "search",
+        "fzf",
+        "{query}",
+        "owner",
+        "tests",
+        "--workspace",
+        "{projectRoot}",
+        "--view",
+        "seeds"
+      ]
     },
     "query": {
-      "argv": ["py-harness", "query", "--from-hook", "direct-source-read", "--selector", "{selector}", "{termArgs}", "--surface", "owners,tests", "--workspace", "{projectRoot}", "--view", "seeds"]
+      "argv": [
+        "py-harness",
+        "query",
+        "--from-hook",
+        "direct-source-read",
+        "--selector",
+        "{selector}",
+        "{termArgs}",
+        "--surface",
+        "owners,tests",
+        "--workspace",
+        "{projectRoot}",
+        "--view",
+        "seeds"
+      ]
     },
     "ingest": {
-      "argv": ["py-harness", "search", "ingest", "items", "tests", "--workspace", "{projectRoot}", "--view", "seeds"],
+      "argv": [
+        "py-harness",
+        "search",
+        "ingest",
+        "items",
+        "tests",
+        "--workspace",
+        "{projectRoot}",
+        "--view",
+        "seeds"
+      ],
       "stdinMode": "pipe-candidates"
     },
     "checkChanged": {
-      "argv": ["py-harness", "check", "--changed", "{projectRoot}"]
+      "argv": [
+        "py-harness",
+        "check",
+        "--changed",
+        "{projectRoot}"
+      ]
     },
     "guide": {
-      "argv": ["py-harness", "guide", "{projectRoot}"]
+      "argv": [
+        "py-harness",
+        "guide",
+        "{projectRoot}"
+      ]
     }
   }
 }
