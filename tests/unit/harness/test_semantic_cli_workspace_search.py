@@ -101,3 +101,25 @@ def test_cli_search_workspace_prime_and_text_pipe(tmp_path: Path) -> None:
     assert text.startswith("[search-fzf] q=build")
     assert "|owner src/pkg/service.py" in text
     assert "|edge O:src/pkg/service.py -test-> O:tests/test_service.py" in text
+
+
+def test_cli_search_deps_exposes_manifest_topology_only(tmp_path: Path) -> None:
+    write_search_fixture(tmp_path)
+
+    deps_stdout = io.StringIO()
+    assert (
+        run_cli(
+            ["search", "deps", "requests", "--workspace", str(tmp_path)],
+            stdout=deps_stdout,
+        )
+        == 0
+    )
+
+    deps = deps_stdout.getvalue()
+    assert deps.startswith("[search-deps] q=requests")
+    assert "manifest=1" in deps
+    assert "usage=0" in deps
+    assert "topology=asp-owned" in deps
+    assert '|dependency D:requests requirement="requests>=2"' in deps
+    assert "|owner src/pkg/service.py" not in deps
+    assert "|hit path=src/pkg/service.py" not in deps

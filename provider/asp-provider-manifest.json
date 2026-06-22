@@ -45,6 +45,7 @@
     ]
   },
   "searchCapabilities": {
+    "ownerItems": true,
     "semanticFacts": true
   },
   "policy": {

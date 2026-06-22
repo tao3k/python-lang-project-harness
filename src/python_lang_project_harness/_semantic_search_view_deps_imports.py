@@ -40,7 +40,12 @@ def dependency_payload(
         for item in dependencies(facts)
         if dependency_matches(item, parts["package"])
     ]
-    usage_hits = dependency_usage_hits(report, project_root, parts["package"])
+    include_usage = bool(parts["apiQuery"])
+    usage_hits = (
+        dependency_usage_hits(report, project_root, parts["package"])
+        if include_usage
+        else []
+    )
     nodes = [dependency_node(item, parts=parts) for item in matches]
     scope = version_scope(parts, matches)
     hits = usage_hits[:MAX_DEPENDENCY_HITS]
@@ -118,6 +123,7 @@ def _dependency_header_fields(
         "manifest": len(nodes),
         "usage": len(usage_hits),
         "versionScope": scope,
+        "topology": "asp-owned",
     }
     if view == "deps":
         fields.update(

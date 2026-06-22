@@ -33,6 +33,15 @@ def _run_search_harness(
         None,
         rule_packs=None,
     )
+    owner_items_report = _run_exact_owner_items_search(project_root, args)
+    if owner_items_report is not None:
+        return owner_items_report, {
+            "reason": "owner-items-exact-owner-prefilter",
+            "fields": {
+                "paths": 1,
+                "ownerPath": _owner_items_query_path(args) or "",
+            },
+        }
     if args.command != "search" or args.view != "fzf":
         from ._runner import run_python_project_harness
 
@@ -56,6 +65,47 @@ def _run_search_harness(
     return _run_prefiltered_text_search(project_root, prefilter.paths), (
         prefilter.runtime_cost()
     )
+
+
+def _run_exact_owner_items_search(
+    project_root: Path,
+    args: ProtocolArgs,
+) -> _TextSearchReport | None:
+    owner_path = _exact_owner_items_path(project_root, args)
+    if owner_path is None:
+        return None
+    from python_lang_parser.parser import parse_python_file
+
+    return _TextSearchReport(
+        modules=(parse_python_file(owner_path),),
+        project_scope=_fast_owner_items_scope(project_root, owner_path),
+        root_paths=(str(owner_path),),
+    )
+
+
+def _exact_owner_items_path(project_root: Path, args: ProtocolArgs) -> Path | None:
+    if (
+        args.command != "search"
+        or args.view != "owner"
+        or "items" not in args.pipes
+        or _owner_items_query_path(args) is None
+    ):
+        return None
+    raw_path = Path(_owner_items_query_path(args) or "")
+    owner_path = raw_path if raw_path.is_absolute() else project_root / raw_path
+    try:
+        resolved_root = project_root.resolve()
+        resolved_owner = owner_path.resolve()
+        resolved_owner.relative_to(resolved_root)
+    except ValueError:
+        return None
+    if not resolved_owner.is_file() or resolved_owner.suffix != ".py":
+        return None
+    return resolved_owner
+
+
+def _owner_items_query_path(args: ProtocolArgs) -> str | None:
+    return args.owner_path or args.query
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,4 +162,11 @@ def _fast_text_search_scope(project_root: Path) -> _TextSearchScope:
         source_paths=source_paths,
         test_paths=test_paths,
         fallback_paths=(project_root,),
+    )
+
+
+def _fast_owner_items_scope(project_root: Path, owner_path: Path) -> _TextSearchScope:
+    return _TextSearchScope(
+        project_root=project_root,
+        fallback_paths=(owner_path,),
     )

@@ -26,7 +26,7 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-          - os: ubuntu-latest
+          - os: macos-latest
             target: aarch64-apple-darwin
     env:
       BINARY: py-harness
@@ -71,21 +71,89 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf package
-          mkdir -p package/site
-          python -m pip install --target package/site dist/*.whl
-          cat > "package/${BINARY}" <<'SH'
-          #!/bin/sh
-          set -eu
-          ROOT="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-          if [ "${PYTHONPATH:-}" ]; then
-            export PYTHONPATH="$ROOT/site:$PYTHONPATH"
-          else
-            export PYTHONPATH="$ROOT/site"
-          fi
-          exec "${PYTHON:-python3}" -m python_lang_project_harness "$@"
-          SH
+          rm -rf build dist package py_harness_entry.py
+          cat > py_harness_entry.py <<'PY'
+          from python_lang_project_harness import run_cli_from_env
+
+          raise SystemExit(run_cli_from_env())
+          PY
+          uv run --with 'pyinstaller>=6,<7' python -m PyInstaller \
+            --clean \
+            --name "$BINARY" \
+            --paths src \
+            --collect-submodules python_lang_parser \
+            --collect-submodules python_lang_project_harness \
+            py_harness_entry.py
+          mkdir -p package
+          cp -R "dist/${BINARY}/." package/
           chmod +x "package/${BINARY}"
+          "package/${BINARY}" --help >/dev/null
+          file "package/${BINARY}"
+          case "$TARGET" in
+            x86_64-unknown-linux-gnu)
+              file "package/${BINARY}" | grep -Eq 'ELF.*x86-64|ELF.*x86_64'
+              ;;
+            aarch64-apple-darwin)
+              file "package/${BINARY}" | grep -Eq 'Mach-O.*arm64|Mach-O.*aarch64'
+              ;;
+          esac
+          mkdir -p perf-fixture/src/pkg
+          cat > perf-fixture/src/pkg/service.py <<'PY'
+          def fetch():
+              return 1
+
+
+          def build():
+              return 2
+          PY
+          python - "$PWD/package/${BINARY}" <<'PY'
+          import json
+          import pathlib
+          import statistics
+          import subprocess
+          import sys
+          import time
+
+          binary = pathlib.Path(sys.argv[1])
+          command = [
+              str(binary),
+              "search",
+              "owner",
+              "src/pkg/service.py",
+              "items",
+              "--query",
+              "fetch|build",
+              "--workspace",
+              "perf-fixture",
+              "--json",
+          ]
+          subprocess.run(command, check=True, stdout=subprocess.DEVNULL)
+          samples = []
+          for _ in range(6):
+              started_at = time.perf_counter()
+              output = subprocess.run(
+                  command,
+                  check=True,
+                  stdout=subprocess.PIPE,
+                  text=True,
+              )
+              elapsed_ms = (time.perf_counter() - started_at) * 1000
+              packet = json.loads(output.stdout)
+              assert packet["runtimeCost"]["reason"] == "owner-items-exact-owner-prefilter"
+              samples.append(elapsed_ms)
+          median_ms = statistics.median(samples)
+          max_ms = max(samples)
+          print(
+              "owner-items-perf",
+              "samples_ms=" + ",".join(f"{sample:.1f}" for sample in samples),
+              f"median_ms={median_ms:.1f}",
+              f"max_ms={max_ms:.1f}",
+          )
+          if median_ms >= 500 or max_ms >= 750:
+              raise SystemExit(
+                  f"owner-items binary warm path exceeded gate: median={median_ms:.1f}ms max={max_ms:.1f}ms"
+              )
+          PY
           asset="${BINARY}-${TARGET}.tar.gz"
           tar -czf "$asset" -C package .
           python - "$asset" <<'PY'
