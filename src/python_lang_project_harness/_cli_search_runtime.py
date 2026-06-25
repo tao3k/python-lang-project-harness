@@ -110,10 +110,11 @@ def _run_exact_owner_search(
         return None
     from python_lang_parser.parser import parse_python_file
 
+    paths = _exact_owner_related_paths(project_root, owner_path)
     return _TextSearchReport(
-        modules=(parse_python_file(owner_path),),
-        project_scope=_fast_owner_items_scope(project_root, owner_path),
-        root_paths=(str(owner_path),),
+        modules=tuple(parse_python_file(path) for path in paths),
+        project_scope=_fast_text_search_scope(project_root),
+        root_paths=tuple(str(path) for path in paths),
     )
 
 
@@ -194,6 +195,39 @@ def _resolve_project_python_file(project_root: Path, raw_path: Path) -> Path | N
     if not resolved_owner.is_file() or resolved_owner.suffix != ".py":
         return None
     return resolved_owner
+
+
+def _exact_owner_related_paths(
+    project_root: Path, owner_path: Path
+) -> tuple[Path, ...]:
+    project_root = project_root.resolve()
+    owner_path = owner_path.resolve()
+    paths = [owner_path]
+    try:
+        owner_module = owner_path.relative_to(project_root).with_suffix("")
+    except ValueError:
+        return tuple(paths)
+    owner_parts = tuple(part for part in owner_module.parts if part != "__init__")
+    if owner_parts[:1] == ("src",):
+        owner_parts = owner_parts[1:]
+    module_tail = ".".join(owner_parts)
+    if not module_tail:
+        return tuple(paths)
+    import_markers = (
+        f"import {module_tail}",
+        f"from {module_tail} import",
+        f"from .{owner_path.stem} import",
+    )
+    for path in sorted(project_root.rglob("*.py")):
+        if path == owner_path or any(part.startswith(".") for part in path.parts):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        if any(marker in text for marker in import_markers):
+            paths.append(path)
+    return tuple(dict.fromkeys(paths))
 
 
 @dataclass(frozen=True, slots=True)

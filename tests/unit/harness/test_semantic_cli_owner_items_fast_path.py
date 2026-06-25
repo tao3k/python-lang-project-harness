@@ -148,6 +148,43 @@ def test_cli_search_owner_path_stays_inside_warm_path_gate(
     assert elapsed_ms < OWNER_WARM_PATH_GATE_MS
 
 
+def test_cli_search_owner_seed_view_uses_text_fast_path(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    write_search_fixture(tmp_path)
+    stdout = io.StringIO()
+
+    def fail_full_harness(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("owner seed view should not run the full Python harness")
+
+    from python_lang_project_harness import _cli_protocol
+
+    monkeypatch.setattr(_cli_protocol, "_run_search_harness", fail_full_harness)
+
+    exit_code = run_cli(
+        [
+            "search",
+            "owner",
+            "src/pkg/service.py",
+            "--view",
+            "seeds",
+            "--workspace",
+            str(tmp_path),
+        ],
+        stdout=stdout,
+    )
+
+    rendered = stdout.getvalue()
+    assert exit_code == 0
+    assert rendered.startswith("[search-owner]")
+    assert "alg=fast-exact-owner-frontier" in rendered
+    assert "O=owner:path(src/pkg/service.py)!owner" in rendered
+    assert (
+        "entries=owner-tests(O=>covering-tests+test-entrypoints+fixtures)" in rendered
+    )
+
+
 def test_cli_search_dependency_uses_metadata_fast_path(
     tmp_path: Path,
     monkeypatch,
