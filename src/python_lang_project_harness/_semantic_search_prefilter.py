@@ -4,17 +4,22 @@ from __future__ import annotations
 
 import shutil
 import time
-from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ._semantic_search_prefilter_file_scan import python_file_path_matches_by_term
+from ._semantic_search_prefilter_file_scan import (
+    python_file_path_matches_by_term,
+)
+from ._semantic_search_prefilter_path import path_only_term_capped_matches
 from ._semantic_search_prefilter_rank import (
     MAX_PREFILTER_FILES_PER_TERM,
-    MAX_PREFILTER_FILES_TOTAL,
     path_key_rank,
     ranked_capped_matches,
     ranked_term_matches,
+)
+from ._semantic_search_prefilter_result import (
+    MIN_PREFILTER_FILES,
+    PythonSearchPrefilterResult,
 )
 from ._semantic_search_prefilter_tools import (
     source_match_scores_by_term,
@@ -22,49 +27,6 @@ from ._semantic_search_prefilter_tools import (
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-
-MIN_PREFILTER_FILES = 128
-
-
-@dataclass(frozen=True, slots=True)
-class PythonSearchPrefilterResult:
-    """Files selected before parser-owned fact extraction."""
-
-    paths: tuple[Path, ...]
-    total_files: int
-    term_capped_files: int
-    matched_files: int
-    elapsed_ms: int
-    tool: str
-    reason: str
-    query_terms: int
-    source_search_passes: int
-    file_list_passes: int
-    candidate_file_basis: str
-
-    def runtime_cost(self) -> dict[str, object]:
-        """Return schema-owned runtime-cost metadata for the search packet."""
-
-        return {
-            "cacheStatus": "disabled",
-            "elapsedMs": self.elapsed_ms,
-            "sourceFilesParsed": self.matched_files,
-            "reason": self.reason,
-            "fields": {
-                "prefilterTool": self.tool,
-                "candidateFiles": self.total_files,
-                "minCandidateFiles": MIN_PREFILTER_FILES,
-                "termCappedFiles": self.term_capped_files,
-                "matchedFiles": self.matched_files,
-                "maxFilesPerTerm": MAX_PREFILTER_FILES_PER_TERM,
-                "maxFilesTotal": MAX_PREFILTER_FILES_TOTAL,
-                "mode": "text-query-prefilter",
-                "queryTerms": self.query_terms,
-                "sourceSearchPasses": self.source_search_passes,
-                "fileListPasses": self.file_list_passes,
-                "candidateFileBasis": self.candidate_file_basis,
-            },
-        }
 
 
 def prefilter_python_text_search_paths(
@@ -95,6 +57,38 @@ def _prefilter_with_rg(
     owner_path: str | None,
 ) -> PythonSearchPrefilterResult | None:
     started = time.perf_counter()
+    path_match_scan = python_file_path_matches_by_term(
+        project_root,
+        terms,
+        rg=rg,
+    )
+    path_only_term_capped = path_only_term_capped_matches(
+        project_root,
+        terms,
+        path_match_scan,
+    )
+    if path_only_term_capped is not None:
+        selected = _selected_paths(
+            project_root,
+            path_only_term_capped,
+            terms,
+            owner_path,
+        )
+        elapsed_ms = round((time.perf_counter() - started) * 1000)
+        return PythonSearchPrefilterResult(
+            paths=selected,
+            total_files=path_match_scan.total_files,
+            term_capped_files=len(set(path_only_term_capped)),
+            matched_files=len(selected),
+            elapsed_ms=elapsed_ms,
+            tool=path_match_scan.tool,
+            reason="rg/fd path prefilter selected parser input files for fzf query",
+            query_terms=len(terms),
+            source_search_passes=0,
+            file_list_passes=1,
+            candidate_file_basis="path-matched-files",
+        )
+
     source_scores_by_term = source_match_scores_by_term(project_root, rg, terms)
     source_matched_files = _source_matched_files(source_scores_by_term)
     source_only_term_capped = _source_only_term_capped_matches(
@@ -125,11 +119,6 @@ def _prefilter_with_rg(
             candidate_file_basis="source-matched-files",
         )
 
-    path_match_scan = python_file_path_matches_by_term(
-        project_root,
-        terms,
-        rg=rg,
-    )
     if path_match_scan.total_files <= MIN_PREFILTER_FILES:
         return None
     term_capped = _term_capped_matches(

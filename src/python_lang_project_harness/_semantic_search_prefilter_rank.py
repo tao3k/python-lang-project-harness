@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-MAX_PREFILTER_FILES_PER_TERM = 16
-MAX_PREFILTER_FILES_TOTAL = 48
+MAX_PREFILTER_FILES_PER_TERM = 2
+MAX_PREFILTER_FILES_TOTAL = 6
 
 
 def path_matches(

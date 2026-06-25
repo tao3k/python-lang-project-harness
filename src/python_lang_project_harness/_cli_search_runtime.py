@@ -42,6 +42,24 @@ def _run_search_harness(
                 "ownerPath": _owner_items_query_path(args) or "",
             },
         }
+    owner_report = _run_exact_owner_search(project_root, args)
+    if owner_report is not None:
+        return owner_report, {
+            "reason": "owner-exact-path-prefilter",
+            "fields": {
+                "paths": 1,
+                "ownerPath": _owner_query_path(args) or "",
+            },
+        }
+    dependency_report = _run_metadata_dependency_search(project_root, args)
+    if dependency_report is not None:
+        return dependency_report, {
+            "reason": "dependency-metadata-prefilter",
+            "fields": {
+                "paths": 0,
+                "dependency": args.query or "",
+            },
+        }
     if args.command != "search" or args.view != "fzf":
         from ._runner import run_python_project_harness
 
@@ -83,6 +101,46 @@ def _run_exact_owner_items_search(
     )
 
 
+def _run_exact_owner_search(
+    project_root: Path,
+    args: ProtocolArgs,
+) -> _TextSearchReport | None:
+    owner_path = _exact_owner_path(project_root, args)
+    if owner_path is None:
+        return None
+    from python_lang_parser.parser import parse_python_file
+
+    return _TextSearchReport(
+        modules=(parse_python_file(owner_path),),
+        project_scope=_fast_owner_items_scope(project_root, owner_path),
+        root_paths=(str(owner_path),),
+    )
+
+
+def _run_metadata_dependency_search(
+    project_root: Path,
+    args: ProtocolArgs,
+) -> _TextSearchReport | None:
+    if (
+        args.command != "search"
+        or args.view not in {"dependency", "deps"}
+        or args.query is None
+        or "::" in args.query
+    ):
+        return None
+    from ._project_metadata import read_python_project_metadata
+
+    return _TextSearchReport(
+        modules=(),
+        project_scope=_TextSearchScope(
+            project_root=project_root,
+            project_metadata=read_python_project_metadata(project_root),
+            fallback_paths=(project_root,),
+        ),
+        root_paths=(str(project_root),),
+    )
+
+
 def _exact_owner_items_path(project_root: Path, args: ProtocolArgs) -> Path | None:
     if (
         args.command != "search"
@@ -104,8 +162,38 @@ def _exact_owner_items_path(project_root: Path, args: ProtocolArgs) -> Path | No
     return resolved_owner
 
 
+def _exact_owner_path(project_root: Path, args: ProtocolArgs) -> Path | None:
+    if (
+        args.command != "search"
+        or args.view != "owner"
+        or args.pipes
+        or _owner_query_path(args) is None
+    ):
+        return None
+    return _resolve_project_python_file(
+        project_root, Path(_owner_query_path(args) or "")
+    )
+
+
 def _owner_items_query_path(args: ProtocolArgs) -> str | None:
     return args.owner_path or args.query
+
+
+def _owner_query_path(args: ProtocolArgs) -> str | None:
+    return args.query
+
+
+def _resolve_project_python_file(project_root: Path, raw_path: Path) -> Path | None:
+    owner_path = raw_path if raw_path.is_absolute() else project_root / raw_path
+    try:
+        resolved_root = project_root.resolve()
+        resolved_owner = owner_path.resolve()
+        resolved_owner.relative_to(resolved_root)
+    except ValueError:
+        return None
+    if not resolved_owner.is_file() or resolved_owner.suffix != ".py":
+        return None
+    return resolved_owner
 
 
 @dataclass(frozen=True, slots=True)
