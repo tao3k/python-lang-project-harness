@@ -283,6 +283,9 @@ def _semantic_query_match(
         "visibility": "public" if fields.get("public") else "private",
         "doc": bool(fields.get("doc")),
         "location": {"path": location["path"], "lineRange": location["lineRange"]},
+        "structuralSelector": fields["structuralSelector"],
+        "displayLineRange": fields["displayLineRange"],
+        "sourceLocatorHint": fields["sourceLocatorHint"],
         "read": fields["read"],
         "patchSafety": {
             "level": "read-safe",
@@ -441,6 +444,9 @@ def _item_record(
     symbol: PythonSymbol,
 ) -> dict[str, Any]:
     end_line = symbol.end_line or symbol.location.line
+    line_range = f"{symbol.location.line}:{end_line}"
+    source_locator_hint = f"{owner_path}:{symbol.location.line}:{end_line}"
+    structural_selector = _structural_selector(owner_path, symbol)
     code, truncated, projection_nodes = _compact_code(
         module,
         owner_path,
@@ -453,13 +459,16 @@ def _item_record(
         "ownerPath": owner_path,
         "location": {
             "path": owner_path,
-            "lineRange": f"{symbol.location.line}:{end_line}",
+            "lineRange": line_range,
         },
         "fields": compact_fields(
             {
                 "public": symbol.is_public,
                 "doc": bool(symbol.docstring),
-                "read": f"{owner_path}:{symbol.location.line}:{end_line}",
+                "structuralSelector": structural_selector,
+                "displayLineRange": line_range,
+                "sourceLocatorHint": source_locator_hint,
+                "read": source_locator_hint,
                 "reason": "item-query",
                 "truncated": truncated,
                 "code": code,
@@ -470,6 +479,10 @@ def _item_record(
             }
         ),
     }
+
+
+def _structural_selector(owner_path: str, symbol: PythonSymbol) -> str:
+    return f"python://{owner_path}#item/{symbol.kind.value}/{symbol.qualified_name}"
 
 
 def _compact_code(

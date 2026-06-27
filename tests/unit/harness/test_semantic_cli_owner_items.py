@@ -52,6 +52,11 @@ def test_cli_search_owner_items_query_returns_compact_code(tmp_path: Path) -> No
     assert "|item fetch kind=function" in rendered
     assert "public=false" not in rendered
     assert "doc=false" not in rendered
+    assert (
+        "structuralSelector=python://src/pkg/service.py#item/function/fetch" in rendered
+    )
+    assert "displayLineRange=" in rendered
+    assert "sourceLocatorHint=src/pkg/service.py:" in rendered
     assert "read=src/pkg/service.py:" in rendered
     assert "|item build kind=function" in rendered
     assert "next=query-code" in rendered
@@ -62,6 +67,14 @@ def test_cli_search_owner_items_query_returns_compact_code(tmp_path: Path) -> No
     packet = json.loads(json_stdout.getvalue())
     assert json_exit_code == 0
     assert packet["items"][0]["name"] == "fetch"
+    assert (
+        packet["items"][0]["fields"]["structuralSelector"]
+        == "python://src/pkg/service.py#item/function/fetch"
+    )
+    assert packet["items"][0]["fields"]["displayLineRange"]
+    assert packet["items"][0]["fields"]["sourceLocatorHint"].startswith(
+        "src/pkg/service.py:"
+    )
     assert (
         packet["items"][0]["fields"]["code"]
         == "def fetch() -> Response:\n  return Response"
@@ -149,6 +162,12 @@ def test_cli_search_owner_items_query_miss_returns_owner_top_items(
     assert "fallback=owner-top-items" in rendered
     assert "|query itemQuery=missingSymbol status=miss" in rendered
     assert "|item SessionClient kind=class" in rendered
+    assert (
+        "structuralSelector=python://src/pkg/service.py#item/class/SessionClient"
+        in rendered
+    )
+    assert "displayLineRange=" in rendered
+    assert "sourceLocatorHint=src/pkg/service.py:" in rendered
     assert "read=src/pkg/service.py:" in rendered
 
 
@@ -176,6 +195,11 @@ def test_cli_search_owner_items_query_matches_function_body_text(
     assert exit_code == 0
     assert "itemQuery=strip itemStatus=hit itemMatch=fallback-contains" in rendered
     assert "|item build kind=function" in rendered
+    assert (
+        "structuralSelector=python://src/pkg/service.py#item/function/build" in rendered
+    )
+    assert "displayLineRange=" in rendered
+    assert "sourceLocatorHint=src/pkg/service.py:" in rendered
     assert "read=src/pkg/service.py:" in rendered
     assert "next=query-code" in rendered
     assert "|code " not in rendered
