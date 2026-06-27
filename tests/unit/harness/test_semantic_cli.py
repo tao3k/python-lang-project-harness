@@ -104,9 +104,14 @@ def test_cli_agent_guide_prints_provider_owned_searchflow(tmp_path: Path) -> Non
         "routes=read-frontier,syntax-locate,syntax-code,query-code"
     ) in rendered
     assert (
-        "|route syntax-locate selectors=S:tree-sitter-query,R:range "
+        "|routing evidence-state prime=owner-map-only pipe=ambiguous-query" in rendered
+    )
+    assert (
+        "|route syntax-locate selectors=S:tree-sitter-query,Scope:owner-or-structural "
         "returns=locator,capture,frontier code=false"
     ) in rendered
+    assert "<path[:line|:start-end]>" not in rendered
+    assert "displayLineRange/sourceLocatorHint are display hints" in rendered
     assert (
         "|route syntax-code selectors=S:tree-sitter-query,R:exact-selector "
         "returns=code code=pure"
@@ -130,7 +135,7 @@ def test_cli_agent_guide_prints_provider_owned_searchflow(tmp_path: Path) -> Non
     assert (
         "|cmd syntax-code=asp python query --treesitter-query "
         "'(function_definition name: (identifier) @function.name)' "
-        "--selector <path[:line|:start-end]> --workspace <workspace-root> --code"
+        "--selector <exact-structural-selector> --workspace <workspace-root> --code"
     ) in rendered
     assert (
         "|cmd query-code=asp python query <owner-path> --term <symbol> "

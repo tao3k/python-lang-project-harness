@@ -19,20 +19,21 @@ def render_agent_guide(project_root: Path) -> str:
                     "owner-tests routes=read-frontier,syntax-locate,syntax-code,"
                     "query-code"
                 ),
-                "|flow prime->owner|syntax-locate|query-code|deps|tests "
-                "pipe=fzf:tests ingest=stdin",
+                "|routing evidence-state prime=owner-map-only pipe=ambiguous-query "
+                "owner=known-owner selector=exact-parser-id deps=known-dependency "
+                "tests=known-owner ingest=stdin",
                 (
-                    f"|route syntax-locate selectors=S:tree-sitter-query,R:range "
+                    f"|route syntax-locate selectors=S:tree-sitter-query,Scope:owner-or-structural "
                     f"returns=locator,capture,frontier code=false cmd=asp python "
                     f"query --treesitter-query "
                     f"'(function_definition name: (identifier) @function.name)' "
-                    f"--selector <path[:line|:start-end]> {workspace}"
+                    f"--selector <owner-path-or-structural-scope> {workspace}"
                 ),
                 (
                     f"|route syntax-code selectors=S:tree-sitter-query,R:exact-selector "
                     f"returns=code code=pure cmd=asp python query --treesitter-query "
                     f"'(function_definition name: (identifier) @function.name)' "
-                    f"--selector <path[:line|:start-end]> {workspace} --code"
+                    f"--selector <exact-structural-selector> {workspace} --code"
                 ),
                 (
                     f"|route read-plan selectors=R:selector,T:term "
@@ -45,8 +46,8 @@ def render_agent_guide(project_root: Path) -> str:
                     f"code=pure cmd=asp python query <owner-path> --term <symbol> "
                     f"{workspace} --code"
                 ),
-                f"|cmd prime=asp python search prime {root} --view seeds",
-                f"|cmd pipe=asp python search pipe <query> {root} --view seeds",
+                f"|cmd prime=asp python search prime {root} --view seeds condition=owner-map-unknown",
+                f"|cmd pipe=asp python search pipe <query> {root} --view seeds condition=ambiguous-query",
                 f"|cmd owner=asp python search owner <owner-path> {root} --view seeds",
                 (
                     f"|cmd reasoning-owner-tests=asp python search reasoning "
@@ -68,12 +69,12 @@ def render_agent_guide(project_root: Path) -> str:
                 (
                     f"|cmd syntax-locate=asp python query --treesitter-query "
                     f"'(function_definition name: (identifier) @function.name)' "
-                    f"--selector <path[:line|:start-end]> {workspace}"
+                    f"--selector <owner-path-or-structural-scope> {workspace}"
                 ),
                 (
                     f"|cmd syntax-code=asp python query --treesitter-query "
                     f"'(function_definition name: (identifier) @function.name)' "
-                    f"--selector <path[:line|:start-end]> {workspace} --code"
+                    f"--selector <exact-structural-selector> {workspace} --code"
                 ),
                 (
                     f"|cmd owner-items-code=asp python search owner <owner-path> items "
@@ -120,6 +121,10 @@ def render_agent_guide(project_root: Path) -> str:
                 (
                     "|rule query --code is pure code; search/read-plan returns "
                     "locators/frontier, not inline code"
+                ),
+                (
+                    "|rule displayLineRange/sourceLocatorHint are display hints; "
+                    "execute structural selectors or owner/symbol routes, not line ranges"
                 ),
                 (
                     "|rule --view metadata is document-only for asp md/org query; "
