@@ -335,12 +335,10 @@ def test_py_test_r003_unit_bloat_snapshot(tmp_path: Path) -> None:
 
 def _assert_project_snapshot(root: Path, rule_id: str, snapshot_name: str) -> None:
     report = run_python_project_harness(root)
-    filtered = replace(
-        report,
-        findings=tuple(
-            finding for finding in report.findings if finding.rule_id == rule_id
-        ),
+    findings = tuple(
+        finding for finding in report.findings if finding.rule_id == rule_id
     )
+    filtered = replace(report, findings=findings)
     assert len(filtered.findings) == 1, (
         f"expected one {rule_id} finding, got {filtered.findings!r}"
     )

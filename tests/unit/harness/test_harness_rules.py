@@ -45,7 +45,16 @@ def test_harness_rules_markdown_is_plain_rule_id_list() -> None:
         assert line.startswith("- "), index
         rule_id, sentence = line.removeprefix("- ").split(": ", 1)
 
-        assert rule_id.startswith(("PY-AGENT-R", "PY-MOD-R", "PY-PROJ-R", "PY-TEST-R"))
+        assert rule_id.startswith(
+            (
+                "PY-AGENT-R",
+                "PY-AGENT-POLICY",
+                "PY-AGENT-PROJECT",
+                "PY-MOD-R",
+                "PY-PROJ-R",
+                "PY-TEST-R",
+            )
+        )
         assert sentence.endswith(".")
         assert sum(sentence.count(mark) for mark in ".!?") == 1
         count += 1
