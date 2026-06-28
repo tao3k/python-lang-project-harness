@@ -32,6 +32,8 @@ def render_exact_source_query_code(
         return None
     source_lines = _read_source_lines(project_root, owner_path)
     if line_range is None:
+        if args.query_set:
+            return _render_source_item_code(source_lines, owner_path, args)
         return _render_full_selector_file(source_lines, args)
     return _render_selector_line_range(source_lines, owner_path, line_range, args)
 
@@ -77,6 +79,56 @@ def _render_full_selector_file(
     if args.query_set:
         return None
     return "\n".join(source_lines).rstrip() + "\n"
+
+
+def _render_source_item_code(
+    source_lines: list[str],
+    owner_path: str,
+    args: ProtocolArgs,
+) -> str:
+    payload = _source_owner_item_payload(source_lines, owner_path, None, args)
+    snippets = [
+        snippet
+        for item in payload["items"]
+        if isinstance(item, dict)
+        for snippet in (_source_item_code_snippet(source_lines, item),)
+        if snippet
+    ]
+    return "\n".join(snippets).rstrip() + ("\n" if snippets else "")
+
+
+def _source_item_code_snippet(
+    source_lines: list[str],
+    item: dict[str, object],
+) -> str:
+    return _source_item_code(source_lines, item)
+
+
+def _source_item_code(source_lines: list[str], item: dict[str, object]) -> str:
+    location = item.get("location", {})
+    if not isinstance(location, dict):
+        return ""
+    line_range = location.get("lineRange")
+    if not isinstance(line_range, str):
+        return ""
+    start, end = _line_range_bounds(line_range)
+    if start is None or end is None:
+        return ""
+    return "\n".join(source_lines[start - 1 : end]).rstrip()
+
+
+def _line_range_bounds(line_range: str) -> tuple[int | None, int | None]:
+    start_text, separator, end_text = line_range.partition(":")
+    if not separator:
+        return None, None
+    try:
+        start = int(start_text)
+        end = int(end_text)
+    except ValueError:
+        return None, None
+    if start < 1 or end < start:
+        return None, None
+    return start, end
 
 
 def _render_selector_line_range(
@@ -131,6 +183,29 @@ def _item_start_line(item: dict[str, object]) -> int | None:
         return None
 
 
+def render_exact_source_query_items(
+    args: ProtocolArgs, project_root: Path
+) -> str | None:
+    """Render exact owner item lines without running project-wide analysis."""
+
+    if not _supports_exact_source_query_items(args):
+        return None
+    owner_path, selector_range = _exact_query_owner_path_and_range(args)
+    if owner_path is None or not owner_path.endswith(".py"):
+        return None
+    source_lines = _read_source_lines(project_root, owner_path)
+    payload = _source_owner_item_payload(source_lines, owner_path, selector_range, args)
+    return (
+        owner_item_payload_lines(
+            owner_path,
+            "|".join(args.query_set),
+            payload,
+            names_only=False,
+        )
+        + "\n"
+    )
+
+
 def _supports_exact_source_query_code(args: ProtocolArgs) -> bool:
     return (
         args.command == "query"
@@ -138,6 +213,19 @@ def _supports_exact_source_query_code(args: ProtocolArgs) -> bool:
         and args.code_only
         and not args.json
         and not args.names_only
+        and args.catalog is None
+        and args.tree_sitter_query is None
+        and args.source_version == "worktree"
+        and args.render_mode is None
+    )
+
+
+def _supports_exact_source_query_items(args: ProtocolArgs) -> bool:
+    return (
+        args.command == "query"
+        and not args.names_only
+        and not args.code_only
+        and not args.json
         and args.catalog is None
         and args.tree_sitter_query is None
         and args.source_version == "worktree"

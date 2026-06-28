@@ -43,6 +43,68 @@ def test_query_names_only_explicit_owner_bypasses_full_harness(
     assert elapsed_ms < _FAST_QUERY_BUDGET_MS
 
 
+def test_query_code_selector_term_bypasses_full_harness(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    project = _write_fixture(tmp_path)
+
+    def fail_full_harness(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("selector code query should not run full harness")
+
+    monkeypatch.setattr(_cli_protocol, "_run_search_harness", fail_full_harness)
+
+    elapsed_ms, output = _timed_cli(
+        [
+            "query",
+            "--selector",
+            "src/example.py",
+            "--term",
+            "missing_owner",
+            "--code",
+            "--workspace",
+            str(project),
+        ],
+        project,
+    )
+
+    assert "def compute_value(item: int) -> int:" in output
+    assert "    return item + 1" in output
+    assert "def unrelated() -> int:" in output
+    assert elapsed_ms < _FAST_QUERY_BUDGET_MS
+
+
+def test_query_items_selector_term_bypasses_full_harness(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    project = _write_fixture(tmp_path)
+
+    def fail_full_harness(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("selector item query should not run full harness")
+
+    monkeypatch.setattr(_cli_protocol, "_run_search_harness", fail_full_harness)
+
+    elapsed_ms, output = _timed_cli(
+        [
+            "query",
+            "--selector",
+            "src/example.py",
+            "--term",
+            "missing_owner",
+            "--workspace",
+            str(project),
+        ],
+        project,
+    )
+
+    assert "[search-owner]" in output
+    assert "fallback=owner-top-items" in output
+    assert "|item compute_value" in output
+    assert "|item unrelated" in output
+    assert elapsed_ms < _FAST_QUERY_BUDGET_MS
+
+
 def _write_fixture(tmp_path: Path) -> Path:
     project = tmp_path / "project"
     source_dir = project / "src"

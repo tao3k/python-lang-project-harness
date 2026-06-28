@@ -158,6 +158,7 @@ def _render_fast_protocol_command(
 ) -> str | None:
     from ._cli_exact_source_query import (
         render_exact_source_query_code,
+        render_exact_source_query_items,
         render_exact_source_query_names,
     )
     from ._semantic_graph_facts import render_semantic_graph_facts
@@ -175,6 +176,7 @@ def _render_fast_protocol_command(
         lambda: render_fast_owner_seed_search(args, project_root),
         lambda: render_fast_fzf_seed_search(args, project_root),
         lambda: render_exact_source_query_names(args, project_root),
+        lambda: render_exact_source_query_items(args, project_root),
         lambda: render_exact_source_query_code(args, project_root),
     )
     for render in renderers:
