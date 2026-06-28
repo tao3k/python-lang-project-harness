@@ -3,7 +3,7 @@ source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
 [fail] python blockingFindings=1 parsed=1/1
-|failureFrontier rule=PY-PROJ-R003 severity=warning path=src/pkg line=1 column=1
+|failureFrontier rule=PY-AGENT-PROJECT-003 severity=warning path=src/pkg line=1 column=1
 |message Typed public package lacks py.typed marker
 |summary pkg exposes public Python surface without a py.typed marker.
 |repair add py.typed to this package root

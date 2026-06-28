@@ -49,7 +49,7 @@ Project-local policy can live beside pytest config in `pyproject.toml`:
 ```toml
 [tool.python-lang-project-harness]
 disabled_rule_ids = ["PY-MOD-R002"]
-blocking_rule_ids = ["PY-AGENT-R007"]
+blocking_rule_ids = ["PY-AGENT-POLICY-007"]
 ```
 
 Supported plugin options:
@@ -94,7 +94,7 @@ from python_lang_project_harness.pytest import python_project_harness_test
 test_python_project_harness_policy = python_project_harness_test(
     config=PythonHarnessConfig(
         disabled_rule_ids=frozenset({"PY-MOD-R002"}),
-        blocking_rule_ids=frozenset({"PY-AGENT-R007"}),
+        blocking_rule_ids=frozenset({"PY-AGENT-POLICY-007"}),
     ),
     source_dir_names=("lib",),
     include_tests=False,

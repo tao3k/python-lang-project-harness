@@ -3,7 +3,7 @@ source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
 [fail] python blockingFindings=1 parsed=0/0
-|failureFrontier rule=PY-PROJ-R009 severity=warning path=pyproject.toml line=1 column=1
+|failureFrontier rule=PY-AGENT-PROJECT-009 severity=warning path=pyproject.toml line=1 column=1
 |message Declared entry point targets should resolve to project modules
 |summary pyproject.toml declares console script 'snapshot-cli' pointing at 'missing_pkg.cli:main', but the parser did not find that target module.
 |repair point this entry target at a parser-visible module

@@ -59,8 +59,8 @@ small lint-like checks:
 
 The implementation should prioritize these axes in that order when choosing
 new rules. The first and fourth are already project/reasoning-tree surfaces.
-The second is now parser-backed through class-shape facts and `PY-AGENT-R012`.
-The third is covered by `PY-AGENT-R009` through `PY-AGENT-R011` and should grow
+The second is now parser-backed through class-shape facts and `PY-AGENT-POLICY-012`.
+The third is covered by `PY-AGENT-POLICY-009` through `PY-AGENT-POLICY-011` and should grow
 only when parser facts can prove a native Python replacement.
 
 ## Evidence
@@ -134,8 +134,8 @@ Python code that is also easier for a model to repair.
 
 Existing rules cover two algorithm-shape problems:
 
-- `PY-AGENT-R009`: nested control flow and literal dispatch ladders.
-- `PY-AGENT-R010`: broad linear public functions.
+- `PY-AGENT-POLICY-009`: nested control flow and literal dispatch ladders.
+- `PY-AGENT-POLICY-010`: broad linear public functions.
 
 The next policy step is not another size threshold. It is native-idiom advice:
 when the parser sees a simple module-level function or public method manually
@@ -156,12 +156,12 @@ measured.
 | Predicate search loops | Python built-ins and Functional HOWTO predicate guidance | Implemented by parser fact `manual_predicate_loop_count` |
 | Dictionary counting/grouping loops | `collections.Counter` and `defaultdict` official docs; pytest and pydantic use both in project code | Implement as parser facts for manual counter/grouping loops |
 | Numeric accumulation loops | Built-in `sum` and generator expression guidance | Implement as parser fact for simple `total += expr` loops |
-| Data carrier classes | `dataclasses` official docs | Implemented by parser-owned class-shape facts and `PY-AGENT-R012` |
+| Data carrier classes | `dataclasses` official docs | Implemented by parser-owned class-shape facts and `PY-AGENT-POLICY-012` |
 | Closed state/value sets | `enum.Enum`, `enum.StrEnum`, and `typing.Literal` official docs | Research-only for now; needs parser facts for repeated literal domains and existing enum surfaces |
 | Structural interfaces | `typing.Protocol` official docs | Research-only for now; parser already exposes base classes, but policy needs role/use facts before advice |
 | Dictionary payload shapes | `typing.TypedDict` official docs | Research-only for now; needs parser facts for repeated dict-literal key sets and public payload boundaries |
 | Resource lifetime / context managers | `contextlib` and `pathlib` docs, plus existing Ruff coverage | Defer to tool substrate unless parser can prove unsafe lifetime |
-| Type dispatch | `match/case` and `functools.singledispatch` docs | Covered partly by `PY-AGENT-R009`; enrich later only with concrete parser facts |
+| Type dispatch | `match/case` and `functools.singledispatch` docs | Covered partly by `PY-AGENT-POLICY-009`; enrich later only with concrete parser facts |
 
 ## Sources
 

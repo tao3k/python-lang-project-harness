@@ -24,7 +24,7 @@ def test_py_agent_r001_module_intent_snapshot(tmp_path: Path) -> None:
     _assert_lang_snapshot(
         tmp_path,
         [source],
-        "PY-AGENT-R001",
+        "PY-AGENT-POLICY-001",
         "py_agent_r001_module_intent",
     )
 
@@ -39,7 +39,7 @@ def test_py_agent_r002_callable_annotations_snapshot(tmp_path: Path) -> None:
     _assert_lang_snapshot(
         tmp_path,
         [source],
-        "PY-AGENT-R002",
+        "PY-AGENT-POLICY-002",
         "py_agent_r002_callable_annotations",
     )
 
@@ -58,7 +58,7 @@ def test_py_agent_r003_callable_conflict_snapshot(tmp_path: Path) -> None:
 
     _assert_project_snapshot(
         tmp_path,
-        "PY-AGENT-R003",
+        "PY-AGENT-POLICY-003",
         "py_agent_r003_callable_conflict",
     )
 
@@ -72,7 +72,7 @@ def test_py_agent_r004_repeated_namespace_snapshot(tmp_path: Path) -> None:
 
     _assert_project_snapshot(
         tmp_path,
-        "PY-AGENT-R004",
+        "PY-AGENT-POLICY-004",
         "py_agent_r004_repeated_namespace",
     )
 
@@ -91,7 +91,7 @@ def test_py_agent_r005_type_conflict_snapshot(tmp_path: Path) -> None:
 
     _assert_project_snapshot(
         tmp_path,
-        "PY-AGENT-R005",
+        "PY-AGENT-POLICY-005",
         "py_agent_r005_type_conflict",
     )
 
@@ -110,7 +110,7 @@ def test_py_agent_r006_value_conflict_snapshot(tmp_path: Path) -> None:
 
     _assert_project_snapshot(
         tmp_path,
-        "PY-AGENT-R006",
+        "PY-AGENT-POLICY-006",
         "py_agent_r006_value_conflict",
     )
 
@@ -124,7 +124,7 @@ def test_py_agent_r007_branch_intent_snapshot(tmp_path: Path) -> None:
 
     _assert_project_snapshot(
         tmp_path,
-        "PY-AGENT-R007",
+        "PY-AGENT-POLICY-007",
         "py_agent_r007_branch_intent",
     )
 
@@ -146,7 +146,7 @@ def test_py_agent_r008_branch_surface_snapshot(tmp_path: Path) -> None:
 
     _assert_project_snapshot(
         tmp_path,
-        "PY-AGENT-R008",
+        "PY-AGENT-POLICY-008",
         "py_agent_r008_branch_surface",
     )
 

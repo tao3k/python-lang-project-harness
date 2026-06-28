@@ -197,14 +197,16 @@ def test_project_runner_can_promote_policy_rules_from_config(tmp_path: Path) -> 
 
     report = run_python_project_harness(
         tmp_path,
-        config=PythonHarnessConfig(blocking_rule_ids=frozenset({"PY-AGENT-R001"})),
+        config=PythonHarnessConfig(
+            blocking_rule_ids=frozenset({"PY-AGENT-POLICY-001"})
+        ),
     )
 
     assert not report.is_clean
     assert [finding.rule_id for finding in report.blocking_findings()] == [
-        "PY-AGENT-R001",
+        "PY-AGENT-POLICY-001",
     ]
-    assert report.blocking_rule_ids == frozenset({"PY-AGENT-R001"})
+    assert report.blocking_rule_ids == frozenset({"PY-AGENT-POLICY-001"})
 
 
 def test_runner_rejects_missing_project_root_and_explicit_path(tmp_path: Path) -> None:

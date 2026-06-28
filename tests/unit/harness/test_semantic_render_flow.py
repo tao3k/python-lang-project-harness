@@ -10,7 +10,7 @@ def test_semantic_search_findings_render_path_first() -> None:
         {
             "findings": [
                 {
-                    "ruleId": "PY-AGENT-R001",
+                    "ruleId": "PY-AGENT-POLICY-001",
                     "count": 1,
                     "location": {
                         "path": "src/pkg/service.py",
@@ -24,6 +24,6 @@ def test_semantic_search_findings_render_path_first() -> None:
     )
 
     assert lines == [
-        "|find PY-AGENT-R001 x1 path=src/pkg/service.py line=3 column=1 node=O:src/pkg/service.py severity=info"
+        "|find PY-AGENT-POLICY-001 x1 path=src/pkg/service.py line=3 column=1 node=O:src/pkg/service.py severity=info"
     ]
     assert "at=O:" not in lines[0]

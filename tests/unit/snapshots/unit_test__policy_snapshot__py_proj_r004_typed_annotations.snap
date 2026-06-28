@@ -3,7 +3,7 @@ source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
 [fail] python blockingFindings=1 parsed=2/2
-|failureFrontier rule=PY-PROJ-R004 severity=warning path=src/pkg/service.py line=4 column=1
+|failureFrontier rule=PY-AGENT-PROJECT-004 severity=warning path=src/pkg/service.py line=4 column=1
 |message Typed package public callable lacks annotations
 |summary build is public in a py.typed package but lacks annotations.
 |repair annotate this typed-package public callable

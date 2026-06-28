@@ -21,7 +21,7 @@ test_dir_names = ["checks"]
 extra_path_names = ["tools", "tools"]
 ignored_dir_names = ["__pycache__", "generated"]
 disabled_rule_ids = ["PY-MOD-R002", "PY-MOD-R002"]
-blocking_rule_ids = ["PY-AGENT-R007"]
+blocking_rule_ids = ["PY-AGENT-POLICY-007"]
 blocking_severities = ["error"]
 """.lstrip(),
         encoding="utf-8",
@@ -36,7 +36,7 @@ blocking_severities = ["error"]
     assert config.extra_path_names == ("tools",)
     assert config.ignored_dir_names == frozenset({"__pycache__", "generated"})
     assert config.disabled_rule_ids == frozenset({"PY-MOD-R002"})
-    assert config.blocking_rule_ids == frozenset({"PY-AGENT-R007"})
+    assert config.blocking_rule_ids == frozenset({"PY-AGENT-POLICY-007"})
     assert config.blocking_severities == frozenset({PythonDiagnosticSeverity.ERROR})
 
 

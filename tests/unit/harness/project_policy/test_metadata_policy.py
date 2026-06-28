@@ -26,7 +26,7 @@ build-backend = "hatchling.build"
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-PROJ-R005", str(tmp_path / "pyproject.toml")),
+        ("PY-AGENT-PROJECT-005", str(tmp_path / "pyproject.toml")),
     ]
 
 
@@ -50,7 +50,7 @@ build-backend = "hatchling.build"
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-PROJ-R006", str(tmp_path / "pyproject.toml")),
+        ("PY-AGENT-PROJECT-006", str(tmp_path / "pyproject.toml")),
     ]
 
 
@@ -74,7 +74,7 @@ build-backend = "hatchling.build"
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-PROJ-R007", str(tmp_path / "pyproject.toml")),
+        ("PY-AGENT-PROJECT-007", str(tmp_path / "pyproject.toml")),
     ]
 
 
@@ -116,7 +116,7 @@ test = [
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-PROJ-R010", str(tmp_path / "pyproject.toml")),
+        ("PY-AGENT-PROJECT-010", str(tmp_path / "pyproject.toml")),
     ]
 
 
@@ -140,7 +140,9 @@ addopts = ["--python-project-harness"]
 
     report = run_python_project_harness(tmp_path)
 
-    assert not any(finding.rule_id == "PY-PROJ-R010" for finding in report.findings)
+    assert not any(
+        finding.rule_id == "PY-AGENT-PROJECT-010" for finding in report.findings
+    )
 
 
 def test_project_policy_accepts_explicit_pytest_helper_gate(tmp_path: Path) -> None:
@@ -167,7 +169,9 @@ test = [
 
     report = run_python_project_harness(tmp_path)
 
-    assert not any(finding.rule_id == "PY-PROJ-R010" for finding in report.findings)
+    assert not any(
+        finding.rule_id == "PY-AGENT-PROJECT-010" for finding in report.findings
+    )
 
 
 def test_project_policy_advises_missing_verification_profile_hints(
@@ -202,7 +206,9 @@ addopts = ["--python-project-harness"]
 
     report = run_python_project_harness(tmp_path)
     finding = next(
-        finding for finding in report.findings if finding.rule_id == "PY-PROJ-R011"
+        finding
+        for finding in report.findings
+        if finding.rule_id == "PY-AGENT-PROJECT-011"
     )
 
     assert finding.severity.value == "info"
@@ -247,7 +253,9 @@ profile_hints = [
 
     report = run_python_project_harness(tmp_path)
 
-    assert not any(finding.rule_id == "PY-PROJ-R011" for finding in report.findings)
+    assert not any(
+        finding.rule_id == "PY-AGENT-PROJECT-011" for finding in report.findings
+    )
 
 
 def _write_pyproject(project_root: Path, content: str) -> None:

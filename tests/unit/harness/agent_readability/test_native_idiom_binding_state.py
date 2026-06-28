@@ -37,4 +37,6 @@ def collect(values: list[int]) -> tuple[list[int], dict[int, int], int]:
 
     report = run_python_lang_harness([source])
 
-    assert not any(finding.rule_id == "PY-AGENT-R011" for finding in report.findings)
+    assert not any(
+        finding.rule_id == "PY-AGENT-POLICY-011" for finding in report.findings
+    )

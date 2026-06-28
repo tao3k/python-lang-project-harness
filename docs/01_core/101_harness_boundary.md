@@ -76,7 +76,7 @@ resolves project-internal import edges from parser import records and import
 roots, so agents can see which modules depend on a subtree before editing. The
 tree nodes carry parser-owned export candidates and `__all__` contract kind, so
 the agent sees public API names without re-reading source text. The
-harness turns those facts into `PY-MOD-R007` and `PY-AGENT-R007` findings; it
+harness turns those facts into `PY-MOD-R007` and `PY-AGENT-POLICY-007` findings; it
 does not re-parse Python source to infer tree shape or dependency direction.
 Project policy uses the same parser metadata to keep declared import names
 and entry point targets aligned with parser-visible project owners.

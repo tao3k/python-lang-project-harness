@@ -3,7 +3,7 @@ source: tests/unit/harness/test_agent_policy_snapshots.py
 expression: rendered
 ---
 [advice]
-[PY-AGENT-R003] Info: Public callable name conflicts across namespaces
+[PY-AGENT-POLICY-003] Info: Public callable name conflicts across namespaces
   --> src/pkg/beta.py:4:1
    4 | def build(value: int) -> int:
      | `- rename or namespace this public callable boundary

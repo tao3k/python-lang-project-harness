@@ -1,33 +1,33 @@
 [advice]
-[PY-AGENT-R009] Info: Function hides algorithm behind nested control flow
+[PY-AGENT-POLICY-009] Info: Function hides algorithm behind nested control flow
   --> $TEMP/criterion.py:4:1
    4 | def nested(enabled: bool, ready: bool, valid: bool, active: bool) -> int:
      | `- make this algorithm shape explicit
      | Required: Flatten deeply nested if/loop logic into guard clauses, explicit dispatch, match/case, or small named pipeline steps so agents can reason about the algorithm shape. Criteria: deep control-flow nesting.
      | Criteria: software-criterion/control-flow.decision-stack
 
-[PY-AGENT-R009] Info: Function hides algorithm behind nested control flow
+[PY-AGENT-POLICY-009] Info: Function hides algorithm behind nested control flow
   --> $TEMP/criterion.py:13:1
   13 | def route(kind: str) -> int:
      | `- make this algorithm shape explicit
      | Required: Flatten deeply nested if/loop logic into guard clauses, explicit dispatch, match/case, or small named pipeline steps so agents can reason about the algorithm shape. Criteria: literal dispatch chain without match/case.
      | Criteria: software-criterion/control-flow.literal-dispatch-chain
 
-[PY-AGENT-R009] Info: Function hides algorithm behind nested control flow
+[PY-AGENT-POLICY-009] Info: Function hides algorithm behind nested control flow
   --> $TEMP/criterion.py:25:1
   25 | def traverse(groups: list[list[int]]) -> int:
      | `- make this algorithm shape explicit
      | Required: Flatten deeply nested if/loop logic into guard clauses, explicit dispatch, match/case, or small named pipeline steps so agents can reason about the algorithm shape. Criteria: nested loops mixed with branches.
      | Criteria: software-criterion/control-flow.traversal-knot
 
-[PY-AGENT-R010] Info: Function owns a broad linear algorithm surface
+[PY-AGENT-POLICY-010] Info: Function owns a broad linear algorithm surface
   --> $TEMP/criterion.py:40:1
   40 | def summarize(value: int) -> int:
      | `- split this broad function into named algorithm steps
      | Required: Split long public functions with broad linear statement blocks into small named helpers or pipeline steps so agents can edit one algorithm responsibility at a time. Criteria: large linear statement block.
      | Criteria: software-criterion/control-flow.broad-linear-phase
 
-[PY-AGENT-R011] Info: Function manually spells a native Python transform
+[PY-AGENT-POLICY-011] Info: Function manually spells a native Python transform
   --> $TEMP/criterion.py:75:1
   75 | def has_admin(values: list[str]) -> bool:
      | `- replace this boilerplate loop with a native Python idiom

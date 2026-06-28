@@ -3,7 +3,7 @@ source: tests/unit/harness/test_agent_policy_snapshots.py
 expression: rendered
 ---
 [advice]
-[PY-AGENT-R002] Info: Public callable lacks type annotations
+[PY-AGENT-POLICY-002] Info: Public callable lacks type annotations
   --> $TEMP/service.py:4:1
    4 | def build(value):
      | `- add parameter and return annotations to this public callable

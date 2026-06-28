@@ -43,12 +43,14 @@ def classify(kind: str, rows: list[object]) -> int:
     filtered = replace(
         report,
         findings=tuple(
-            finding for finding in report.findings if finding.rule_id == "PY-AGENT-R009"
+            finding
+            for finding in report.findings
+            if finding.rule_id == "PY-AGENT-POLICY-009"
         ),
     )
     rendered = normalize_temp_root(render_python_lang_harness(filtered), tmp_path)
 
-    assert filtered.findings, "expected PY-AGENT-R009 finding"
+    assert filtered.findings, "expected PY-AGENT-POLICY-009 finding"
     assert (
         "control-flow.literal-dispatch-chain"
         in filtered.findings[0].labels["softwareCriteria"]
@@ -81,7 +83,9 @@ def classify(enabled: bool, ready: bool, valid: bool, active: bool) -> int:
     report = run_python_lang_harness([source])
 
     findings = tuple(
-        finding for finding in report.findings if finding.rule_id == "PY-AGENT-R009"
+        finding
+        for finding in report.findings
+        if finding.rule_id == "PY-AGENT-POLICY-009"
     )
     assert len(findings) == 1
     assert findings[0].labels["softwareCriteria"] == "control-flow.decision-stack"
@@ -114,7 +118,9 @@ def classify(groups: list[list[int]]) -> int:
     report = run_python_lang_harness([source])
 
     findings = tuple(
-        finding for finding in report.findings if finding.rule_id == "PY-AGENT-R009"
+        finding
+        for finding in report.findings
+        if finding.rule_id == "PY-AGENT-POLICY-009"
     )
     assert len(findings) == 1
     assert findings[0].labels["softwareCriteria"] == "control-flow.traversal-knot"
@@ -145,7 +151,9 @@ def classify(kind: str) -> int:
 
     report = run_python_lang_harness([source])
 
-    assert not any(finding.rule_id == "PY-AGENT-R009" for finding in report.findings)
+    assert not any(
+        finding.rule_id == "PY-AGENT-POLICY-009" for finding in report.findings
+    )
 
 
 def test_py_agent_r010_function_compactness_snapshot(tmp_path: Path) -> None:
@@ -156,12 +164,14 @@ def test_py_agent_r010_function_compactness_snapshot(tmp_path: Path) -> None:
     filtered = replace(
         report,
         findings=tuple(
-            finding for finding in report.findings if finding.rule_id == "PY-AGENT-R010"
+            finding
+            for finding in report.findings
+            if finding.rule_id == "PY-AGENT-POLICY-010"
         ),
     )
     rendered = normalize_temp_root(render_python_lang_harness(filtered), tmp_path)
 
-    assert filtered.findings, "expected PY-AGENT-R010 finding"
+    assert filtered.findings, "expected PY-AGENT-POLICY-010 finding"
     assert (
         filtered.findings[0].labels["softwareCriteria"]
         == "control-flow.broad-linear-phase"
@@ -210,12 +220,14 @@ def has_admin(values: list[str]) -> bool:
     filtered = replace(
         report,
         findings=tuple(
-            finding for finding in report.findings if finding.rule_id == "PY-AGENT-R011"
+            finding
+            for finding in report.findings
+            if finding.rule_id == "PY-AGENT-POLICY-011"
         ),
     )
     rendered = normalize_temp_root(render_python_lang_harness(filtered), tmp_path)
 
-    assert filtered.findings, "expected PY-AGENT-R011 finding"
+    assert filtered.findings, "expected PY-AGENT-POLICY-011 finding"
     assert (
         filtered.findings[0].labels["softwareCriteria"]
         == "native-idiom.manual-transform-loop"
@@ -250,12 +262,14 @@ class CustomerRecord:
     filtered = replace(
         report,
         findings=tuple(
-            finding for finding in report.findings if finding.rule_id == "PY-AGENT-R012"
+            finding
+            for finding in report.findings
+            if finding.rule_id == "PY-AGENT-POLICY-012"
         ),
     )
     rendered = normalize_temp_root(render_python_lang_harness(filtered), tmp_path)
 
-    assert filtered.findings, "expected PY-AGENT-R012 finding"
+    assert filtered.findings, "expected PY-AGENT-POLICY-012 finding"
     assert_snapshot(
         "unit_test__agent_policy_snapshot__py_agent_r012_type_shape",
         rendered,
@@ -283,7 +297,9 @@ class CustomerRecord:
 
     report = run_python_lang_harness([source])
 
-    assert not any(finding.rule_id == "PY-AGENT-R012" for finding in report.findings)
+    assert not any(
+        finding.rule_id == "PY-AGENT-POLICY-012" for finding in report.findings
+    )
 
 
 def _broad_linear_function_source() -> str:

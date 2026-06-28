@@ -106,14 +106,18 @@ def test_py_proj_r001_src_layout_snapshot(tmp_path: Path) -> None:
     (package / "py.typed").write_text("", encoding="utf-8")
     _write_pyproject(tmp_path, packages='["pkg"]')
 
-    _assert_project_snapshot(tmp_path, "PY-PROJ-R001", "py_proj_r001_src_layout")
+    _assert_project_snapshot(
+        tmp_path, "PY-AGENT-PROJECT-001", "py_proj_r001_src_layout"
+    )
 
 
 def test_py_proj_r002_declared_package_snapshot(tmp_path: Path) -> None:
     _src(tmp_path)
     _write_pyproject(tmp_path, packages='["src/missing_pkg"]')
 
-    _assert_project_snapshot(tmp_path, "PY-PROJ-R002", "py_proj_r002_declared_package")
+    _assert_project_snapshot(
+        tmp_path, "PY-AGENT-PROJECT-002", "py_proj_r002_declared_package"
+    )
 
 
 def test_py_proj_r003_py_typed_snapshot(tmp_path: Path) -> None:
@@ -125,7 +129,7 @@ def test_py_proj_r003_py_typed_snapshot(tmp_path: Path) -> None:
     )
     _write_pyproject(tmp_path, packages='["src/pkg"]')
 
-    _assert_project_snapshot(tmp_path, "PY-PROJ-R003", "py_proj_r003_py_typed")
+    _assert_project_snapshot(tmp_path, "PY-AGENT-PROJECT-003", "py_proj_r003_py_typed")
 
 
 def test_py_proj_r004_typed_annotations_snapshot(tmp_path: Path) -> None:
@@ -139,7 +143,9 @@ def test_py_proj_r004_typed_annotations_snapshot(tmp_path: Path) -> None:
     )
     _write_pyproject(tmp_path, packages='["src/pkg"]')
 
-    _assert_project_snapshot(tmp_path, "PY-PROJ-R004", "py_proj_r004_typed_annotations")
+    _assert_project_snapshot(
+        tmp_path, "PY-AGENT-PROJECT-004", "py_proj_r004_typed_annotations"
+    )
 
 
 def test_py_proj_r005_project_name_snapshot(tmp_path: Path) -> None:
@@ -156,7 +162,9 @@ build-backend = "hatchling.build"
         encoding="utf-8",
     )
 
-    _assert_project_snapshot(tmp_path, "PY-PROJ-R005", "py_proj_r005_project_name")
+    _assert_project_snapshot(
+        tmp_path, "PY-AGENT-PROJECT-005", "py_proj_r005_project_name"
+    )
 
 
 def test_py_proj_r006_requires_python_snapshot(tmp_path: Path) -> None:
@@ -173,7 +181,9 @@ build-backend = "hatchling.build"
         encoding="utf-8",
     )
 
-    _assert_project_snapshot(tmp_path, "PY-PROJ-R006", "py_proj_r006_requires_python")
+    _assert_project_snapshot(
+        tmp_path, "PY-AGENT-PROJECT-006", "py_proj_r006_requires_python"
+    )
 
 
 def test_py_proj_r007_build_requires_snapshot(tmp_path: Path) -> None:
@@ -190,7 +200,9 @@ build-backend = "hatchling.build"
         encoding="utf-8",
     )
 
-    _assert_project_snapshot(tmp_path, "PY-PROJ-R007", "py_proj_r007_build_requires")
+    _assert_project_snapshot(
+        tmp_path, "PY-AGENT-PROJECT-007", "py_proj_r007_build_requires"
+    )
 
 
 def test_py_proj_r008_import_names_snapshot(tmp_path: Path) -> None:
@@ -209,7 +221,9 @@ build-backend = "hatchling.build"
         encoding="utf-8",
     )
 
-    _assert_project_snapshot(tmp_path, "PY-PROJ-R008", "py_proj_r008_import_names")
+    _assert_project_snapshot(
+        tmp_path, "PY-AGENT-PROJECT-008", "py_proj_r008_import_names"
+    )
 
 
 def test_py_proj_r009_entry_point_target_snapshot(tmp_path: Path) -> None:
@@ -232,7 +246,7 @@ build-backend = "hatchling.build"
 
     _assert_project_snapshot(
         tmp_path,
-        "PY-PROJ-R009",
+        "PY-AGENT-PROJECT-009",
         "py_proj_r009_entry_point_target",
     )
 
@@ -253,7 +267,9 @@ test = [
         encoding="utf-8",
     )
 
-    _assert_project_snapshot(tmp_path, "PY-PROJ-R010", "py_proj_r010_pytest_gate")
+    _assert_project_snapshot(
+        tmp_path, "PY-AGENT-PROJECT-010", "py_proj_r010_pytest_gate"
+    )
 
 
 def test_py_proj_r011_verification_profile_snapshot(tmp_path: Path) -> None:
@@ -286,7 +302,7 @@ addopts = ["--python-project-harness"]
 
     _assert_project_snapshot(
         tmp_path,
-        "PY-PROJ-R011",
+        "PY-AGENT-PROJECT-011",
         "py_proj_r011_verification_profile",
     )
 

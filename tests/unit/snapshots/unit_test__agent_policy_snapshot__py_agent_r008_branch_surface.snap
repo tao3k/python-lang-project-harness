@@ -3,7 +3,7 @@ source: tests/unit/harness/test_agent_policy_snapshots.py
 expression: rendered
 ---
 [advice]
-[PY-AGENT-R008] Info: Branch package owns a broad mixed surface
+[PY-AGENT-POLICY-008] Info: Branch package owns a broad mixed surface
   --> src/pkg/domain/__init__.py:1:1
    1 | """Domain package owner."""
      | `- split this branch or document the owner map

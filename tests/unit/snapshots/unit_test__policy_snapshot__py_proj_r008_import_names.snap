@@ -3,7 +3,7 @@ source: tests/unit/harness/test_policy_snapshots.py
 expression: rendered
 ---
 [fail] python blockingFindings=1 parsed=0/0
-|failureFrontier rule=PY-PROJ-R008 severity=warning path=pyproject.toml line=1 column=1
+|failureFrontier rule=PY-AGENT-PROJECT-008 severity=warning path=pyproject.toml line=1 column=1
 |message Declared import names should resolve to project modules
 |summary pyproject.toml declares import name 'missing_pkg', but the parser did not find a matching project module owner.
 |repair align this declared import name with parser-visible code

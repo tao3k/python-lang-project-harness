@@ -50,7 +50,7 @@ def test_agent_policy_reports_branch_package_without_reasoning_tree_intent(
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-AGENT-R007", str(branch / "__init__.py")),
+        ("PY-AGENT-POLICY-007", str(branch / "__init__.py")),
     ]
     assert "owner subtree" in report.findings[0].requirement
     assert "package intent docstring" in report.findings[0].label

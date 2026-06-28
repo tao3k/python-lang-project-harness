@@ -24,7 +24,7 @@ def test_project_policy_blocks_missing_py_typed_for_public_package(
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-PROJ-R003", str(package)),
+        ("PY-AGENT-PROJECT-003", str(package)),
     ]
 
 
@@ -48,7 +48,7 @@ def test_project_policy_blocks_missing_py_typed_for_public_facade_imports(
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-PROJ-R003", str(package)),
+        ("PY-AGENT-PROJECT-003", str(package)),
     ]
 
 
@@ -121,9 +121,9 @@ def test_project_policy_blocks_unannotated_public_callable_in_typed_package(
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-PROJ-R004", str(package / "service.py")),
+        ("PY-AGENT-PROJECT-004", str(package / "service.py")),
     ]
-    assert "PY-AGENT-R002" not in {finding.rule_id for finding in report.findings}
+    assert "PY-AGENT-POLICY-002" not in {finding.rule_id for finding in report.findings}
 
 
 def test_project_policy_blocks_unannotated_public_method_in_typed_package(
@@ -146,7 +146,7 @@ def test_project_policy_blocks_unannotated_public_method_in_typed_package(
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-PROJ-R004", str(package / "service.py")),
+        ("PY-AGENT-PROJECT-004", str(package / "service.py")),
     ]
     assert report.findings[0].source_line == "    def build(self, value):"
 

@@ -39,20 +39,20 @@ policy can also emit `Info` configuration work orders for Agents.
   syntax.
 - `python.compile.invalid`: Python source must compile through CPython-native
   validation.
-- `PY-PROJ-R001`: Python projects should use `src/` layout.
-- `PY-PROJ-R002`: declared wheel package roots must be importable packages.
-- `PY-PROJ-R003`: public typed package roots should include `py.typed`.
-- `PY-PROJ-R004`: public callable boundaries in typed packages need
+- `PY-AGENT-PROJECT-001`: Python projects should use `src/` layout.
+- `PY-AGENT-PROJECT-002`: declared wheel package roots must be importable packages.
+- `PY-AGENT-PROJECT-003`: public typed package roots should include `py.typed`.
+- `PY-AGENT-PROJECT-004`: public callable boundaries in typed packages need
   annotations.
-- `PY-PROJ-R005`: `[project]` metadata should declare package name.
-- `PY-PROJ-R006`: `[project]` metadata should declare supported Python
+- `PY-AGENT-PROJECT-005`: `[project]` metadata should declare package name.
+- `PY-AGENT-PROJECT-006`: `[project]` metadata should declare supported Python
   versions.
-- `PY-PROJ-R007`: `[build-system]` tables should declare build requirements.
-- `PY-PROJ-R008`: `[project].import-names` and `import-namespaces` should
+- `PY-AGENT-PROJECT-007`: `[build-system]` tables should declare build requirements.
+- `PY-AGENT-PROJECT-008`: `[project].import-names` and `import-namespaces` should
   resolve to parser-visible project module owners.
-- `PY-PROJ-R009`: console script, GUI script, and entry point targets should
+- `PY-AGENT-PROJECT-009`: console script, GUI script, and entry point targets should
   resolve to parser-visible project modules.
-- `PY-PROJ-R010`: projects that declare the harness as a test/dev dependency
+- `PY-AGENT-PROJECT-010`: projects that declare the harness as a test/dev dependency
   should mount a parser-visible pytest gate.
 - `PY-MOD-R001`: wildcard imports must become explicit imports.
 - `PY-MOD-R002`: library modules should not use bare `print`.
@@ -83,7 +83,7 @@ not fail only because they are long.
 Some project-policy findings are intentionally `Info`: they are configuration
 work orders for the repair Agent, not immediate merge blockers.
 
-- `PY-PROJ-R011`: projects that declare the harness as a test/dev dependency
+- `PY-AGENT-PROJECT-011`: projects that declare the harness as a test/dev dependency
   and expose parser-visible verification owners should configure
   `[tool.python-lang-project-harness.verification].profile_hints`. The finding
   points the Agent to `py-harness --agent-snapshot`, whose compact
@@ -102,28 +102,28 @@ or hand-written loops that hide a native Python intent. The advice should make
 the reasoning tree more visually legible to an Agent while staying compact
 enough to use as the first repair prompt.
 
-- `PY-AGENT-R001`: public module surface lacks an intent docstring.
-- `PY-AGENT-R002`: public callable lacks type annotations.
-- `PY-AGENT-R003`: public callable name conflicts across namespaces.
-- `PY-AGENT-R004`: module namespace repeats a path segment.
-- `PY-AGENT-R005`: public type name conflicts across namespaces.
-- `PY-AGENT-R006`: public value name conflicts across namespaces.
-- `PY-AGENT-R007`: branch packages with multiple child modules should include
+- `PY-AGENT-POLICY-001`: public module surface lacks an intent docstring.
+- `PY-AGENT-POLICY-002`: public callable lacks type annotations.
+- `PY-AGENT-POLICY-003`: public callable name conflicts across namespaces.
+- `PY-AGENT-POLICY-004`: module namespace repeats a path segment.
+- `PY-AGENT-POLICY-005`: public type name conflicts across namespaces.
+- `PY-AGENT-POLICY-006`: public value name conflicts across namespaces.
+- `PY-AGENT-POLICY-007`: branch packages with multiple child modules should include
   a reasoning-tree intent docstring.
-- `PY-AGENT-R008`: broad branch packages should split into focused subpackages
+- `PY-AGENT-POLICY-008`: broad branch packages should split into focused subpackages
   or document the facade and owner map for agent repair loops.
-- `PY-AGENT-R009`: top-level functions and public methods with deeply nested
+- `PY-AGENT-POLICY-009`: top-level functions and public methods with deeply nested
   control flow should
   expose the algorithm shape through guard clauses, explicit dispatch,
   `match/case`, or small named pipeline steps.
-- `PY-AGENT-R010`: top-level functions and public methods with broad linear
+- `PY-AGENT-POLICY-010`: top-level functions and public methods with broad linear
   statement blocks should split into named helpers or pipeline steps that are
   easier for agents to edit.
-- `PY-AGENT-R011`: top-level functions and public methods that manually spell
+- `PY-AGENT-POLICY-011`: top-level functions and public methods that manually spell
   simple collection or predicate loops should use native Python idioms such as
   comprehensions, generator expressions, built-ins such as `sum`/`any`/`all`,
   `collections.Counter`/`defaultdict`, or named iterator pipeline helpers.
-- `PY-AGENT-R012`: public classes that mainly store instance fields in
+- `PY-AGENT-POLICY-012`: public classes that mainly store instance fields in
   `__init__` should expose a visible data/type anchor such as `dataclass`,
   `TypedDict`, `Protocol`, `Enum`/`StrEnum`, or a named model base.
 
@@ -140,16 +140,16 @@ docstrings, and parser-owned `pyproject.toml` metadata.
 
 `PY-MOD-R007` blocks a collapsed owner tree such as `domain.py` next to
 `domain/__init__.py`, because both spell the same import owner and repair
-agents cannot know which surface owns the change. `PY-AGENT-R007` stays
+agents cannot know which surface owns the change. `PY-AGENT-POLICY-007` stays
 advisory and asks branch package `__init__.py` files with multiple child
 modules to carry a short intent docstring, so agents can choose the right
-subtree before editing. `PY-AGENT-R008` is also advisory; it combines branch
+subtree before editing. `PY-AGENT-POLICY-008` is also advisory; it combines branch
 child count with public-child and effective-line signals so crowded non-facade
 folders surface as owner-map advice without becoming a raw child-count gate.
 Packages that already expose an explicit public facade are treated as having
 an owner map.
 
-`PY-AGENT-R009` is backed by parser-owned function control-flow facts, not by
+`PY-AGENT-POLICY-009` is backed by parser-owned function control-flow facts, not by
 harness string scanning. The parser records branch count, loop count, maximum
 nesting, loop nesting, terminal `else` opportunities, and repeated literal
 dispatch chains for each function symbol during the normal AST collection pass.
@@ -164,12 +164,12 @@ reasoning tree: guard clauses instead of nested `else`, `match/case` or dispatch
 tables instead of literal branch ladders, and small named pipeline steps instead
 of one broad loop body. Performance remains parser-first: the harness only
 consumes `PythonFunctionControlFlow` facts and does not run a second AST parse.
-`PY-AGENT-R010` complements `PY-AGENT-R009`: the former catches long flat
+`PY-AGENT-POLICY-010` complements `PY-AGENT-POLICY-009`: the former catches long flat
 procedure-like public functions, while the latter catches nested control-flow
 shape. This keeps the advice compact and avoids telling the agent the same
 thing twice.
 
-`PY-AGENT-R011` is the native-Python idiom layer. It is backed by parser-owned
+`PY-AGENT-POLICY-011` is the native-Python idiom layer. It is backed by parser-owned
 function facts for simple accumulator loops and predicate loops, so the harness
 can advise comprehensions, generator expressions, built-ins, or iterator
 pipeline helpers without parsing source in the policy layer. The rule is
@@ -178,7 +178,7 @@ only maps, filters, counts, groups, accumulates, or answers a boolean predicate.
 Explicit loops remain valid for effects, complex state machines, debugging, or
 measured performance work.
 
-`PY-AGENT-R012` is the data/type visual-anchor layer. It is backed by
+`PY-AGENT-POLICY-012` is the data/type visual-anchor layer. It is backed by
 parser-owned class-shape facts: annotated class fields, `__init__` self-field
 storage, method counts, and visible anchors such as `dataclass`, `Enum`,
 `StrEnum`, `Protocol`, `TypedDict`, `NamedTuple`, or a named model base. The

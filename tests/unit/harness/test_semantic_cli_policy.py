@@ -51,7 +51,7 @@ def test_cli_search_policy_renders_semantic_handles(
                 [
                     "search",
                     "policy",
-                    "PY-PROJ-R001",
+                    "PY-AGENT-PROJECT-001",
                     "owner",
                     "tests",
                     "--view",
@@ -83,7 +83,7 @@ def test_cli_search_policy_renders_semantic_handles(
             [
                 "search",
                 "policy",
-                "PY-AGENT-R008",
+                "PY-AGENT-POLICY-008",
                 "owner",
                 "tests",
                 "--json",
@@ -98,18 +98,21 @@ def test_cli_search_policy_renders_semantic_handles(
     compact = compact_stdout.getvalue()
     packet = json.loads(json_stdout.getvalue())
     if compact_graph_renderer_available():
-        assert seeds.startswith("[search-policy] q=PY-PROJ-R001")
+        assert seeds.startswith("[search-policy] q=PY-AGENT-PROJECT-001")
         assert "alg=policy-handle-catalog" in seeds
         assert (
             "O=owner:path(src/python_lang_project_harness/_project_policy_catalog.py)!owner"
             in seeds
         )
         assert "tests/unit/harness/project_policy/test_layout.py" in seeds
-    assert "|handle PY-PROJ-R001 kind=policy-rule source=provider-policy" in compact
+    assert (
+        "|handle PY-AGENT-PROJECT-001 kind=policy-rule source=provider-policy"
+        in compact
+    )
     assert 'title="Python project should use src layout"' in compact
     assert "implementation=None" not in compact
     assert packet["view"] == "policy"
-    assert packet["semanticHandles"][0]["id"] == "PY-AGENT-R008"
+    assert packet["semanticHandles"][0]["id"] == "PY-AGENT-POLICY-008"
     assert packet["semanticHandles"][0]["ownerPath"] == (
         "src/python_lang_project_harness/_agent_policy_catalog.py"
     )

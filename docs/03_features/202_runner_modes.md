@@ -87,7 +87,7 @@ from python_lang_project_harness import PythonHarnessConfig
 
 config = PythonHarnessConfig(
     disabled_rule_ids=frozenset({"PY-MOD-R002"}),
-    blocking_rule_ids=frozenset({"PY-AGENT-R007"}),
+    blocking_rule_ids=frozenset({"PY-AGENT-POLICY-007"}),
 )
 ```
 
@@ -102,7 +102,7 @@ explicit `PythonHarnessConfig` is passed:
 ```toml
 [tool.python-lang-project-harness]
 disabled_rule_ids = ["PY-MOD-R002"]
-blocking_rule_ids = ["PY-AGENT-R007"]
+blocking_rule_ids = ["PY-AGENT-POLICY-007"]
 source_dir_names = ["lib"]
 test_dir_names = ["checks"]
 include_tests = false

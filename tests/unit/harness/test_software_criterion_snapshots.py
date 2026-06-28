@@ -105,6 +105,7 @@ def _filter_software_criterion_findings(
         findings=tuple(
             finding
             for finding in report.findings
-            if finding.rule_id in {"PY-AGENT-R009", "PY-AGENT-R010", "PY-AGENT-R011"}
+            if finding.rule_id
+            in {"PY-AGENT-POLICY-009", "PY-AGENT-POLICY-010", "PY-AGENT-POLICY-011"}
         ),
     )

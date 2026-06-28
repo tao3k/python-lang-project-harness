@@ -117,7 +117,7 @@ def test_cli_keeps_agent_advice_non_blocking(tmp_path: Path) -> None:
 
     assert exit_code == 0
     assert "[advice]" in stdout.getvalue()
-    assert "PY-AGENT-R001" in stdout.getvalue()
+    assert "PY-AGENT-POLICY-001" in stdout.getvalue()
 
 
 def test_cli_exits_nonzero_for_blocking_findings(tmp_path: Path) -> None:
@@ -238,10 +238,12 @@ def test_cli_can_promote_policy_rule_ids(tmp_path: Path) -> None:
     )
     stdout = io.StringIO()
 
-    exit_code = run_cli(["--block-rule", "PY-AGENT-R001", str(tmp_path)], stdout=stdout)
+    exit_code = run_cli(
+        ["--block-rule", "PY-AGENT-POLICY-001", str(tmp_path)], stdout=stdout
+    )
 
     assert exit_code == 1
-    assert "PY-AGENT-R001" in stdout.getvalue()
+    assert "PY-AGENT-POLICY-001" in stdout.getvalue()
     assert stdout.getvalue().startswith("[fail] python")
     assert "severity=info" in stdout.getvalue()
 

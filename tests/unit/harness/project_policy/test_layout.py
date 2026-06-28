@@ -37,7 +37,7 @@ def test_project_policy_blocks_flat_layout_with_pyproject(tmp_path: Path) -> Non
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-PROJ-R001", str(tmp_path / "pyproject.toml")),
+        ("PY-AGENT-PROJECT-001", str(tmp_path / "pyproject.toml")),
     ]
 
 
@@ -76,7 +76,7 @@ def test_project_policy_blocks_missing_declared_package_root(
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-PROJ-R002", str(tmp_path / "pyproject.toml")),
+        ("PY-AGENT-PROJECT-002", str(tmp_path / "pyproject.toml")),
     ]
 
 
@@ -90,7 +90,7 @@ def test_project_policy_blocks_package_root_without_init(tmp_path: Path) -> None
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-PROJ-R002", str(package)),
+        ("PY-AGENT-PROJECT-002", str(package)),
     ]
 
 
@@ -108,7 +108,7 @@ def test_project_policy_deduplicates_declared_package_findings(
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-PROJ-R002", str(tmp_path / "pyproject.toml")),
+        ("PY-AGENT-PROJECT-002", str(tmp_path / "pyproject.toml")),
     ]
 
 

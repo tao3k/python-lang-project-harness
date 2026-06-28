@@ -48,13 +48,14 @@ def test_render_python_lang_harness_attaches_agent_advice_by_default(
     assert default_output.startswith("[fail] python blockingFindings=1 parsed=1/1")
     assert "|failureFrontier rule=PY-MOD-R002 severity=warning" in default_output
     assert "|hotBlock selector=" in default_output
-    assert "\n[advice]\n[PY-AGENT-R001]" in default_output
+    assert "\n[advice]\n[PY-AGENT-POLICY-001]" in default_output
     assert (
-        "[PY-AGENT-R001] Info: Library module lacks a module intent docstring"
+        "[PY-AGENT-POLICY-001] Info: Library module lacks a module intent docstring"
         in default_output
     )
     assert (
-        "[PY-AGENT-R002] Info: Public callable lacks type annotations" in default_output
+        "[PY-AGENT-POLICY-002] Info: Public callable lacks type annotations"
+        in default_output
     )
     assert "PY-AGENT" not in quiet_output
 
@@ -89,7 +90,7 @@ def test_assert_python_lang_harness_clean_includes_agent_advice_by_default(
 
     assert "[advice]" in message
     assert (
-        "[PY-AGENT-R001] Info: Library module lacks a module intent docstring"
+        "[PY-AGENT-POLICY-001] Info: Library module lacks a module intent docstring"
         in message
     )
 

@@ -27,17 +27,17 @@ def test_agent_policy_reports_compact_repairable_snapshot(tmp_path: Path) -> Non
 
     assert report.is_clean
     rendered = render_python_lang_harness(report)
-    assert rendered.startswith("[advice]\n[PY-AGENT-R001]")
+    assert rendered.startswith("[advice]\n[PY-AGENT-POLICY-001]")
     assert "[ok]" not in rendered
     assert (
         output
-        == """[PY-AGENT-R001] Info: Library module lacks a module intent docstring
+        == """[PY-AGENT-POLICY-001] Info: Library module lacks a module intent docstring
   --> $TMP/service.py:1:1
    1 | def build(value):
      | `- add a concise module responsibility docstring
      | Required: Add a concise module docstring that names the module responsibility for agent search and repair.
 
-[PY-AGENT-R002] Info: Public callable lacks type annotations
+[PY-AGENT-POLICY-002] Info: Public callable lacks type annotations
   --> $TMP/service.py:1:1
    1 | def build(value):
      | `- add parameter and return annotations to this public callable
@@ -91,7 +91,7 @@ def test_agent_policy_blocks_duplicate_public_callable_names(
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-AGENT-R003", str(package / "beta.py")),
+        ("PY-AGENT-POLICY-003", str(package / "beta.py")),
     ]
     assert "unambiguous names" in report.findings[0].requirement
     assert "namespace this public callable" in report.findings[0].label
@@ -116,7 +116,7 @@ def test_agent_policy_blocks_duplicate_public_type_names(
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-AGENT-R005", str(package / "beta.py")),
+        ("PY-AGENT-POLICY-005", str(package / "beta.py")),
     ]
     assert "unambiguous type names" in report.findings[0].requirement
     assert "namespace this public type" in report.findings[0].label
@@ -141,7 +141,7 @@ def test_agent_policy_blocks_duplicate_public_value_names(
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-AGENT-R006", str(package / "beta.py")),
+        ("PY-AGENT-POLICY-006", str(package / "beta.py")),
     ]
     assert "configuration exports" in report.findings[0].requirement
     assert "namespace this public value" in report.findings[0].label
@@ -162,7 +162,7 @@ def test_agent_policy_blocks_repeated_module_namespace_segments(
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-AGENT-R004", str(source)),
+        ("PY-AGENT-POLICY-004", str(source)),
     ]
     assert "branch-unique" in report.findings[0].requirement
     assert "rename one repeated namespace segment" in report.findings[0].label
@@ -181,7 +181,7 @@ def test_agent_policy_deduplicates_repeated_namespace_branches(
 
     report = run_python_project_harness(tmp_path)
 
-    assert [finding.rule_id for finding in report.findings] == ["PY-AGENT-R004"]
+    assert [finding.rule_id for finding in report.findings] == ["PY-AGENT-POLICY-004"]
 
 
 def test_agent_policy_reports_broad_branch_package_surface(tmp_path: Path) -> None:
@@ -204,7 +204,7 @@ def test_agent_policy_reports_broad_branch_package_surface(tmp_path: Path) -> No
     assert [
         (finding.rule_id, finding.location.path) for finding in report.findings
     ] == [
-        ("PY-AGENT-R008", str(branch / "__init__.py")),
+        ("PY-AGENT-POLICY-008", str(branch / "__init__.py")),
     ]
     assert "one folder as one responsibility" in report.findings[0].requirement
     assert "owner map" in report.findings[0].label
@@ -245,8 +245,8 @@ def test_agent_policy_advice_can_be_promoted_to_blocking(
 
     assert report.is_clean
     assert [finding.rule_id for finding in report.advisory_findings()] == [
-        "PY-AGENT-R001",
-        "PY-AGENT-R002",
+        "PY-AGENT-POLICY-001",
+        "PY-AGENT-POLICY-002",
     ]
     assert [finding.rule_id for finding in report.blocking_findings()] == []
     assert [
@@ -255,14 +255,14 @@ def test_agent_policy_advice_can_be_promoted_to_blocking(
             severities=frozenset({PythonDiagnosticSeverity.INFO})
         )
     ] == [
-        "PY-AGENT-R001",
-        "PY-AGENT-R002",
+        "PY-AGENT-POLICY-001",
+        "PY-AGENT-POLICY-002",
     ]
-    promoted = replace(report, blocking_rule_ids=frozenset({"PY-AGENT-R001"}))
+    promoted = replace(report, blocking_rule_ids=frozenset({"PY-AGENT-POLICY-001"}))
     advice = render_python_lang_harness_advice(promoted)
 
-    assert "[PY-AGENT-R001]" not in advice
-    assert advice.startswith("[PY-AGENT-R002]")
+    assert "[PY-AGENT-POLICY-001]" not in advice
+    assert advice.startswith("[PY-AGENT-POLICY-002]")
 
 
 def test_agent_policy_descriptor_and_catalog_are_stable() -> None:
@@ -276,17 +276,17 @@ def test_agent_policy_descriptor_and_catalog_are_stable() -> None:
         "python",
     ]
     assert [rule.rule_id for rule in rules] == [
-        "PY-AGENT-R001",
-        "PY-AGENT-R002",
-        "PY-AGENT-R003",
-        "PY-AGENT-R004",
-        "PY-AGENT-R005",
-        "PY-AGENT-R006",
-        "PY-AGENT-R007",
-        "PY-AGENT-R008",
-        "PY-AGENT-R009",
-        "PY-AGENT-R010",
-        "PY-AGENT-R011",
-        "PY-AGENT-R012",
+        "PY-AGENT-POLICY-001",
+        "PY-AGENT-POLICY-002",
+        "PY-AGENT-POLICY-003",
+        "PY-AGENT-POLICY-004",
+        "PY-AGENT-POLICY-005",
+        "PY-AGENT-POLICY-006",
+        "PY-AGENT-POLICY-007",
+        "PY-AGENT-POLICY-008",
+        "PY-AGENT-POLICY-009",
+        "PY-AGENT-POLICY-010",
+        "PY-AGENT-POLICY-011",
+        "PY-AGENT-POLICY-012",
     ]
     assert {rule.severity for rule in rules} == {PythonDiagnosticSeverity.INFO}
