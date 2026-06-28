@@ -1,0 +1,12 @@
+harness = "pytest"
+test = "tests/fixtures/scenario_benchmarks/test_json_boundary_v1.py"
+target_total = "10ms"
+max_total = "50ms"
+observed_total = "10ms"
+regression_budget = "20ms"
+memory_budget_bytes = 16777216
+observed_memory_bytes = 8388608
+target_rationale = "The Python harness should emit compact JSON benchmark receipts without doing ASP-owned render work."
+
+[observed_timings]
+emit_json = "10ms"

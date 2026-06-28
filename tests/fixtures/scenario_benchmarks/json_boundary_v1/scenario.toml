@@ -1,0 +1,8 @@
+id = "python-json-boundary-v1"
+title = "Python harness exposes JSON-only provider packets"
+policy_ids = ["PYTHON-AGENT-JSON-BOUNDARY-001"]
+agent_goal = "Keep the Python harness benchmark surface focused on structured JSON packets consumed by ASP Rust/client rendering."
+reference_repositories = ["python/cpython"]
+reference_patterns = ["CLI provider output separates machine JSON contracts from downstream human rendering"]
+inputs = "inputs"
+expected = "expected"
