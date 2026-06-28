@@ -20,11 +20,6 @@ def python_semantic_language_schemas() -> list[dict[str, str]]:
             "path": "schemas/semantic-query-packet.v1.schema.json",
         },
         {
-            "schemaId": ids.SEMANTIC_READ_PACKET_SCHEMA_ID,
-            "schemaVersion": "1",
-            "path": "schemas/semantic-read-packet.v1.schema.json",
-        },
-        {
             "schemaId": ids.SEMANTIC_SOURCE_LOCATION_SCHEMA_ID,
             "schemaVersion": "1",
             "path": "schemas/semantic-source-location.v1.schema.json",

@@ -435,7 +435,7 @@ def help_text() -> str:
         "                             Owner-local item discovery without code windows\n"
         "  query <owner-path> --term <symbol> --code\n"
         "                             Pure compact parser-owned code output\n\n"
-        "  query --from-hook direct-source-read --selector <workspace-path:start-end> [--workspace <workspace-root>] --code\n"
+        "  query --from-hook owner-local-projection --selector <workspace-path:start-end> [--workspace <workspace-root>] --code\n"
         "                             Source-preserved pure code read; --code consumes no path argument\n\n"
         "  query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION'\n"
         "                             Flow-lite ABI compatibility surface; Python executor is not enabled yet\n\n"

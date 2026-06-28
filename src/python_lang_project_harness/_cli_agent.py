@@ -38,7 +38,7 @@ def render_agent_guide(project_root: Path) -> str:
                 (
                     f"|route read-plan selectors=R:selector,T:term "
                     f"returns=owners,tests,window-set code=false cmd=asp python "
-                    f"query --from-hook direct-source-read --selector <selector> "
+                    f"query --from-hook owner-local-projection --selector <selector> "
                     f"--term <term> --surface owners,tests {workspace} --view seeds"
                 ),
                 (
@@ -85,7 +85,7 @@ def render_agent_guide(project_root: Path) -> str:
                     f"owner tests {root} --view seeds"
                 ),
                 (
-                    f"|cmd read-plan=asp python query --from-hook direct-source-read "
+                    f"|cmd read-plan=asp python query --from-hook owner-local-projection "
                     f"--selector <selector> --term <term> --surface owners,tests "
                     f"{workspace} --view seeds"
                 ),

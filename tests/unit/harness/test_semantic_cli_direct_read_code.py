@@ -29,7 +29,7 @@ def test_cli_query_direct_source_read_code_rejects_source_window(
         [
             "query",
             "--from-hook",
-            "direct-source-read",
+            "owner-local-projection",
             "--selector",
             "src/pkg/service.py:1:2",
             "--code",

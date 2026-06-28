@@ -31,8 +31,8 @@ def normalize_query_view(value: str | None) -> tuple[str | None, str | None]:
             "Python query uses search --view seeds for discovery and "
             "query <owner-path> --term <symbol> --code or --names-only",
         )
-    if value not in {"graph", "hits", "both", "seeds", "read-packet"}:
-        return None, "--view requires graph, hits, both, seeds, or read-packet"
+    if value not in {"graph", "hits", "both", "seeds"}:
+        return None, "--view requires graph, hits, both, or seeds"
     return value, None
 
 
@@ -42,12 +42,7 @@ def is_broad_hook_query(
     terms: Sequence[str],
 ) -> bool:
     """Return whether hook query args should fan into semantic search."""
-    return (
-        from_hook == "direct-source-read"
-        and selector is not None
-        and bool(terms)
-        and _selector_has_glob(selector)
-    )
+    return False
 
 
 def _selector_has_glob(selector: str) -> bool:

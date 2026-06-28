@@ -40,7 +40,7 @@ def test_cli_query_direct_source_read_rejects_line_selector(
         [
             "query",
             "--from-hook",
-            "direct-source-read",
+            "owner-local-projection",
             "--selector",
             "src/pkg/service.py:2:2",
             "--workspace",
@@ -76,4 +76,4 @@ def test_cli_query_plain_owner_path_still_uses_item_query(
     )
 
     assert exit_code == 0
-    assert "direct-source-read" not in stdout.getvalue()
+    assert "owner-local-projection" not in stdout.getvalue()

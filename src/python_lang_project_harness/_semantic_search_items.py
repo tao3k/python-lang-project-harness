@@ -125,7 +125,7 @@ def owner_item_semantic_query_packet(
         "patchSafety": {
             "level": "read-safe",
             "reason": "compact query packet is not a mutation authority",
-            "nextAction": "query --from-hook direct-source-read",
+            "nextAction": "query --from-hook owner-local-projection",
         },
         "queryCoverage": [
             _query_coverage(

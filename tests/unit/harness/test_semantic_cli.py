@@ -128,7 +128,7 @@ def test_cli_agent_guide_prints_provider_owned_searchflow(tmp_path: Path) -> Non
     )
     assert "asp python search owner <owner-path> items --query <symbol|a|b>" in rendered
     assert (
-        "asp python query --from-hook direct-source-read --selector <selector> "
+        "asp python query --from-hook owner-local-projection --selector <selector> "
         "--term <term> --surface owners,tests --workspace <workspace-root> --view seeds"
         in rendered
     )

@@ -18,7 +18,7 @@ def test_cli_query_direct_source_read_code_rejects_source_locator_hint(
         [
             "query",
             "--from-hook",
-            "direct-source-read",
+            "owner-local-projection",
             "--selector",
             "tests/unit/example.py:1-2",
             "--workspace",
@@ -43,7 +43,7 @@ def test_cli_query_code_rejects_trailing_project_root(tmp_path: Path) -> None:
         [
             "query",
             "--from-hook",
-            "direct-source-read",
+            "owner-local-projection",
             "--selector",
             "tests/unit/example.py:1-2",
             "--code",

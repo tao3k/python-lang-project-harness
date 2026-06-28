@@ -10,7 +10,7 @@ from ._semantic_language_query import python_query_method_descriptors
 from ._semantic_language_schemas import python_semantic_language_schemas
 
 _PYTHON_CHECK_METHODS = ("check/changed", "check/full")
-_PYTHON_QUERY_METHODS = ("query", "query/owner-items", "query/direct-source-read")
+_PYTHON_QUERY_METHODS = ("query", "query/owner-items", "query/owner-local-projection")
 _PYTHON_AST_PATCH_METHODS = ("ast-patch/dry-run",)
 _PYTHON_EVIDENCE_METHODS = ("evidence/graph", "evidence/analyze")
 _PYTHON_AGENT_METHODS = ("agent/doctor", "agent/guide")

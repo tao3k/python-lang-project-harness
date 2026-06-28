@@ -36,7 +36,7 @@ def test_query_from_hook_line_range_code_rejects_source_locator_hint(
         [
             "query",
             "--from-hook",
-            "direct-source-read",
+            "owner-local-projection",
             "--selector",
             "src/sample.py:1-5",
             "--code",

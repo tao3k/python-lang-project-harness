@@ -321,7 +321,7 @@ def test_cli_query_direct_source_read_selector_rejects_line_range(
         [
             "query",
             "--from-hook",
-            "direct-source-read",
+            "owner-local-projection",
             "--selector",
             selector,
             "--json",

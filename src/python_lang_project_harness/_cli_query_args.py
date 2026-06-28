@@ -93,7 +93,7 @@ def _query_args_result(
 
 
 def _query_args_error(state: QueryParseState) -> str | None:
-    if state.from_hook is not None and state.from_hook != "direct-source-read":
+    if state.from_hook is not None and state.from_hook != "owner-local-projection":
         return f"unsupported query hook route: {state.from_hook}"
     if _query_has_positional_workspace(
         state
@@ -110,23 +110,17 @@ def _query_args_error(state: QueryParseState) -> str | None:
                 "`search fzf '<term>' owner --workspace <workspace-root> --view seeds`"
             )
         return "query requires an owner path"
-    if not state.terms and state.from_hook != "direct-source-read":
+    if not state.terms and state.from_hook != "owner-local-projection":
         return "query requires at least one --term"
     broad_hook_query = is_broad_hook_query(state.from_hook, state.selector, state.terms)
-    exact_read_packet = bool(
-        state.from_hook == "direct-source-read"
-        and state.json_output
-        and state.render_mode == "read-packet"
-        and selector_has_line_range(state.selector)
-    )
-    if state.json_output and state.code_only and not exact_read_packet:
+    if state.json_output and state.code_only:
         return "--code cannot be combined with --json"
     if state.names_only and state.code_only:
         return "--code cannot be combined with --names-only"
     if state.surfaces and not broad_hook_query:
-        return "query --surface requires broad --from-hook direct-source-read --selector and --term"
-    if state.render_mode is not None and not (broad_hook_query or exact_read_packet):
-        return "query --view requires broad hook search or exact direct-source-read read-packet"
+        return "query --surface is Rust ASP search-owned; Python query accepts exact owner-local projection only"
+    if state.render_mode is not None and not broad_hook_query:
+        return "query --view is Rust ASP search-owned; Python query accepts exact owner-local projection only"
     return None
 
 
@@ -151,7 +145,7 @@ def _query_names_only(state: QueryParseState) -> bool:
         return True
     return bool(
         not state.terms
-        and state.from_hook == "direct-source-read"
+        and state.from_hook == "owner-local-projection"
         and not state.code_only
         and not state.json_output
         and not selector_has_line_range(state.selector)

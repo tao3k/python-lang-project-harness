@@ -27,9 +27,9 @@ def tree_sitter_query_args_error(state: Any) -> str | None:
     if state.json_output and state.code_only:
         return "--code cannot be combined with --json"
     if state.surfaces:
-        return "query --surface requires broad --from-hook direct-source-read --selector and --term"
+        return "query --surface is Rust ASP search-owned; Python query accepts tree-sitter projection only"
     if state.render_mode is not None:
-        return "query --view requires broad hook search or exact direct-source-read read-packet"
+        return "query --view is Rust ASP search-owned; Python query accepts tree-sitter projection only"
     return None
 
 

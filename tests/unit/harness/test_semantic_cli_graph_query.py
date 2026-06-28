@@ -15,12 +15,13 @@ def test_cli_query_hook_wildcard_seeds_use_shared_compact_graph(
 ) -> None:
     write_search_fixture(tmp_path)
     stdout = io.StringIO()
+    stderr = io.StringIO()
 
     exit_code = run_cli(
         [
             "query",
             "--from-hook",
-            "direct-source-read",
+            "owner-local-projection",
             "--selector",
             "**/*.py",
             "--term",
@@ -33,18 +34,9 @@ def test_cli_query_hook_wildcard_seeds_use_shared_compact_graph(
             str(tmp_path),
         ],
         stdout=stdout,
+        stderr=stderr,
     )
 
-    rendered = stdout.getvalue()
-    assert exit_code == 0
-    assert rendered.startswith("[search-fzf] q=build")
-    assert (
-        "legend: ID=kind:role(value)!next; edge SRC>{DST:rel}; frontier ID.next"
-    ) in rendered
-    assert "aliases: graph:{G=search,Q=query,O=owner,T=test}" in rendered
-    assert "Q=query:term(build)!fzf" in rendered
-    assert "src/pkg/service.py" in rendered
-    assert "G>{Q:matches," in rendered
-    assert "frontier=Q.fzf," in rendered
-    assert "|seed " not in rendered
-    assert "alias: graph:" not in rendered
+    assert exit_code == 2
+    assert stdout.getvalue() == ""
+    assert "query --surface is Rust ASP search-owned" in stderr.getvalue()

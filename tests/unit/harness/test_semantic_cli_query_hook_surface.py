@@ -8,7 +8,7 @@ def test_query_from_hook_broad_selector_accepts_shared_surfaces() -> None:
         [
             "query",
             "--from-hook",
-            "direct-source-read",
+            "owner-local-projection",
             "--selector",
             "**/*.py",
             "--term",
@@ -23,12 +23,9 @@ def test_query_from_hook_broad_selector_accepts_shared_surfaces() -> None:
     )
 
     assert args is not None
-    assert args.command == "search"
-    assert args.view == "fzf"
-    assert args.query == "HookDecision"
-    assert args.query_set == ("HookDecision",)
-    assert args.pipes == ("owner", "tests")
-    assert args.render_mode == "seeds"
+    assert args.command == "error"
+    assert args.error is not None
+    assert "query --surface is Rust ASP search-owned" in args.error
 
 
 def test_query_from_hook_accepts_workspace_selector_scope() -> None:
@@ -36,7 +33,7 @@ def test_query_from_hook_accepts_workspace_selector_scope() -> None:
         [
             "query",
             "--from-hook",
-            "direct-source-read",
+            "owner-local-projection",
             "--workspace",
             ".",
             "--selector",

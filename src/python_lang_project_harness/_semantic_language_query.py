@@ -47,7 +47,7 @@ def python_query_method_descriptors() -> list[dict[str, Any]]:
                 "#not-match?",
             ],
             "unsupportedPredicates": [],
-            "cacheReplay": True,
+            "cacheReplay": False,
             "codeOutput": {
                 "mode": "pure-code",
                 "multiMatch": "deny",
@@ -80,7 +80,7 @@ def python_query_method_descriptors() -> list[dict[str, Any]]:
             "acceptedQuerySetSelectors": ["exact-set"],
             "querySetScopes": ["owner"],
             "outputModes": ["frontier", "json", "code", "names"],
-            "cacheReplay": True,
+            "cacheReplay": False,
             "codeOutput": {
                 "mode": "pure-code",
                 "multiMatch": "deny",
@@ -89,17 +89,13 @@ def python_query_method_descriptors() -> list[dict[str, Any]]:
             "unsupportedPatternBehavior": "diagnostic",
         },
         {
-            "method": "query/direct-source-read",
+            "method": "query/owner-local-projection",
             "command": "query",
-            "input": "owner-path",
+            "input": "exact-selector",
             "requiredOptions": ["--from-hook", "--selector"],
-            "outputSchemaIds": [
-                ids.SEMANTIC_QUERY_PACKET_SCHEMA_ID,
-                ids.SEMANTIC_READ_PACKET_SCHEMA_ID,
-            ],
+            "outputSchemaIds": [ids.SEMANTIC_QUERY_PACKET_SCHEMA_ID],
             "packetSchemas": [
                 "semantic-query-packet.v1",
-                "semantic-read-packet.v1",
                 "semantic-tree-sitter-query.v1",
             ],
             "queryInputForms": ["selector"],
@@ -110,11 +106,11 @@ def python_query_method_descriptors() -> list[dict[str, Any]]:
             "adapterModes": ["native-projection"],
             "sourceAuthorities": ["native-parser"],
             "executionBackends": ["native-parser"],
-            "renderProfiles": ["corpus-locator"],
+            "renderProfiles": ["owner-local-projection"],
             "supportsJson": True,
             "supportsCompact": True,
-            "outputModes": ["frontier", "json", "code", "names", "read-packet"],
-            "cacheReplay": True,
+            "outputModes": ["frontier", "json", "code", "names"],
+            "cacheReplay": False,
             "codeOutput": {
                 "mode": "pure-code",
                 "multiMatch": "deny",

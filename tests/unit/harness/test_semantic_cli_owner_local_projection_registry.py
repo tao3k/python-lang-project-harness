@@ -7,7 +7,7 @@ from pathlib import Path
 from python_lang_project_harness import run_cli
 
 
-def test_cli_direct_read_registry_advertises_read_packet_mode(
+def test_cli_owner_local_projection_registry_advertises_projection_mode(
     tmp_path: Path,
 ) -> None:
     stdout = io.StringIO()
@@ -29,24 +29,23 @@ def test_cli_direct_read_registry_advertises_read_packet_mode(
         for schema in schemas
     )
     descriptors = payload["languages"][0]["methodDescriptors"]
-    direct_read = next(
+    owner_local_projection = next(
         descriptor
         for descriptor in descriptors
-        if descriptor["method"] == "query/direct-source-read"
+        if descriptor["method"] == "query/owner-local-projection"
     )
-    assert direct_read["outputSchemaIds"] == [
+    assert owner_local_projection["input"] == "exact-selector"
+    assert owner_local_projection["outputSchemaIds"] == [
         "agent.semantic-protocols.semantic-query-packet",
-        "agent.semantic-protocols.semantic-read-packet",
     ]
-    assert direct_read["packetSchemas"] == [
+    assert owner_local_projection["packetSchemas"] == [
         "semantic-query-packet.v1",
-        "semantic-read-packet.v1",
         "semantic-tree-sitter-query.v1",
     ]
-    assert direct_read["queryInputForms"] == ["selector"]
-    assert direct_read["grammarId"] == "tree-sitter-python"
-    assert direct_read["cacheReplay"] is True
-    assert "read-packet" in direct_read["outputModes"]
+    assert owner_local_projection["queryInputForms"] == ["selector"]
+    assert owner_local_projection["grammarId"] == "tree-sitter-python"
+    assert owner_local_projection["cacheReplay"] is False
+    assert "read-packet" not in owner_local_projection["outputModes"]
 
     owner_items = next(
         descriptor
@@ -58,4 +57,4 @@ def test_cli_direct_read_registry_advertises_read_packet_mode(
         "semantic-tree-sitter-query.v1",
     ]
     assert owner_items["grammarId"] == "tree-sitter-python"
-    assert owner_items["cacheReplay"] is True
+    assert owner_items["cacheReplay"] is False
