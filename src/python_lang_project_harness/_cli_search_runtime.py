@@ -26,13 +26,6 @@ def _run_search_harness(
     project_root: Path,
     args: ProtocolArgs,
 ) -> tuple[object, dict[str, object] | None]:
-    from ._rule_packs import resolve_project_harness_config
-
-    config = resolve_project_harness_config(
-        project_root,
-        None,
-        rule_packs=None,
-    )
     owner_items_report = _run_exact_owner_items_search(project_root, args)
     if owner_items_report is not None:
         return owner_items_report, {
@@ -60,6 +53,13 @@ def _run_search_harness(
                 "dependency": args.query or "",
             },
         }
+    from ._rule_packs import resolve_project_harness_config
+
+    config = resolve_project_harness_config(
+        project_root,
+        None,
+        rule_packs=None,
+    )
     if args.command != "search" or args.view != "fzf":
         from ._runner import run_python_project_harness
 
