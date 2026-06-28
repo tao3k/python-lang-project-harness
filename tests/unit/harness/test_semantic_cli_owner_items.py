@@ -285,7 +285,7 @@ def test_cli_query_json_emits_projection_nodes_and_expand_actions(
         assert action["read"].startswith("src/pkg/service.py")
 
 
-def test_cli_query_direct_source_read_selector_strips_line_range(
+def test_cli_query_direct_source_read_selector_rejects_line_range(
     tmp_path: Path,
 ) -> None:
     package = tmp_path / "src" / "pkg"
@@ -315,6 +315,7 @@ def test_cli_query_direct_source_read_selector_strips_line_range(
     selector = f"src/pkg/service.py:{target_start}:{target_start + 1}"
     (package / "service.py").write_text(source, encoding="utf-8")
     stdout = io.StringIO()
+    stderr = io.StringIO()
 
     exit_code = run_cli(
         [
@@ -328,10 +329,9 @@ def test_cli_query_direct_source_read_selector_strips_line_range(
             str(tmp_path),
         ],
         stdout=stdout,
+        stderr=stderr,
     )
 
-    packet = json.loads(stdout.getvalue())
-    assert exit_code == 0
-    assert packet["ownerPath"] == "src/pkg/service.py"
-    assert [match["name"] for match in packet["matches"]] == ["target"]
-    assert packet["matches"][0]["read"] == selector
+    assert exit_code == 3
+    assert stdout.getvalue() == ""
+    assert "source locator hints are not executable selectors" in stderr.getvalue()

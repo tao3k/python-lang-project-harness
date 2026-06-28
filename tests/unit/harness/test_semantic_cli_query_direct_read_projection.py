@@ -1,16 +1,20 @@
-"""Direct-read query projection tests for Python line-range code output."""
-
 from __future__ import annotations
 
 import io
 from pathlib import Path
 
+from pytest import CaptureFixture
+
 from python_lang_project_harness._cli import run_cli
 
 
-def test_query_from_hook_line_range_code_uses_ast_projection(tmp_path: Path) -> None:
+def test_query_from_hook_line_range_code_rejects_source_locator_hint(
+    tmp_path: Path,
+    capsys: CaptureFixture[str],
+) -> None:
     (tmp_path / "pyproject.toml").write_text(
-        "[project]\nname = 'sample'\nversion = '0.1.0'\n"
+        "[project]\nname = 'sample'\nversion = '0.1.0'\n",
+        encoding="utf-8",
     )
     src = tmp_path / "src"
     src.mkdir()
@@ -18,19 +22,13 @@ def test_query_from_hook_line_range_code_uses_ast_projection(tmp_path: Path) -> 
         "\n".join(
             [
                 "def first():",
-                "    assert route == [",
-                "        'py-harness',",
-                "        'query',",
-                "        '--selector',",
-                "        'src/tools/report.py',",
-                "        '.',",
-                "    ]",
+                "    return 'first'",
                 "",
                 "def second():",
-                "    decision = classify_hook()",
-                "",
+                "    return 'second'",
             ]
-        )
+        ),
+        encoding="utf-8",
     )
     stdout = io.StringIO()
 
@@ -40,7 +38,7 @@ def test_query_from_hook_line_range_code_uses_ast_projection(tmp_path: Path) -> 
             "--from-hook",
             "direct-source-read",
             "--selector",
-            "src/sample.py:5-10",
+            "src/sample.py:1-5",
             "--code",
             "--workspace",
             str(tmp_path),
@@ -49,8 +47,8 @@ def test_query_from_hook_line_range_code_uses_ast_projection(tmp_path: Path) -> 
         cwd=tmp_path,
     )
 
-    rendered = stdout.getvalue()
-    assert exit_code == 0
-    assert "def first" in rendered
-    assert "def second" in rendered
-    assert "'--selector'," not in rendered
+    assert exit_code == 3
+    assert stdout.getvalue() == ""
+    assert (
+        "source locator hints are not executable selectors" in capsys.readouterr().err
+    )

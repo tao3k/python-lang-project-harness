@@ -6,10 +6,6 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TextIO
 
-from ._semantic_search_item_direct_read import (
-    owner_item_direct_read_lines,
-    owner_item_direct_read_packet,
-)
 from ._semantic_search_item_lines import owner_item_query_lines
 from ._semantic_search_items import owner_item_semantic_query_packet
 
@@ -47,64 +43,20 @@ def run_query_command(
         )
         return 0
 
+    if _selector_looks_like_source_locator_hint(args.selector) or (
+        args.code_only and _selector_looks_like_owner_path_hint(args.selector)
+    ):
+        raise ValueError(
+            "query requires parser-owned selector identity; "
+            "source locator hints are not executable selectors"
+        )
+
     owner_path = args.owner_path or _selector_owner_path(args.selector) or ""
     item_query = "|".join(args.query_set)
-    if _selector_has_line_range(args.selector, owner_path):
-        _write_direct_read_response(
-            args, report, project_root, stdout, owner_path, item_query
-        )
-    else:
-        _write_item_query_response(
-            args, report, project_root, stdout, owner_path, item_query
-        )
+    _write_item_query_response(
+        args, report, project_root, stdout, owner_path, item_query
+    )
     return 0
-
-
-def _write_direct_read_response(
-    args: ProtocolArgs,
-    report: Any,
-    project_root: Path,
-    stdout: TextIO,
-    owner_path: str,
-    item_query: str,
-) -> None:
-    if args.json and args.render_mode == "read-packet":
-        stdout.write(
-            json.dumps(
-                owner_item_direct_read_packet(
-                    report,
-                    project_root,
-                    owner_path,
-                    item_query,
-                    args.selector or owner_path,
-                    source_version=args.source_version,
-                ),
-                separators=(",", ":"),
-            )
-        )
-    elif args.json:
-        packet = owner_item_semantic_query_packet(
-            report,
-            project_root,
-            owner_path,
-            item_query,
-            output_mode="names" if args.names_only else "code",
-            selector=args.selector,
-        )
-        stdout.write(json.dumps(packet, separators=(",", ":")))
-    else:
-        stdout.write(
-            owner_item_direct_read_lines(
-                report,
-                project_root,
-                owner_path,
-                item_query,
-                args.selector or owner_path,
-                code_only=args.code_only,
-                source_version=args.source_version,
-            )
-        )
-    stdout.write("\n")
 
 
 def _write_item_query_response(
@@ -173,3 +125,21 @@ def _selector_owner_path(selector: str | None) -> str | None:
     if not separator:
         return None
     return path_and_start or None
+
+
+def _selector_looks_like_source_locator_hint(selector: str | None) -> bool:
+    if selector is None:
+        return False
+    normalized = selector.replace("\\", "/").removeprefix("owner:")
+    if any(marker in normalized for marker in ("*", "{", "}")):
+        return False
+    return ".py:" in normalized
+
+
+def _selector_looks_like_owner_path_hint(selector: str | None) -> bool:
+    if selector is None:
+        return False
+    normalized = selector.replace("\\", "/").removeprefix("owner:")
+    if any(marker in normalized for marker in ("*", "{", "}")):
+        return False
+    return normalized.endswith(".py")
