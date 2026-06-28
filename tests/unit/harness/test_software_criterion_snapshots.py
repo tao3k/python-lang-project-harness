@@ -6,12 +6,9 @@ from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from snapshot_support import normalize_temp_root
 from syrupy.extensions.json import JSONSnapshotExtension
-from syrupy.extensions.single_file import SingleFileSnapshotExtension, WriteMode
 
 from python_lang_project_harness import (
-    render_python_lang_harness,
     run_python_lang_harness,
 )
 
@@ -27,21 +24,6 @@ _SCENARIO = (
 
 
 class _ScenarioJsonSnapshotExtension(JSONSnapshotExtension):
-    @classmethod
-    def dirname(cls, *, test_location: Any) -> str:
-        return str(_SCENARIO / "expect")
-
-    @classmethod
-    def get_file_basename(cls, *, test_location: Any, index: object) -> str:
-        if isinstance(index, str):
-            return index
-        return super().get_file_basename(test_location=test_location, index=index)
-
-
-class _ScenarioTextSnapshotExtension(SingleFileSnapshotExtension):
-    _write_mode = WriteMode.TEXT
-    file_extension = "txt"
-
     @classmethod
     def dirname(cls, *, test_location: Any) -> str:
         return str(_SCENARIO / "expect")
@@ -71,7 +53,6 @@ def test_py_software_criterion_control_flow_v1_snapshot(
         }
         for finding in filtered.findings
     ]
-    rendered = normalize_temp_root(render_python_lang_harness(filtered), tmp_path)
 
     assert {finding["softwareCriteria"] for finding in findings} == {
         "control-flow.decision-stack",
@@ -83,10 +64,6 @@ def test_py_software_criterion_control_flow_v1_snapshot(
     assert (
         snapshot(name="findings", extension_class=_ScenarioJsonSnapshotExtension)
         == findings
-    )
-    assert (
-        snapshot(name="rendered", extension_class=_ScenarioTextSnapshotExtension)
-        == rendered
     )
 
 

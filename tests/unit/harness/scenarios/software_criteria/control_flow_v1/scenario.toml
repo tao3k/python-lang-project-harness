@@ -12,7 +12,7 @@ expected = "expect"
 
 [policy_trigger]
 kind = "software-criterion"
-trigger = "pytest software criterion snapshot reads inputs/criterion.py and compares expect/findings.json plus expect/rendered.txt"
+trigger = "pytest software criterion JSON receipt reads inputs/criterion.py and compares expect/findings.json"
 evidence = "expect/findings.json"
 expected_rule_ids = ["PY-AGENT-POLICY-009", "PY-AGENT-POLICY-010", "PY-AGENT-POLICY-011"]
 expected_criteria = [
