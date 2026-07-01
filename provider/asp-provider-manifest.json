@@ -78,11 +78,11 @@
         "seeds"
       ]
     },
-    "fzf": {
+    "lexical": {
       "argv": [
         "py-harness",
         "search",
-        "fzf",
+        "lexical",
         "{query}",
         "owner",
         "tests",

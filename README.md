@@ -88,8 +88,8 @@ surfaces aligned with the Rust and TypeScript harnesses:
 ```shell
 py-harness search workspace .
 py-harness search prime .
-py-harness search fzf PythonHarnessReport owner tests .
-py-harness search fzf --query-set PythonHarnessReport --query-set PythonSemanticSearchOptions owner tests .
+py-harness search lexical PythonHarnessReport owner tests .
+py-harness search lexical --query-set PythonHarnessReport --query-set PythonSemanticSearchOptions owner tests .
 py-harness search public-external-types pytest .
 py-harness search callsite PythonHarnessReport .
 py-harness search deps pytest .
