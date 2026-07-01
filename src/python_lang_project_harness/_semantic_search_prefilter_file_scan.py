@@ -170,7 +170,7 @@ def _path_match_scan_from_rglob(
     return PythonFilePathMatchScan(
         total_files=total_files,
         matches_by_term=matches_by_term,
-        tool="rg",
+        tool="rglob",
     )
 
 

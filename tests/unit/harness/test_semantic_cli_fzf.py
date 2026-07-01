@@ -117,3 +117,123 @@ def test_protocol_search_fzf_positional_query_uses_fast_frontier(
     assert "entries=owner-query(O,Q=>items+tests+dependency-usage)" in rendered
     assert "rank=Q,O,T frontier=Q.fzf,O.owner,T.tests" in rendered
     assert "|seed " not in rendered
+
+
+def test_protocol_search_fzf_positional_query_uses_rglob_prefilter_without_tools(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from python_lang_project_harness import (
+        _semantic_search_prefilter,
+        _semantic_search_prefilter_file_scan,
+    )
+    from python_lang_project_harness._cli_args import ProtocolArgs
+    from python_lang_project_harness._cli_protocol import run_protocol_cli
+
+    monkeypatch.setattr(_semantic_search_prefilter.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(
+        _semantic_search_prefilter_file_scan.shutil,
+        "which",
+        lambda _name: None,
+    )
+    write_search_fixture(tmp_path)
+    path_owner = tmp_path / "src" / "pkg" / "hook_runtime.py"
+    path_owner.write_text(
+        '"""Path-only fuzzy owner."""\n\ndef execute() -> None:\n    pass\n',
+        encoding="utf-8",
+    )
+    args = ProtocolArgs.parse(
+        [
+            "search",
+            "fzf",
+            "hookruntime",
+            "owner",
+            "tests",
+            "--view",
+            "seeds",
+            "--workspace",
+            str(tmp_path),
+        ]
+    )
+    stdout = io.StringIO()
+    stderr = io.StringIO()
+    assert args is not None
+    exit_code = run_protocol_cli(
+        args,
+        stdout=stdout,
+        stderr=stderr,
+        stdin="",
+        cwd=tmp_path,
+    )
+    rendered = stdout.getvalue()
+    assert stderr.getvalue() == ""
+    assert exit_code == 0
+    assert rendered.startswith("[search-fzf] q=hookruntime querySet=1")
+    assert "Q=query:term(hookruntime)!fzf" in rendered
+    assert "O=owner:path(src/pkg/hook_runtime.py)!owner" in rendered
+    assert "entries=owner-query(O,Q=>items+tests+dependency-usage)" in rendered
+    assert '|note kind=runtime-prefilter message="rglob path prefilter' in rendered
+
+
+def test_protocol_search_fzf_source_query_uses_rglob_source_without_tools(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from python_lang_project_harness import (
+        _semantic_search_prefilter,
+        _semantic_search_prefilter_file_scan,
+    )
+    from python_lang_project_harness._cli_args import ProtocolArgs
+    from python_lang_project_harness._cli_protocol import run_protocol_cli
+
+    monkeypatch.setattr(_semantic_search_prefilter.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(
+        _semantic_search_prefilter_file_scan.shutil,
+        "which",
+        lambda _name: None,
+    )
+    write_search_fixture(tmp_path)
+    for index in range(130):
+        filler = tmp_path / "src" / "pkg" / f"filler_{index:03d}.py"
+        filler.write_text(f"VALUE_{index} = {index}\n", encoding="utf-8")
+    query_owner = tmp_path / "src" / "pkg" / "cli_query.py"
+    query_owner.write_text(
+        "def run_query_command() -> None:\n    pass\n",
+        encoding="utf-8",
+    )
+    protocol_owner = tmp_path / "src" / "pkg" / "cli_protocol.py"
+    protocol_owner.write_text(
+        "from .cli_query import run_query_command\n",
+        encoding="utf-8",
+    )
+    args = ProtocolArgs.parse(
+        [
+            "search",
+            "fzf",
+            "run_query_command",
+            "owner",
+            "tests",
+            "--view",
+            "seeds",
+            "--workspace",
+            str(tmp_path),
+        ]
+    )
+    stdout = io.StringIO()
+    stderr = io.StringIO()
+    assert args is not None
+    exit_code = run_protocol_cli(
+        args,
+        stdout=stdout,
+        stderr=stderr,
+        stdin="",
+        cwd=tmp_path,
+    )
+    rendered = stdout.getvalue()
+    assert stderr.getvalue() == ""
+    assert exit_code == 0
+    assert rendered.startswith("[search-fzf] q=run_query_command querySet=1")
+    assert "Q=query:term(run_query_command)!fzf" in rendered
+    assert "O=owner:path(src/pkg/cli_query.py)!owner" in rendered
+    assert "entries=owner-query(O,Q=>items+tests+dependency-usage)" in rendered
+    assert "rglob-source" in rendered

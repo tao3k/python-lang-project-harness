@@ -9,10 +9,13 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 from ._constants import IGNORED_DIR_NAMES
+from ._semantic_search_prefilter_file_scan import list_python_files
 from ._semantic_search_prefilter_process import run_prefilter_command
 
 
-def source_match_scores(project_root: Path, rg: str, term: str) -> dict[str, int]:
+def source_match_scores(
+    project_root: Path, rg: str | None, term: str
+) -> dict[str, int]:
     """Return candidate files scored by parser-likely source hits."""
 
     return source_match_scores_by_term(project_root, rg, (term,)).get(term, {})
@@ -20,7 +23,7 @@ def source_match_scores(project_root: Path, rg: str, term: str) -> dict[str, int
 
 def source_match_scores_by_term(
     project_root: Path,
-    rg: str,
+    rg: str | None,
     terms: Sequence[str],
     *,
     ignored_dir_names: frozenset[str] = IGNORED_DIR_NAMES,
@@ -31,6 +34,12 @@ def source_match_scores_by_term(
     if not normalized_terms:
         return {}
     folded_terms = tuple((term, term.casefold()) for term in normalized_terms)
+    if rg is None:
+        return _source_match_scores_by_term_rglob(
+            project_root,
+            folded_terms,
+            ignored_dir_names,
+        )
     process = run_prefilter_command(
         _rg_source_command(rg, normalized_terms, ignored_dir_names),
         cwd=project_root,
@@ -46,6 +55,40 @@ def source_match_scores_by_term(
             folded_terms,
         )
     return scores_by_term
+
+
+def _source_match_scores_by_term_rglob(
+    project_root: Path,
+    folded_terms: Sequence[tuple[str, str]],
+    ignored_dir_names: frozenset[str],
+) -> dict[str, dict[str, int]]:
+    scores_by_term: dict[str, dict[str, int]] = {
+        term: {} for term, _folded_term in folded_terms
+    }
+    for path in list_python_files(project_root, ignored_dir_names=ignored_dir_names):
+        relative = path.relative_to(project_root).as_posix()
+        _merge_source_file_scores(scores_by_term, relative, path, folded_terms)
+    return scores_by_term
+
+
+def _merge_source_file_scores(
+    scores_by_term: dict[str, dict[str, int]],
+    relative_path: str,
+    path: Path,
+    folded_terms: Sequence[tuple[str, str]],
+) -> None:
+    try:
+        with path.open("r", encoding="utf-8", errors="ignore") as source_file:
+            for source in source_file:
+                for term, folded_term in _matching_terms(source, folded_terms):
+                    term_scores = scores_by_term[term]
+                    score = _source_line_score(source, folded_term)
+                    term_scores[relative_path] = min(
+                        term_scores.get(relative_path, score),
+                        score,
+                    )
+    except OSError:
+        return
 
 
 def _merge_source_line_scores(
