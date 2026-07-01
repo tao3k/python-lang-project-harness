@@ -6,7 +6,6 @@ from pathlib import Path
 
 from ._semantic_search_prefilter_file_scan import PythonFilePathMatchScan
 from ._semantic_search_prefilter_rank import ranked_term_matches
-from ._semantic_search_prefilter_result import MIN_PREFILTER_FILES
 
 
 def path_only_term_capped_matches(
@@ -18,7 +17,6 @@ def path_only_term_capped_matches(
 
     if (
         not terms
-        or path_match_scan.total_files <= MIN_PREFILTER_FILES
         or not all(path_match_scan.matches_by_term.get(term) for term in terms)
     ):
         return None

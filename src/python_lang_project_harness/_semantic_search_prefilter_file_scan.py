@@ -139,9 +139,8 @@ def _path_match_scan_from_output(
         if not line:
             continue
         total_files += 1
-        folded_line = line.casefold()
         for term, folded_term in folded_terms:
-            if folded_term in folded_line:
+            if _path_contains_term(line, folded_term):
                 matches_by_term[term].add(line)
     return PythonFilePathMatchScan(
         total_files=total_files,
@@ -165,15 +164,26 @@ def _path_match_scan_from_rglob(
             continue
         total_files += 1
         relative = path.relative_to(project_root).as_posix()
-        folded_relative = relative.casefold()
         for term, folded_term in folded_terms:
-            if folded_term in folded_relative:
+            if _path_contains_term(relative, folded_term):
                 matches_by_term[term].add(relative)
     return PythonFilePathMatchScan(
         total_files=total_files,
         matches_by_term=matches_by_term,
         tool="rg",
     )
+
+
+def _path_contains_term(path: str, folded_term: str) -> bool:
+    folded_path = path.casefold()
+    if folded_term in folded_path:
+        return True
+    compact_term = _compact_path_token(folded_term)
+    return len(compact_term) >= 3 and compact_term in _compact_path_token(folded_path)
+
+
+def _compact_path_token(value: str) -> str:
+    return "".join(char for char in value if char.isalnum())
 
 
 def _fd_python_files_command(fd: str, ignored_dir_names: frozenset[str]) -> list[str]:

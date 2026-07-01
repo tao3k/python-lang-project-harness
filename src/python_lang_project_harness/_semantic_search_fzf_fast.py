@@ -13,15 +13,16 @@ def render_fast_fzf_seed_search(args: ProtocolArgs, project_root: Path) -> str |
 
     if not _supports_fast_fzf_seed_search(args):
         return None
+    query_terms = _fast_fzf_query_terms(args)
     prefilter = prefilter_python_text_search_paths(
         project_root,
-        args.query_set,
+        query_terms,
         owner_path=args.owner_path,
     )
     if prefilter is None or not prefilter.paths:
         return None
     owners = tuple(_relative_owner_path(path, project_root) for path in prefilter.paths)
-    return _render_fast_fzf_seed_text(args.query_set, owners, prefilter.runtime_cost())
+    return _render_fast_fzf_seed_text(query_terms, owners, prefilter.runtime_cost())
 
 
 def _supports_fast_fzf_seed_search(args: ProtocolArgs) -> bool:
@@ -31,11 +32,19 @@ def _supports_fast_fzf_seed_search(args: ProtocolArgs) -> bool:
         and args.render_mode == "seeds"
         and not args.json
         and not args.code_only
-        and bool(args.query_set)
+        and bool(_fast_fzf_query_terms(args))
         and args.pipes in {("owner",), ("owner", "tests")}
         and args.item_query is None
         and args.dependency is None
     )
+
+
+def _fast_fzf_query_terms(args: ProtocolArgs) -> tuple[str, ...]:
+    if args.query_set:
+        return args.query_set
+    if args.query:
+        return (args.query,)
+    return ()
 
 
 def _relative_owner_path(path: Path, root: Path) -> str:
