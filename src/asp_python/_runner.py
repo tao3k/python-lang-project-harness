@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from python_lang_parser._diagnostic_model import PythonDiagnosticSeverity
+from python_lang_parser.model import PythonModuleReport
 from python_lang_parser.parser import parse_python_file
 
 from ._discovery import asp_python_scope, discover_python_files
@@ -154,9 +156,8 @@ def run_python_lang_harness(
     for path in root_paths:
         if not path.exists():
             raise ValueError(f"harness path does not exist: {path}")
-    modules = tuple(
-        parse_python_file(path)
-        for path in discover_python_files(
+    modules = _parse_python_files(
+        discover_python_files(
             root_paths,
             ignored_dir_names=selected_config.ignored_dir_names,
             include_hidden_dir_names=selected_config.include_hidden_dir_names,
@@ -176,6 +177,15 @@ def run_python_lang_harness(
         disabled_rule_ids=selected_config.disabled_rule_ids,
         blocking_rule_ids=selected_config.blocking_rule_ids,
     )
+
+
+def _parse_python_files(paths: Sequence[Path]) -> tuple[PythonModuleReport, ...]:
+    """Parse independent files concurrently while retaining discovery order."""
+
+    if len(paths) < 2:
+        return tuple(parse_python_file(path) for path in paths)
+    with ThreadPoolExecutor(thread_name_prefix="asp-python-parse") as executor:
+        return tuple(executor.map(parse_python_file, paths))
 
 
 def assert_python_lang_harness_clean(

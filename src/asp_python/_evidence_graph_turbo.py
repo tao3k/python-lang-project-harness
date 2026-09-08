@@ -40,7 +40,7 @@ def build_python_evidence_analysis_request(project_root: Path) -> dict[str, Any]
         "queryTerms": ["python evidence quality"],
         "profile": "evidence-quality",
         "algorithm": "typed-ppr-diverse",
-        "seedIds": _analysis_seed_ids(analysis_graph),
+        "entryNodeIds": _analysis_seed_ids(analysis_graph),
         "budget": 8,
         "producer": graph["producer"],
         "project": _analysis_project(project_root.resolve(), graph),

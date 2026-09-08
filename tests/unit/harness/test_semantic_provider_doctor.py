@@ -43,7 +43,10 @@ def test_cli_agent_doctor_json_validates_v1_envelope_and_registry(
         registration["binary"],
     )
     descriptors = registration["methodDescriptors"]
-    assert len(descriptors) == len(registration["methods"]) == 31
+    assert len(descriptors) == len(registration["methods"]) == 7
+    assert not any(
+        descriptor["method"].startswith("search/") for descriptor in descriptors
+    )
     exact_query = next(
         descriptor
         for descriptor in descriptors

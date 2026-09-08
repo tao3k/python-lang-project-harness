@@ -55,15 +55,45 @@ def _iter_python_file_candidates(
             continue
         if path.is_dir():
             candidates.extend(
-                candidate
-                for candidate in path.rglob("*.py")
-                if is_scannable_python_file(
-                    candidate,
-                    scan_root=path,
+                _iter_python_directory_candidates(
+                    path,
                     ignored_dir_names=ignored_dir_names,
                     include_hidden_dir_names=include_hidden_dir_names,
                 )
             )
+    return tuple(candidates)
+
+
+def _iter_python_directory_candidates(
+    scan_root: Path,
+    *,
+    ignored_dir_names: frozenset[str],
+    include_hidden_dir_names: frozenset[str],
+) -> tuple[Path, ...]:
+    """Walk a root without descending into ignored project environments."""
+
+    candidates: list[Path] = []
+    for directory, dir_names, file_names in scan_root.walk():
+        dir_names[:] = sorted(
+            name
+            for name in dir_names
+            if not _ignored_path_part(
+                name,
+                ignored_dir_names,
+                include_hidden_dir_names,
+            )
+        )
+        for file_name in sorted(file_names):
+            if not file_name.endswith(".py"):
+                continue
+            candidate = directory / file_name
+            if is_scannable_python_file(
+                candidate,
+                scan_root=scan_root,
+                ignored_dir_names=ignored_dir_names,
+                include_hidden_dir_names=include_hidden_dir_names,
+            ):
+                candidates.append(candidate)
     return tuple(candidates)
 
 

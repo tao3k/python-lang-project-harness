@@ -3,17 +3,17 @@
 ## Format, Test, Lint
 
 ```shell
-direnv exec . uv run --group test ruff format --check src tests
-direnv exec . uv run --group test ruff check src tests
-direnv exec . uv run --group test pytest tests -q
-direnv exec . uv run --group test python-project-harness .
-direnv exec . uv run --group test python-project-harness --agent-snapshot .
-direnv exec . uv build
-direnv exec . git diff --check
+.devenv/devenv-profile-exec uv run --project languages/asp-python --group test ruff format --check languages/asp-python/src languages/asp-python/tests
+.devenv/devenv-profile-exec uv run --project languages/asp-python --group test ruff check languages/asp-python/src languages/asp-python/tests
+.devenv/devenv-profile-exec uv run --project languages/asp-python --group test pytest languages/asp-python/tests -q
+.devenv/devenv-profile-exec uv run --project languages/asp-python --group test python-project-harness languages/asp-python
+.devenv/devenv-profile-exec uv run --project languages/asp-python --group test python-project-harness --agent-snapshot languages/asp-python
+.devenv/devenv-profile-exec uv build languages/asp-python
+.devenv/devenv-profile-exec git diff --check
 ```
 
-Use `direnv exec .` so the devenv-managed Python and `uv` environment are used
-consistently.
+Use `.devenv/devenv-profile-exec` from the repository root so the captured
+devenv-managed Python and `uv` environment are used consistently.
 
 GitHub Actions runs the same validation surface without `direnv`: `uv sync
 --group test --locked`, ruff format/check, pytest, self-harness, package build,
@@ -57,10 +57,11 @@ Rendered output and policy diagnostics are locked under `tests/unit/snapshots`.
 Normal tests compare snapshots only. Refresh them intentionally:
 
 ```shell
-ASP_PYTHON_UPDATE_SNAPSHOTS=1 direnv exec . uv run --group test pytest \
-  tests/unit/harness/test_render_snapshots.py \
-  tests/unit/harness/test_agent_policy_snapshots.py \
-  tests/unit/harness/test_policy_snapshots.py -q
+.devenv/devenv-profile-exec env ASP_PYTHON_UPDATE_SNAPSHOTS=1 \
+  uv run --project languages/asp-python --group test pytest \
+  languages/asp-python/tests/unit/harness/test_render_snapshots.py \
+  languages/asp-python/tests/unit/harness/test_agent_policy_snapshots.py \
+  languages/asp-python/tests/unit/harness/test_policy_snapshots.py -q
 ```
 
 Review the resulting `.snap` diff before keeping it. Snapshot changes are

@@ -71,7 +71,7 @@ def test_resident_runtime_publishes_manifest_operations_and_structured_frames(
     )
 
 
-def test_runtime_converts_live_edit_syntax_errors_to_error_frames() -> None:
+def test_runtime_isolates_live_edit_syntax_errors_in_owner_results() -> None:
     response = _response_frame(
         frame(
             "syntax-error-1",
@@ -82,8 +82,11 @@ def test_runtime_converts_live_edit_syntax_errors_to_error_frames() -> None:
     )
 
     assert response["requestId"] == "syntax-error-1"
-    assert response["outcome"] == "error"
-    assert "invalid syntax" in response["error"]
+    assert response["outcome"] == "ready"
+    owner = response["payload"]["owners"][0]
+    assert owner["projectionState"] == "syntax-unavailable"
+    assert owner["diagnostic"]["reasonKind"] == "source-syntax-unavailable"
+    assert "invalid syntax" in owner["diagnostic"]["message"]
 
 
 def test_http_json_live_corpus_stream_query_concurrency_and_latency() -> None:

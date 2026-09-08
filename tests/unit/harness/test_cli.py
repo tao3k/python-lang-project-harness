@@ -16,14 +16,15 @@ def test_cli_help_advertises_the_current_provider_protocol() -> None:
 
     rendered = stdout.getvalue()
     assert exit_code == 0
-    assert "asp-python search <view>" in rendered
+    assert "asp python search playbook <query>" in rendered
+    assert "asp-python search <view>" not in rendered
     assert "asp python query --selector" in rendered
     assert "asp-python evidence graph" in rendered
     assert "asp-python agent doctor" in rendered
 
 
 def test_cli_subcommand_help_advertises_exact_projection() -> None:
-    for args in (["search", "--help"], ["query", "--help"]):
+    for args in (["query", "--help"],):
         stdout = io.StringIO()
 
         exit_code = run_cli(args, stdout=stdout)
@@ -43,6 +44,8 @@ def test_cli_agent_guide_advertises_exact_source_route(tmp_path: Path) -> None:
     assert (
         "asp python query --selector <exact-structural-selector>" in stdout.getvalue()
     )
+    assert "|cmd playbook=asp python search playbook <query>" in stdout.getvalue()
+    assert "search prime" not in stdout.getvalue()
     assert "|policy authority=asp-python-api trigger=pytest-plugin" in stdout.getvalue()
 
 

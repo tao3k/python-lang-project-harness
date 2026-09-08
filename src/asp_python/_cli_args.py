@@ -43,7 +43,13 @@ class ProtocolArgs:
     def parse(cls, args: list[str] | tuple[str, ...]) -> ProtocolArgs | None:
         command = args[0] if args else None
         if command == "search":
-            return cls._parse_search(args[1:])
+            return cls(
+                "error",
+                error=(
+                    "provider-local search was removed; use "
+                    "asp python search playbook <query>"
+                ),
+            )
         if command == "query":
             return cls._parse_query(args[1:])
         if command == "evidence":
@@ -53,31 +59,6 @@ class ProtocolArgs:
         if command == "ast-patch":
             return cls._parse_ast_patch(args[1:])
         return None
-
-    @classmethod
-    def _parse_search(cls, args: list[str] | tuple[str, ...]) -> ProtocolArgs:
-        if args and args[0] in {"--help", "-h"}:
-            return cls("help")
-        from ._semantic_search_cli import parse_semantic_search_args
-
-        parsed = parse_semantic_search_args(args)
-        if parsed.error is not None:
-            return cls("error", error=parsed.error)
-        return cls(
-            "search",
-            view=parsed.view,
-            query=parsed.query,
-            item_query=parsed.item_query,
-            owner_path=parsed.owner_path,
-            dependency=parsed.dependency,
-            query_set=parsed.query_set,
-            project_root=parsed.project_root,
-            package_path=parsed.package_path,
-            workspace=parsed.workspace,
-            pipes=parsed.pipes,
-            json=parsed.json,
-            render_mode=parsed.render_mode,
-        )
 
     @classmethod
     def _parse_query(cls, args: list[str] | tuple[str, ...]) -> ProtocolArgs:
@@ -229,9 +210,9 @@ class ProtocolArgs:
 
 def help_text() -> str:
     return (
-        "asp-python — Python semantic search and project harness\n\n"
+        "asp-python — Python provider runtime and project harness\n\n"
         "Usage:\n"
-        "  asp-python search <view> ... [--json] [--package PATH] [--workspace <workspace-root>]\n"
+        "  asp python search playbook <query> [--workspace <workspace-root>]\n"
         "  asp python query --selector <exact-structural-selector> --projection <source|callable-skeleton> --workspace <workspace-root>\n"
         "  asp-python query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION' [--json] [--workspace <workspace-root>]\n"
         "  asp-python evidence graph [--json] [PROJECT_ROOT]\n"
@@ -240,33 +221,11 @@ def help_text() -> str:
         "  asp-python agent doctor [--json]\n"
         "  asp-python agent guide\n"
         "\n"
-        "SEARCH VIEWS\n"
-        "  search workspace          Workspace package/router index\n"
-        "  search prime              Project reasoning-tree map\n"
-        "  search owner <path>       Owner graph slice\n"
-        "  search owner <path> items --query <symbol|a|b>\n"
-        "                             Parser-owned structural selector discovery\n"
-        "  search dependency <pkg>   Dependency manifest and local import usage\n"
-        "  search deps <pkg[@ver][::api]>\n"
-        "                             Versioned dependency API usage evidence\n"
-        "  search api <query>        Parser-owned public API facts\n"
-        "  search public-external-types <pkg>\n"
-        "                             Public API type surfaces exposing a dependency\n"
-        "  search symbol <name>      Symbol/export definitions\n"
-        "  search callsite <name>    Parser-owned function and method callsites\n"
-        "  search import <query>     Import owner edges\n"
-        "  search tests <owner>      Tests that import an owner\n"
-        "  search lexical --query <term> --query <term>\n"
-        "                             Lexical owner/source-text candidates\n"
-        "  search lexical --query <term> --query <term> owner tests\n"
-        "                             Minimal final-only lexical -> owner -> tests pipe\n"
-        "  search reasoning owner-tests --owner <path>\n"
-        "                             Typed graph entry returning covering tests, entrypoints, and fixtures\n"
-        "  search reasoning owner-query --owner <path> --query <symbol>\n"
-        "                             Typed graph entry returning owner items, tests, and dependency usage\n"
-        "  search reasoning query-deps --query <symbol> --dependency <pkg>\n"
-        "                             Typed graph entry returning owners, imports, and usage tests\n"
-        "  search ingest             Detect stdin shape and group hits by owner\n\n"
+        "SEARCH\n"
+        "  Search is owned by the root ASP Client. The single public surface is\n"
+        "  `asp python search playbook`, which composes raw candidates, provider\n"
+        "  native syntax, lexical ranking, and graph expansion. Provider-local\n"
+        "  search views are intentionally unavailable.\n\n"
         "QUERY\n"
         "  asp python query --selector <python-structural-selector> --projection source --workspace <workspace-root>\n"
         "                             Exact source materialization through ASP authority\n"
@@ -283,20 +242,12 @@ def help_text() -> str:
         "AGENT\n"
         "  agent doctor              Print semantic-language provider readiness\n"
         "  agent doctor --json       Semantic language registry document\n\n"
-        "  agent guide               Print command-line search flow guide\n\n"
+        "  agent guide               Print provider role and playbook guidance\n\n"
         "  Hook install/runtime is owned by asp in the root toolchain.\n\n"
         "\nEXAMPLES\n"
-        "  asp-python search workspace .\n"
-        "  asp-python search prime .\n"
-        "  asp-python search public-external-types pytest .\n"
-        "  asp-python search callsite PythonSemanticSearchOptions .\n"
-        "  asp python search lexical --query PythonSemanticSearchOptions --query owner --workspace .\n"
-        "  asp-python search reasoning owner-tests --owner src/asp_python/_cli.py .\n"
-        "  asp-python search reasoning owner-query --owner src/asp_python/_cli.py --query run_cli .\n"
-        "  asp-python search reasoning query-deps --query Session --dependency requests .\n"
+        "  asp python search playbook PythonSemanticSearchOptions --workspace .\n"
         "  asp python query --selector 'python://src/asp_python/_cli.py#item/function/run_cli' --projection source --workspace .\n"
         "  asp-python query --catalog flow-lite --where 'source.call=payload sink.constructs=Action scope.fn=collect' .\n"
-        "  asp python search lexical --query PythonSemanticSearchOptions --workspace . --view seeds\n"
         "  asp-python evidence graph --json .\n"
         "  asp-python evidence analyze --json .\n"
         "  asp-python agent doctor --json .\n"

@@ -11,7 +11,6 @@ from ._cli_agent import (
     render_agent_guide,
 )
 from ._cli_args import ProtocolArgs, help_text
-from ._cli_search_runtime import _run_search_harness
 
 
 def run_protocol_cli(
@@ -39,19 +38,10 @@ def run_protocol_cli(
         )
 
     try:
-        fast_exit = _run_fast_protocol_command(
-            args,
-            project_root=project_root,
-            stdout=stdout,
-            stdin=stdin,
-        )
-        if fast_exit is not None:
-            return fast_exit
-        return _run_harness_protocol_command(
-            args,
-            project_root=project_root,
-            stdout=stdout,
-            stdin=stdin,
+        if args.command != "query":
+            raise ValueError("unsupported provider command")
+        return _run_query_protocol_command(
+            args, project_root=project_root, stdout=stdout
         )
     except ValueError as error:
         stderr.write(f"{error}\n")
@@ -131,127 +121,23 @@ def _run_ast_patch_command(
     )
 
 
-def _run_fast_protocol_command(
+def _run_query_protocol_command(
     args: ProtocolArgs,
     *,
-    project_root: Path,
-    stdout: TextIO,
-    stdin: str,
-) -> int | None:
-    rendered = _render_fast_protocol_command(
-        args,
-        project_root=project_root,
-        stdin=stdin,
-    )
-    if rendered is None:
-        return None
-    stdout.write(rendered)
-    return 0
-
-
-def _render_fast_protocol_command(
-    args: ProtocolArgs,
-    *,
-    project_root: Path,
-    stdin: str,
-) -> str | None:
-    if args.command == "search" and args.view == "dependency-topology":
-        from ._dependency_topology import render_dependency_topology_packet
-
-        return render_dependency_topology_packet(project_root)
-    from ._semantic_graph_facts import render_semantic_graph_facts
-    from ._semantic_search_ingest_fast import render_fast_empty_ingest_search
-    from ._semantic_search_lexical_fast import render_fast_lexical_seed_search
-    from ._semantic_search_owner_fast import render_fast_owner_seed_search
-    from ._semantic_search_prime_fast import render_fast_prime_search
-
-    renderers = (
-        lambda: render_semantic_graph_facts(
-            args, project_root=project_root, stdin=stdin
-        ),
-        lambda: render_fast_empty_ingest_search(args, project_root, stdin),
-        lambda: render_fast_prime_search(args, project_root),
-        lambda: render_fast_owner_seed_search(args, project_root),
-        lambda: render_fast_lexical_seed_search(args, project_root),
-    )
-    for render in renderers:
-        rendered = render()
-        if rendered is not None:
-            return rendered
-    return None
-
-
-def _run_harness_protocol_command(
-    args: ProtocolArgs,
-    *,
-    project_root: Path,
-    stdout: TextIO,
-    stdin: str,
-) -> int:
-    report, runtime_cost = _run_search_harness(project_root, args)
-    if args.command == "query":
-        return _run_query_command(
-            args, report=report, project_root=project_root, stdout=stdout
-        )
-    return _run_search_command(
-        args,
-        report=report,
-        runtime_cost=runtime_cost,
-        stdout=stdout,
-        stdin=stdin,
-    )
-
-
-def _run_query_command(
-    args: ProtocolArgs,
-    *,
-    report: object,
     project_root: Path,
     stdout: TextIO,
 ) -> int:
     from ._cli_query import run_query_command
+    from ._rule_packs import resolve_project_harness_config
+    from ._runner import run_asp_python
 
+    report = run_asp_python(
+        project_root,
+        config=resolve_project_harness_config(project_root, None, rule_packs=None),
+    )
     return run_query_command(
         args,
         report=report,
         project_root=project_root,
         stdout=stdout,
     )
-
-
-def _run_search_command(
-    args: ProtocolArgs,
-    *,
-    report: object,
-    runtime_cost: dict[str, object] | None,
-    stdout: TextIO,
-    stdin: str,
-) -> int:
-    from ._semantic_search import (
-        PythonSemanticSearchOptions,
-        build_python_semantic_search_packet,
-        render_python_semantic_search_packet,
-        render_python_semantic_search_packet_json,
-    )
-
-    packet = build_python_semantic_search_packet(
-        report,
-        PythonSemanticSearchOptions(
-            view=args.view or "prime",
-            query=args.query,
-            item_query=args.item_query,
-            query_set=args.query_set,
-            owner_path=args.owner_path,
-            dependency=args.dependency,
-            pipes=args.pipes,
-            render_mode=args.render_mode,
-            stdin=stdin,
-            runtime_cost=runtime_cost,
-        ),
-    )
-    stdout.write(
-        render_python_semantic_search_packet_json(packet)
-        if args.json
-        else render_python_semantic_search_packet(packet)
-    )
-    return 0

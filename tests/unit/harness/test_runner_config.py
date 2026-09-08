@@ -223,3 +223,16 @@ def test_runner_rejects_missing_project_root_and_explicit_path(tmp_path: Path) -
         assert str(error) == f"harness path does not exist: {missing}"
     else:
         raise AssertionError("missing harness path should fail")
+
+
+def test_concurrent_parser_retains_deterministic_discovery_order(
+    tmp_path: Path,
+) -> None:
+    last = tmp_path / "z_last.py"
+    first = tmp_path / "a_first.py"
+    last.write_text("LAST = 1\n", encoding="utf-8")
+    first.write_text("FIRST = 1\n", encoding="utf-8")
+
+    report = run_python_lang_harness([tmp_path], rule_packs=())
+
+    assert [module.path for module in report.modules] == [str(first), str(last)]

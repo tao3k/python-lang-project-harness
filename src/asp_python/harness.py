@@ -51,12 +51,6 @@ from ._semantic_language import (
     python_semantic_language_registration,
     semantic_language_registry_document,
 )
-from ._semantic_search import (
-    PythonSemanticSearchOptions,
-    build_python_semantic_search_packet,
-    render_python_semantic_search_packet,
-    render_python_semantic_search_packet_json,
-)
 from ._syntax import PythonSyntaxRulePack
 from ._syntax_catalog import python_syntax_rules
 from ._test_layout import PythonTestLayoutRulePack
@@ -117,7 +111,6 @@ __all__ = [
     "PythonProjectHarnessScope",
     "PythonProjectPolicyRulePack",
     "PythonRulePackDescriptor",
-    "PythonSemanticSearchOptions",
     "PythonSyntaxRulePack",
     "PythonTestLayoutRulePack",
     "PythonOwnerResponsibility",
@@ -146,7 +139,6 @@ __all__ = [
     "PythonVerificationWaiver",
     "assert_python_lang_harness_clean",
     "assert_asp_python_clean",
-    "build_python_semantic_search_packet",
     "default_python_harness_config",
     "default_python_lang_rule_packs",
     "discover_python_files",
@@ -175,8 +167,6 @@ __all__ = [
     "render_python_reasoning_tree",
     "render_asp_python_agent_snapshot",
     "render_asp_python_agent_snapshot_with_config",
-    "render_python_semantic_search_packet",
-    "render_python_semantic_search_packet_json",
     "render_python_verification_performance_index_json",
     "render_python_verification_plan",
     "render_python_verification_plan_json",

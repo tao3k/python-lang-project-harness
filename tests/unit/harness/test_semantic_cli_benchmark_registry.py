@@ -3,19 +3,12 @@
 from asp_python import python_semantic_language_registration
 
 
-def test_registered_search_methods_publish_public_benchmark_invocations() -> None:
+def test_registry_publishes_no_search_orchestration_invocation() -> None:
     descriptors = python_semantic_language_registration()["methodDescriptors"]
     search_descriptors = [
         descriptor
         for descriptor in descriptors
         if descriptor["method"].startswith("search/")
-        and "benchmarkInvocation" in descriptor
     ]
 
-    assert search_descriptors
-    for descriptor in search_descriptors:
-        invocation = descriptor["benchmarkInvocation"]
-        assert invocation["args"][:2] == ["search", descriptor["view"]]
-        assert "{workspace}" in invocation["args"]
-        assert isinstance(invocation["expectsJson"], bool)
-        assert invocation["maxElapsedMs"] > 0
+    assert search_descriptors == []

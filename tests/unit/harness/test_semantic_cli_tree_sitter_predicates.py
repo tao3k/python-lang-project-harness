@@ -6,7 +6,7 @@ import io
 import json
 from pathlib import Path
 
-from semantic_search_fixture import write_search_fixture
+from python_project_fixture import write_python_project_fixture
 
 from asp_python import run_cli
 
@@ -14,7 +14,7 @@ from asp_python import run_cli
 def test_cli_query_inline_s_expression_applies_predicate_matrix(
     tmp_path: Path,
 ) -> None:
-    write_search_fixture(tmp_path)
+    write_python_project_fixture(tmp_path)
     cases = [
         (
             "#eq?",
@@ -88,7 +88,7 @@ def test_cli_query_inline_s_expression_applies_predicate_matrix(
 def test_cli_query_inline_s_expression_renders_multi_path_corpus_locators(
     tmp_path: Path,
 ) -> None:
-    write_search_fixture(tmp_path)
+    write_python_project_fixture(tmp_path)
     (tmp_path / "src" / "pkg" / "extra.py").write_text(
         "def alpha() -> str:\n    return 'alpha'\n",
         encoding="utf-8",

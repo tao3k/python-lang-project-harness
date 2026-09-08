@@ -69,7 +69,7 @@ def test_cli_evidence_analyze_renders_graph_turbo_request(tmp_path: Path) -> Non
     assert payload["summary"]["nodes"] == 4
     assert payload["summary"]["gaps"] == 1
     assert payload["graphs"][0]["graphId"] == "python.evidence.graph"
-    assert payload["seedIds"] == ["python:owner:pyproject.toml"]
+    assert payload["entryNodeIds"] == ["python:owner:pyproject.toml"]
     assert any(
         edge["relation"] == "requires-evidence"
         for edge in payload["graphs"][0]["edges"]

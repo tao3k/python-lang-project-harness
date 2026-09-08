@@ -5,8 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 from . import _semantic_language_ids as ids
-from ._semantic_language_benchmark import python_search_benchmark_invocation
-from ._semantic_language_catalog import python_search_view_descriptors
 from ._semantic_language_invocation import attach_semantic_language_invocations
 from ._semantic_language_query import python_query_method_descriptors
 from ._semantic_language_schemas import python_semantic_language_schemas
@@ -20,11 +18,6 @@ _PYTHON_QUERY_METHODS = (
 _PYTHON_AST_PATCH_METHODS = ("ast-patch/dry-run",)
 _PYTHON_EVIDENCE_METHODS = ("evidence/graph", "evidence/analyze")
 _PYTHON_AGENT_METHODS = ("agent/doctor", "agent/guide")
-_PYTHON_SEARCH_VIEW_DESCRIPTORS = python_search_view_descriptors()
-_PYTHON_SEARCH_VIEWS = tuple(
-    descriptor["view"] for descriptor in _PYTHON_SEARCH_VIEW_DESCRIPTORS
-)
-_PYTHON_SEARCH_METHODS = tuple(f"search/{view}" for view in _PYTHON_SEARCH_VIEWS)
 
 
 def semantic_language_registry_document() -> dict[str, Any]:
@@ -51,7 +44,6 @@ def python_semantic_language_registration() -> dict[str, Any]:
         "namespace": ids.PYTHON_PROVIDER_NAMESPACE,
         "displayName": "Python",
         "methods": [
-            *_PYTHON_SEARCH_METHODS,
             *_PYTHON_QUERY_METHODS,
             *_PYTHON_AST_PATCH_METHODS,
             *_PYTHON_EVIDENCE_METHODS,
@@ -66,10 +58,7 @@ def python_semantic_language_registration() -> dict[str, Any]:
 def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
     """Return method descriptors for the Python provider registry."""
 
-    descriptors = [
-        _python_search_method_descriptor(descriptor)
-        for descriptor in _PYTHON_SEARCH_VIEW_DESCRIPTORS
-    ]
+    descriptors: list[dict[str, Any]] = []
     descriptors.extend(python_query_method_descriptors())
     descriptors.extend(
         {
@@ -126,70 +115,3 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
         ]
     )
     return attach_semantic_language_invocations(descriptors)
-
-
-def _python_search_method_descriptor(descriptor: dict[str, Any]) -> dict[str, Any]:
-    rendered = {
-        **descriptor,
-        "benchmarkInvocation": python_search_benchmark_invocation(
-            str(descriptor["view"])
-        ),
-        "outputSchemaIds": _search_output_schema_ids(descriptor["view"]),
-        "supportsJson": True,
-        "supportsCompact": True,
-    }
-    if descriptor["view"] == "semantic-facts":
-        rendered["supportsCompact"] = False
-        rendered["outputModes"] = ["json"]
-        rendered["packetSchemas"] = [
-            "semantic-fact-graph.v1",
-            "semantic-fact-ontology.v1",
-        ]
-        rendered["input"] = "search semantic-facts <query>"
-    return rendered
-
-
-def _search_output_schema_ids(view: str) -> list[str]:
-    if view == "semantic-facts":
-        return [ids.SEMANTIC_FACT_GRAPH_SCHEMA_ID]
-    schema_ids = [ids.SEMANTIC_SEARCH_PACKET_SCHEMA_ID]
-    if view == "public-external-types":
-        schema_ids.append(ids.SEMANTIC_TYPE_SURFACE_SCHEMA_ID)
-    if view == "policy":
-        schema_ids.append("agent.semantic-protocols.semantic-handle")
-    return schema_ids
-
-
-def python_semantic_search_view_descriptor(view: str) -> dict[str, Any] | None:
-    if view == "dependency-topology":
-        return {
-            "method": "search/dependency-topology",
-            "command": "search",
-            "view": "dependency-topology",
-            "requiresQuery": False,
-            "acceptsStdin": False,
-            "supportsPackageScope": True,
-            "capabilities": [
-                {
-                    "languageId": "python",
-                    "namespace": "semantic",
-                    "name": "dependency-topology",
-                }
-            ],
-        }
-    """Return the registry descriptor for one search view."""
-
-    return next(
-        (
-            descriptor
-            for descriptor in _PYTHON_SEARCH_VIEW_DESCRIPTORS
-            if descriptor["view"] == view
-        ),
-        None,
-    )
-
-
-def is_python_semantic_search_view(view: str) -> bool:
-    """Return whether a view is implemented by the Python provider."""
-
-    return python_semantic_search_view_descriptor(view) is not None

@@ -30,7 +30,7 @@ def project_projection_batch(request: dict[str, object]) -> dict[str, object]:
     """Project one structured resident-runtime request with the native AST."""
 
     owners, _auxiliary_owners = _decode_request(request)
-    projected = [_project_owner(owner, request) for owner in owners]
+    projected = [_project_owner_isolated(owner, request) for owner in owners]
     response = {
         "schemaId": _RESPONSE_SCHEMA_ID,
         "schemaVersion": "1",
@@ -40,6 +40,28 @@ def project_projection_batch(request: dict[str, object]) -> dict[str, object]:
         "owners": projected,
     }
     return response
+
+
+def _project_owner_isolated(
+    owner: _OwnerFrame, header: dict[str, object]
+) -> dict[str, object]:
+    try:
+        return _project_owner(owner, header)
+    except (SyntaxError, UnicodeDecodeError) as error:
+        message = str(error).strip() or "Python parser rejected the source owner"
+        return {
+            "ownerPath": owner.path,
+            "sourceLeafDigest": owner.digest,
+            "projectionState": "syntax-unavailable",
+            "diagnostic": {
+                "schemaId": "agent.semantic-protocols.provider-language-projection-diagnostic",
+                "schemaVersion": "1",
+                "reasonKind": "source-syntax-unavailable",
+                "message": message[:4096],
+            },
+            "items": [],
+            "relations": [],
+        }
 
 
 def _decode_request(
@@ -128,6 +150,8 @@ def _project_owner(owner: _OwnerFrame, header: dict[str, object]) -> dict[str, o
     return {
         "ownerPath": owner.path,
         "sourceLeafDigest": owner.digest,
+        "projectionState": "ready",
+        "diagnostic": None,
         "items": items,
         "relations": [],
     }
