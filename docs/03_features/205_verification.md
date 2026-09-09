@@ -7,7 +7,7 @@
 :LAST_SYNC: 2026-05-03
 :END:
 
-Python verification planning is a library-first Agent contract. The harness
+Python verification planning is a library-first Agent contract. ASP Python
 does not run benchmark, security, stress, or chaos tools. It uses parser-owned
 project facts to produce external obligations that an Agent skill can satisfy
 with receipts or complete waivers.
@@ -17,12 +17,12 @@ from asp_python import (
     PythonOwnerResponsibility,
     PythonVerificationProfileHint,
     PythonVerificationTaskKind,
-    default_python_harness_config,
+    default_asp_python_config,
     plan_python_project_verification_with_config,
     render_python_verification_plan,
 )
 
-config = default_python_harness_config().with_verification_profile_hint(
+config = default_asp_python_config().with_verification_profile_hint(
     PythonVerificationProfileHint(
         "src/pkg/api.py",
         (PythonOwnerResponsibility.PUBLIC_API,),
@@ -97,5 +97,5 @@ Agents can call `render_python_verification_skill_contracts(plan)` only when
 they need to expand the referenced contract.
 
 :RELATIONS:
-:LINKS: [Harness Boundary](../01_core/101_harness_boundary.md), [CLI](203_cli.md)
+:LINKS: [ASP Python Boundary](../01_core/101_asp_python_boundary.md), [CLI](203_cli.md)
 :END:

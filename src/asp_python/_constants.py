@@ -1,4 +1,4 @@
-"""Shared constants for the Python language harness."""
+"""Shared constants for the ASP Python."""
 
 from __future__ import annotations
 

@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
     from python_lang_parser import PythonModuleReport, PythonSymbol
 
-    from ._model import PythonProjectHarnessScope
+    from ._model import AspPythonProjectScope
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,7 +69,7 @@ class PythonAgentPolicyRulePack:
 
     def evaluate_project_modules(
         self,
-        scope: PythonProjectHarnessScope,
+        scope: AspPythonProjectScope,
         modules: Sequence[PythonModuleReport],
     ) -> Iterable[AspPythonFinding]:
         """Evaluate agent-oriented namespace rules across a project scope."""

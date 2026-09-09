@@ -11,9 +11,6 @@ SEMANTIC_TREE_SITTER_PROVENANCE_SCHEMA_ID = (
     "agent.semantic-protocols.semantic-tree-sitter-provenance"
 )
 SEMANTIC_GRAPH_SCHEMA_ID = "agent.semantic-protocols.semantic-graph"
-SEMANTIC_GRAPH_TURBO_REQUEST_SCHEMA_ID = (
-    "agent.semantic-protocols.semantic-graph-turbo-request"
-)
 SEMANTIC_TYPE_SURFACE_SCHEMA_ID = "agent.semantic-protocols.semantic-type-surface"
 SEMANTIC_FACT_GRAPH_SCHEMA_ID = "agent.semantic-protocols.semantic-fact-graph"
 SEMANTIC_FACT_ONTOLOGY_SCHEMA_ID = "agent.semantic-protocols.semantic-fact-ontology"
@@ -25,8 +22,6 @@ SEMANTIC_FORMAL_PROOF_PILOT_SCHEMA_ID = (
     "agent.semantic-protocols.semantic-formal-proof-pilot"
 )
 SEMANTIC_REVIEW_PACKET_SCHEMA_ID = "agent.semantic-protocols.semantic-review-packet"
-SEMANTIC_EVIDENCE_GRAPH_SCHEMA_ID = "agent.semantic-protocols.semantic-evidence-graph"
-SEMANTIC_ASSURANCE_CASE_SCHEMA_ID = "agent.semantic-protocols.semantic-assurance-case"
 SEMANTIC_AST_PATCH_SCHEMA_ID = "agent.semantic-protocols.semantic-ast-patch"
 SEMANTIC_AST_PATCH_RECEIPT_SCHEMA_ID = (
     "agent.semantic-protocols.semantic-ast-patch-receipt"

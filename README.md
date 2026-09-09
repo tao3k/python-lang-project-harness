@@ -8,15 +8,15 @@ modern Python packages. It ships two library boundaries in one repo:
 - `asp_python`: project discovery, deterministic rule
   packs, compact rendered diagnostics, and pytest-friendly assertions.
 
-The harness is library-first. Callers pass a project root or explicit paths,
+ASP Python is library-first. Callers pass a project root or explicit paths,
 then decide whether to assert, render compact text, or inspect the structured
 report. Compact text is the default agent repair surface; JSON is available for
-tooling through `render_python_lang_harness_json()`.
+tooling through `render_asp_python_report_json()`.
 
-`python_lang_parser` is the semantic foundation. Harness policy consumes parser
+`python_lang_parser` is the semantic foundation. ASP Python policy consumes parser
 reports and parser-owned `pyproject.toml` metadata instead of re-parsing Python
 source or guessing package scope in the rule layer; tests-root layout stays in
-the harness.
+ASP Python.
 
 ## Quick Use
 
@@ -29,9 +29,9 @@ from asp_python import (
     PythonVerificationProfileHint,
     PythonVerificationTaskKind,
     assert_asp_python_clean,
-    default_python_harness_config,
+    default_asp_python_config,
     plan_python_project_verification_with_config,
-    render_python_lang_harness,
+    render_asp_python_report,
     render_python_reasoning_tree,
     render_python_verification_plan,
     run_asp_python,
@@ -44,7 +44,7 @@ def test_asp_python_policy() -> None:
 
 report = run_asp_python(Path("."))
 print(__version__)
-print(render_python_lang_harness(report))
+print(render_asp_python_report(report))
 print(render_python_reasoning_tree(report))
 ```
 
@@ -52,7 +52,7 @@ The project runner scans the whole Python project root by default, excluding
 tool/cache/build directories such as `.venv`, `__pycache__`, `build`, and
 `dist`. Conventional source and test roots still classify project policy, but
 they do not narrow parser coverage. The explicit path runner,
-`run_python_lang_harness([...])`, is useful for focused parser and syntax
+`run_asp_python_paths([...])`, is useful for focused parser and syntax
 checks.
 Use `AspPythonConfig` to change source-root classification, test-root
 classification, extra external project paths, test inclusion, or blocking
@@ -65,7 +65,7 @@ Standard `[project]` metadata such as `name`, `requires-python`,
 `python_lang_parser` and appears in project policy and reasoning-tree facts.
 When `include_tests=False`, test files are not parsed, but tests-root layout
 policy still runs. Explained local exceptions can live in
-`tests/python-project-harness-rules.toml`.
+`tests/asp-python-rules.toml`.
 
 For agent repair loops, `render_python_reasoning_tree(report)` emits a compact
 package/module owner tree from parser-owned facts. It shows package branches,
@@ -99,12 +99,12 @@ python -c 'from asp_python import assert_asp_python_clean; assert_asp_python_cle
 
 ## Verification Planning
 
-Verification is a library-first Agent contract. The harness does not execute
+Verification is a library-first Agent contract. ASP Python does not execute
 benchmark, security, stress, or chaos tools. It plans parser-backed obligations
 that external skills can satisfy with receipts or complete waivers:
 
 ```python
-config = default_python_harness_config().with_verification_profile_hint(
+config = default_asp_python_config().with_verification_profile_hint(
     PythonVerificationProfileHint(
         "src/pkg/api.py",
         (PythonOwnerResponsibility.PUBLIC_API,),
@@ -133,7 +133,7 @@ responsibilities.
 
 ## Pytest Dev Dependency
 
-Downstream projects can load the harness through their test/dev dependency
+Downstream projects can load ASP Python through their test/dev dependency
 group:
 
 ```toml
@@ -144,12 +144,12 @@ test = [
 ]
 
 [tool.pytest.ini_options]
-addopts = ["--python-project-harness"]
+addopts = ["--asp-python"]
 ```
 
 The pytest plugin is exposed through the package `pytest11` entry point. It is
 loaded by pytest when the dev dependency is installed, but it only runs the
-harness when `--python-project-harness` is enabled. Projects that prefer an
+ASP Python policy gate when `--asp-python` is enabled. Projects that prefer an
 explicit test file can use the public helper:
 
 ```python
@@ -189,4 +189,4 @@ Detailed package material lives under [`docs/`](docs/index.md).
 
 GitHub Actions runs the package contract on every pull request and on pushes to
 the default branch: `uv sync --group test --locked`, ruff format/check, pytest,
-self-harness, agent snapshot, wheel/sdist build, and diff hygiene.
+ASP Python self-check, agent snapshot, wheel/sdist build, and diff hygiene.

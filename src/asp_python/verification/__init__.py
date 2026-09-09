@@ -1,4 +1,4 @@
-"""Public verification planning surface for Python project harnesses."""
+"""Public verification planning surface for ASP Pythones."""
 
 from __future__ import annotations
 

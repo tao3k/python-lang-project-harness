@@ -7,13 +7,13 @@
 :LAST_SYNC: 2026-04-30
 :END:
 
-The harness exposes two runner modes with shared configuration.
+ASP Python exposes two runner modes with shared configuration.
 
 ## Project Runner
 
 Use `run_asp_python()` or `assert_asp_python_clean()`
 when a caller has a project root. The project runner scans the whole Python
-project root by default, attaches `PythonProjectHarnessScope`, and runs the
+project root by default, attaches `AspPythonProjectScope`, and runs the
 full default rule surface:
 
 1. `python.syntax`
@@ -53,7 +53,7 @@ for module-resolution policy. `source_dir_names` and
 `test_dir_names` classify roots for project and pytest-layout policy; they do
 not narrow parser coverage. `extra_path_names` can add an external project path
 or a single Python file outside the root. Extra paths are relative to the
-project root and are part of `PythonProjectHarnessScope.monitored_paths` when
+project root and are part of `AspPythonProjectScope.monitored_paths` when
 they exist.
 
 `include_tests=False` removes test roots from parser discovery, while keeping
@@ -61,7 +61,7 @@ tests-root layout policy active. Callers can skip expensive or broken test
 parsing without hiding suite-shape drift.
 
 Explained local pytest-layout exceptions can be declared in
-`tests/python-project-harness-rules.toml`:
+`tests/asp-python-rules.toml`:
 
 ```toml
 [tests]
@@ -114,7 +114,7 @@ opts out of project-local config loading for that call.
 
 ## Explicit-Path Runner
 
-Use `run_python_lang_harness()` or `assert_python_lang_harness_clean()` for
+Use `run_asp_python_paths()` or `assert_asp_python_paths_clean()` for
 explicit files or directories. Requested paths must exist. This runner does not
 attach a project scope, so project-resolution evaluators stay quiet. File-local rule
 packs can still run when they only need parser facts.
@@ -134,5 +134,5 @@ project-scoped reports, rendered paths are project-relative. Use it before
 repair-oriented agents choose which subtree to edit.
 
 :RELATIONS:
-:LINKS: [Harness Boundary](../01_core/101_harness_boundary.md), [Rule Catalog](201_rule_catalog.md), [CLI](203_cli.md)
+:LINKS: [ASP Python Boundary](../01_core/101_asp_python_boundary.md), [Rule Catalog](201_rule_catalog.md), [CLI](203_cli.md)
 :END:

@@ -40,7 +40,7 @@ _RULES = (
         pack_id=TEST_LAYOUT_PACK_ID,
         severity=PythonDiagnosticSeverity.WARNING,
         title="Pytest file is scattered in tests root",
-        requirement="Move pytest modules under `tests/unit/` or `tests/integration/` so the project harness owns suite shape.",
+        requirement="Move pytest modules under `tests/unit/` or `tests/integration/` so the ASP Python owns suite shape.",
         labels=dict(_RULE_LABELS),
     ),
     AspPythonRule(
@@ -48,7 +48,7 @@ _RULES = (
         pack_id=TEST_LAYOUT_PACK_ID,
         severity=PythonDiagnosticSeverity.WARNING,
         title="Unexpected tests root entry",
-        requirement="Keep tests root limited to harness configuration and owned suite directories.",
+        requirement="Keep tests root limited to ASP Python configuration and owned suite directories.",
         labels=dict(_RULE_LABELS),
     ),
     AspPythonRule(

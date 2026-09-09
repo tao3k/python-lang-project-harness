@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 def project_root(config: pytest.Config) -> Path:
     """Resolve the configured or uniquely targeted Python project root."""
 
-    configured_root = config.getoption("--python-project-harness-root")
+    configured_root = config.getoption("--asp-python-root")
     if configured_root:
         return Path(configured_root)
     root = Path(config.rootpath)

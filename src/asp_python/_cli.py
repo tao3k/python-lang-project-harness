@@ -1,4 +1,4 @@
-"""Command-line execution for the Python project harness."""
+"""Command-line execution for the ASP Python."""
 
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ def run_cli(
     stdin: str | bytes | None = None,
     cwd: Path | None = None,
 ) -> int:
-    """Run the default package-level Python harness CLI."""
+    """Run the default package-level ASP Python CLI."""
 
     selected_stdout = sys.stdout if stdout is None else stdout
     selected_stderr = sys.stderr if stderr is None else stderr

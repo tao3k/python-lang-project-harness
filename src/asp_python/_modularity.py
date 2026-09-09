@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
     from python_lang_parser import PythonModuleReport, PythonSymbol
 
-    from ._model import PythonProjectHarnessScope
+    from ._model import AspPythonProjectScope
 
 MODULARITY_PACK_ID = "python.modularity"
 PY_MOD_R006 = "PY-MOD-R006"
@@ -85,7 +85,7 @@ class PythonModularityRulePack:
 
     def evaluate_project_modules(
         self,
-        scope: PythonProjectHarnessScope,
+        scope: AspPythonProjectScope,
         modules: Sequence[PythonModuleReport],
     ) -> Iterable[AspPythonFinding]:
         """Evaluate package-tree modularity rules over a parsed project."""
@@ -143,7 +143,7 @@ def _file_modularity_findings(
 
 
 def _reasoning_tree_findings(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     modules: Sequence[PythonModuleReport],
     pack_id: str,
 ) -> tuple[AspPythonFinding, ...]:
@@ -183,7 +183,7 @@ def _reasoning_tree_findings(
     return tuple(findings)
 
 
-def _reasoning_tree_import_roots(scope: PythonProjectHarnessScope) -> tuple[Path, ...]:
+def _reasoning_tree_import_roots(scope: AspPythonProjectScope) -> tuple[Path, ...]:
     if scope.source_paths:
         return scope.source_paths
     return scope.monitored_paths

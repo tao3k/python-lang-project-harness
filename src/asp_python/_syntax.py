@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True)
 class PythonSyntaxRulePack:
-    """Rule pack that turns parser diagnostics into harness findings."""
+    """Rule pack that turns parser diagnostics into ASP Python findings."""
 
     pack_id: str = SYNTAX_PACK_ID
 

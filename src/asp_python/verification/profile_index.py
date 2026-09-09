@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .._render import _render_display_path
-from .._rule_packs import resolve_project_harness_config
+from .._rule_packs import resolve_asp_python_project_config
 from .._runner import run_asp_python
 from .facts import (
     entry_point_owner_paths,
@@ -47,10 +47,10 @@ def build_python_verification_profile_index_with_config(
     project_root: str | Path,
     config: AspPythonConfig | None,
 ) -> PythonVerificationProfileIndex:
-    """Build profile candidates with an explicit harness config."""
+    """Build profile candidates with an explicit ASP Python config."""
 
     root = Path(project_root)
-    selected_config = resolve_project_harness_config(root, config, rule_packs=None)
+    selected_config = resolve_asp_python_project_config(root, config, rule_packs=None)
     report = run_asp_python(root, config=selected_config)
     return build_python_verification_profile_index_report(report, selected_config)
 
@@ -59,7 +59,7 @@ def build_python_verification_profile_index_report(
     report: AspPythonReport,
     config: AspPythonConfig,
 ) -> PythonVerificationProfileIndex:
-    """Build profile candidates from an already-built harness report."""
+    """Build profile candidates from an already-built ASP Python report."""
 
     project_root = verification_project_root(report)
     policy = config.verification_policy

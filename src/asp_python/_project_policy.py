@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
     from python_lang_parser import PythonModuleReport
 
-    from ._model import PythonProjectHarnessScope
+    from ._model import AspPythonProjectScope
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,7 +46,7 @@ class PythonProjectPolicyRulePack:
 
     def evaluate_project_modules(
         self,
-        scope: PythonProjectHarnessScope,
+        scope: AspPythonProjectScope,
         modules: Sequence[PythonModuleReport],
     ) -> Iterable[AspPythonFinding]:
         """Evaluate project-shape rules over a parsed project."""

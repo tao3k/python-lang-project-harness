@@ -1,4 +1,4 @@
-"""Project-level Python language harness helpers."""
+"""Project-level ASP Python helpers."""
 
 from __future__ import annotations
 
@@ -8,11 +8,11 @@ from typing import Any
 DISTRIBUTION_NAME = "asp-python"
 
 _CLI_EXPORTS = frozenset({"run_cli", "run_cli_from_env"})
-_HARNESS_RULES_EXPORTS = frozenset(
+_ASP_RULES_EXPORTS = frozenset(
     {
-        "python_harness_rules_markdown",
-        "render_python_harness_rules_markdown",
-        "write_python_harness_rules_to_unit_tests",
+        "asp_python_rules_markdown",
+        "render_asp_python_rules_markdown",
+        "write_asp_python_rules_to_unit_tests",
     }
 )
 
@@ -88,7 +88,7 @@ __all__ = [
     "AspPythonReport",
     "AspPythonRule",
     "PythonImport",
-    "PythonLangRulePack",
+    "AspPythonRulePack",
     "PythonModernDesignRulePack",
     "PythonModularityRulePack",
     "PythonModuleReport",
@@ -97,7 +97,7 @@ __all__ = [
     "PythonOwnerResponsibility",
     "PythonProjectDependency",
     "PythonProjectEntryPoint",
-    "PythonProjectHarnessScope",
+    "AspPythonProjectScope",
     "PythonProjectImportName",
     "PythonProjectMetadata",
     "PythonProjectPolicyRulePack",
@@ -141,10 +141,10 @@ __all__ = [
     "PythonVerificationWaiver",
     "SourceLocation",
     "__version__",
-    "assert_python_lang_harness_clean",
+    "assert_asp_python_paths_clean",
     "assert_asp_python_clean",
-    "default_python_harness_config",
-    "default_python_lang_rule_packs",
+    "default_asp_python_config",
+    "default_asp_python_rule_packs",
     "discover_python_files",
     "build_python_verification_performance_index",
     "build_python_verification_profile_index",
@@ -174,7 +174,7 @@ __all__ = [
     "python_symbol_is_test_function",
     "python_symbol_is_top_level_callable",
     "python_agent_policy_rules",
-    "python_harness_rules_markdown",
+    "asp_python_rules_markdown",
     "python_modern_design_rules",
     "python_modularity_rules",
     "asp_python_paths",
@@ -186,10 +186,10 @@ __all__ = [
     "python_syntax_rules",
     "python_test_layout_rules",
     "read_asp_python_config",
-    "render_python_lang_harness",
-    "render_python_lang_harness_advice",
-    "render_python_lang_harness_json",
-    "render_python_harness_rules_markdown",
+    "render_asp_python_report",
+    "render_asp_python_report_advice",
+    "render_asp_python_report_json",
+    "render_asp_python_rules_markdown",
     "render_asp_python_agent_snapshot",
     "render_asp_python_agent_snapshot_with_config",
     "render_python_reasoning_tree",
@@ -204,10 +204,10 @@ __all__ = [
     "render_python_verification_task_index_json",
     "run_cli",
     "run_cli_from_env",
-    "run_python_lang_harness",
+    "run_asp_python_paths",
     "run_asp_python",
     "semantic_language_registry_document",
-    "write_python_harness_rules_to_unit_tests",
+    "write_asp_python_rules_to_unit_tests",
     "write_python_verification_reports",
 ]
 
@@ -219,12 +219,12 @@ def __getattr__(name: str) -> Any:
         return _load_export("._version", name)
     if name in _CLI_EXPORTS:
         return _load_export("._cli", name)
-    if name in _HARNESS_RULES_EXPORTS:
-        return _load_export("._harness_rules", name)
+    if name in _ASP_RULES_EXPORTS:
+        return _load_export("._asp_rules", name)
     if name in _PARSER_EXPORTS:
         return _load_export("python_lang_parser", name)
     if name in __all__:
-        return _load_export(".harness", name)
+        return _load_export(".api", name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 

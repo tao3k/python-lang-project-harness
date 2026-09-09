@@ -1,4 +1,4 @@
-"""Parser-backed verification planner for Python project harnesses."""
+"""Parser-backed verification planner for ASP Pythones."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from .._model import AspPythonConfig, AspPythonReport
 from .._render import _render_display_path
-from .._rule_packs import resolve_project_harness_config
+from .._rule_packs import resolve_asp_python_project_config
 from .._runner import run_asp_python
 from .facts import (
     matched_dependency_signals,
@@ -52,10 +52,10 @@ def plan_python_project_verification_with_config(
     project_root: str | Path,
     config: AspPythonConfig | None,
 ) -> PythonVerificationPlan:
-    """Plan verification obligations with an explicit harness config."""
+    """Plan verification obligations with an explicit ASP Python config."""
 
     root = Path(project_root)
-    selected_config = resolve_project_harness_config(root, config, rule_packs=None)
+    selected_config = resolve_asp_python_project_config(root, config, rule_packs=None)
     report = run_asp_python(root, config=selected_config)
     return plan_python_project_verification_report(report, selected_config)
 
@@ -64,7 +64,7 @@ def plan_python_project_verification_report(
     report: AspPythonReport,
     config: AspPythonConfig,
 ) -> PythonVerificationPlan:
-    """Plan verification obligations from an already-built harness report."""
+    """Plan verification obligations from an already-built ASP Python report."""
 
     project_root = verification_project_root(report)
     policy = config.verification_policy

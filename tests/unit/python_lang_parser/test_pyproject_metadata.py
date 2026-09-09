@@ -42,7 +42,7 @@ test = [
 ]
 
 [tool.pytest.ini_options]
-addopts = ["--import-mode=importlib", "--python-project-harness"]
+addopts = ["--import-mode=importlib", "--asp-python"]
 
 [build-system]
 requires = ["hatchling"]
@@ -100,7 +100,7 @@ packages = ["src/example_pkg"]
     ]
     assert metadata.pytest_options.addopts == (
         "--import-mode=importlib",
-        "--python-project-harness",
+        "--asp-python",
     )
     assert metadata.pytest_options.enables_asp_python is True
     assert metadata.wheel_packages == ("src/example_pkg",)

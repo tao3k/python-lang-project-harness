@@ -106,7 +106,7 @@ class PythonPytestOptions:
     def enables_asp_python(self) -> bool:
         """Return whether pytest addopts mounts the project harness plugin."""
 
-        return "--python-project-harness" in self.addopts
+        return "--asp-python" in self.addopts
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-compatible representation."""

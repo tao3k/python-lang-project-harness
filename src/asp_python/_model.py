@@ -1,4 +1,4 @@
-"""Data model for embedded Python language harness reports."""
+"""Data model for embedded ASP Python reports."""
 
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True)
 class PythonRulePackDescriptor:
-    """Stable metadata for one Python language harness rule pack."""
+    """Stable metadata for one ASP Python rule pack."""
 
     id: str
     version: str
@@ -53,7 +53,7 @@ class PythonRulePackDescriptor:
 
 @dataclass(frozen=True, slots=True)
 class AspPythonRule:
-    """Compact metadata for one deterministic harness rule."""
+    """Compact metadata for one deterministic ASP Python rule."""
 
     rule_id: str
     pack_id: str
@@ -72,7 +72,7 @@ class AspPythonRule:
 
 @dataclass(frozen=True, slots=True)
 class AspPythonFinding:
-    """One deterministic Python harness finding."""
+    """One deterministic ASP Python finding."""
 
     rule_id: str
     pack_id: str
@@ -94,8 +94,8 @@ class AspPythonFinding:
 
 
 @dataclass(frozen=True, slots=True)
-class PythonProjectHarnessScope:
-    """Concrete project paths monitored by an embedded Python harness run."""
+class AspPythonProjectScope:
+    """Concrete project paths monitored by an embedded ASP Python run."""
 
     project_root: Path
     project_metadata: PythonProjectMetadata | None = None
@@ -153,8 +153,8 @@ def _dedupe_paths(paths: Iterable[Path]) -> tuple[Path, ...]:
     return tuple(deduped)
 
 
-class PythonLangRulePack(Protocol):
-    """Protocol for Python language harness rule packs."""
+class AspPythonRulePack(Protocol):
+    """Protocol for ASP Python rule packs."""
 
     pack_id: str
 
@@ -167,7 +167,7 @@ class PythonLangRulePack(Protocol):
 
 @dataclass(frozen=True, slots=True)
 class AspPythonConfig:
-    """Configuration for an embedded Python language harness run."""
+    """Configuration for an embedded ASP Python run."""
 
     ignored_dir_names: frozenset[str] = IGNORED_DIR_NAMES
     include_hidden_dir_names: frozenset[str] = INCLUDE_HIDDEN_DIR_NAMES
@@ -183,7 +183,7 @@ class AspPythonConfig:
     verification_policy: PythonVerificationPolicy = field(
         default_factory=PythonVerificationPolicy
     )
-    rule_packs: tuple[PythonLangRulePack, ...] | None = None
+    rule_packs: tuple[AspPythonRulePack, ...] | None = None
 
     def with_verification_policy(
         self,
@@ -283,7 +283,7 @@ class AspPythonConfig:
 
 @dataclass(frozen=True, slots=True)
 class AspPythonReport:
-    """Aggregated Python language harness report."""
+    """Aggregated ASP Python report."""
 
     modules: tuple[PythonModuleReport, ...]
     findings: tuple[AspPythonFinding, ...]
@@ -291,7 +291,7 @@ class AspPythonReport:
     blocking_severities: frozenset[PythonDiagnosticSeverity] = (
         DEFAULT_BLOCKING_SEVERITIES
     )
-    project_resolution: PythonProjectHarnessScope | None = None
+    project_resolution: AspPythonProjectScope | None = None
     disabled_rule_ids: frozenset[str] = frozenset()
     blocking_rule_ids: frozenset[str] = frozenset()
 
@@ -380,10 +380,10 @@ class AspPythonReport:
         """Raise `AssertionError` when blocking findings are present."""
 
         if self.blocking_findings(severities=severities):
-            from ._render import render_python_lang_harness
+            from ._render import render_asp_python_report
 
             raise AssertionError(
-                render_python_lang_harness(
+                render_asp_python_report(
                     self,
                     severities=severities,
                     include_advice=include_advice,

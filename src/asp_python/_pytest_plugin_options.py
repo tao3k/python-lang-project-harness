@@ -17,21 +17,21 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-ENABLE_OPTION = "--python-project-harness"
-NO_TESTS_OPTION = "--python-project-harness-no-tests"
-SOURCE_DIR_OPTION = "--python-project-harness-source-dir"
-TEST_DIR_OPTION = "--python-project-harness-test-dir"
-EXTRA_PATH_OPTION = "--python-project-harness-extra-path"
-NO_ADVICE_OPTION = "--python-project-harness-no-advice"
+ENABLE_OPTION = "--asp-python"
+NO_TESTS_OPTION = "--asp-python-no-tests"
+SOURCE_DIR_OPTION = "--asp-python-source-dir"
+TEST_DIR_OPTION = "--asp-python-test-dir"
+EXTRA_PATH_OPTION = "--asp-python-extra-path"
+NO_ADVICE_OPTION = "--asp-python-no-advice"
 
-_ROOT_OPTION = "--python-project-harness-root"
-_DISABLE_RULE_OPTION = "--python-project-harness-disable-rule"
-_BLOCK_RULE_OPTION = "--python-project-harness-block-rule"
-_ERROR_ONLY_OPTION = "--python-project-harness-error-only"
+_ROOT_OPTION = "--asp-python-root"
+_DISABLE_RULE_OPTION = "--asp-python-disable-rule"
+_BLOCK_RULE_OPTION = "--asp-python-block-rule"
+_ERROR_ONLY_OPTION = "--asp-python-error-only"
 
 
 def add_options(parser: pytest.Parser) -> None:
-    """Register Python project harness pytest options."""
+    """Register ASP Python pytest options."""
 
     group = parser.getgroup("asp-python")
     for name, kwargs in (
@@ -49,7 +49,7 @@ def add_options(parser: pytest.Parser) -> None:
                 "action": "store",
                 "default": None,
                 "metavar": "PATH",
-                "help": "Project root for the harness test. Defaults to pytest rootdir.",
+                "help": "Project root for ASP Python test. Defaults to pytest rootdir.",
             },
         ),
         (
@@ -93,7 +93,7 @@ def add_options(parser: pytest.Parser) -> None:
                 "action": "append",
                 "default": [],
                 "metavar": "RULE_ID",
-                "help": "Harness rule id to suppress. Can be provided more than once.",
+                "help": "ASP Python rule id to suppress. Can be provided more than once.",
             },
         ),
         (
@@ -102,7 +102,7 @@ def add_options(parser: pytest.Parser) -> None:
                 "action": "append",
                 "default": [],
                 "metavar": "RULE_ID",
-                "help": "Harness rule id to treat as blocking. Can be provided more than once.",
+                "help": "ASP Python rule id to treat as blocking. Can be provided more than once.",
             },
         ),
         (
@@ -110,7 +110,7 @@ def add_options(parser: pytest.Parser) -> None:
             {
                 "action": "store_true",
                 "default": False,
-                "help": "Only fail the pytest harness item for parser errors.",
+                "help": "Only fail the ASP Python pytest item for parser errors.",
             },
         ),
         (
@@ -133,7 +133,7 @@ def blocking_severities(
     return None
 
 
-def harness_config(config: pytest.Config) -> AspPythonConfig | None:
+def asp_python_config(config: pytest.Config) -> AspPythonConfig | None:
     disabled_rule_values = config.getoption(_DISABLE_RULE_OPTION)
     blocking_rule_values = config.getoption(_BLOCK_RULE_OPTION)
     if not disabled_rule_values and not blocking_rule_values:

@@ -1,4 +1,4 @@
-"""Pytest plugin entry point for dev-dependency harness mounting."""
+"""Pytest plugin entry point for ASP Python dev-dependency mounting."""
 
 from __future__ import annotations
 
@@ -14,8 +14,8 @@ from ._pytest_plugin_options import (
     SOURCE_DIR_OPTION,
     TEST_DIR_OPTION,
     add_options,
+    asp_python_config,
     blocking_severities,
-    harness_config,
     optional_tuple,
 )
 from ._pytest_plugin_project import project_root
@@ -23,7 +23,7 @@ from ._runner import assert_asp_python_clean
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
-    """Register Python project harness pytest options."""
+    """Register ASP Python pytest options."""
 
     add_options(parser)
 
@@ -33,27 +33,27 @@ def pytest_collection_modifyitems(
     config: pytest.Config,
     items: list[pytest.Item],
 ) -> None:
-    """Insert one explicit harness item when the plugin option is enabled."""
+    """Insert one explicit ASP Python item when the plugin option is enabled."""
 
     if not config.getoption(ENABLE_OPTION):
         return
-    item = PythonProjectHarnessItem.from_parent(
+    item = AspPythonPytestItem.from_parent(
         session,
-        name="python-project-harness",
-        nodeid="python-project-harness",
+        name="asp-python",
+        nodeid="asp-python",
     )
     items.insert(0, item)
 
 
-class PythonProjectHarnessItem(pytest.Item):
-    """Pytest item that runs the parser-backed project harness."""
+class AspPythonPytestItem(pytest.Item):
+    """Pytest item that runs the parser-backed ASP Python."""
 
     def runtest(self) -> None:
-        """Run the configured project harness and raise a compact assertion."""
+        """Run the configured ASP Python and raise a compact assertion."""
 
         assert_asp_python_clean(
             project_root(self.config),
-            config=harness_config(self.config),
+            config=asp_python_config(self.config),
             severities=blocking_severities(self.config),
             include_tests=not self.config.getoption(NO_TESTS_OPTION),
             source_dir_names=optional_tuple(self.config.getoption(SOURCE_DIR_OPTION)),
@@ -67,7 +67,7 @@ class PythonProjectHarnessItem(pytest.Item):
         excinfo: pytest.ExceptionInfo[BaseException],
         style: str | None = None,
     ) -> str:
-        """Return compact harness assertion text without pytest traceback noise."""
+        """Return compact ASP Python assertion text without pytest traceback noise."""
 
         if isinstance(excinfo.value, AssertionError):
             return str(excinfo.value)
@@ -76,4 +76,4 @@ class PythonProjectHarnessItem(pytest.Item):
     def reportinfo(self) -> tuple[Path, int, str]:
         """Return stable report metadata for pytest output."""
 
-        return (Path("python-project-harness"), 0, "python project harness")
+        return (Path("asp-python"), 0, "ASP Python")

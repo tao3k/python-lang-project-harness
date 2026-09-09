@@ -1,4 +1,4 @@
-"""Query command argument parsing for the Python harness CLI."""
+"""Query command argument parsing for the ASP Python CLI."""
 
 from __future__ import annotations
 

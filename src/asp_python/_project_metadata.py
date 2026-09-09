@@ -1,4 +1,4 @@
-"""Harness adapter for parser-owned Python project metadata."""
+"""ASP Python adapter for parser-owned Python project metadata."""
 
 from __future__ import annotations
 

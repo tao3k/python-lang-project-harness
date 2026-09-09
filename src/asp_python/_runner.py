@@ -1,4 +1,4 @@
-"""Runner API for embedding the Python language harness in pytest."""
+"""Runner API for embedding the ASP Python in pytest."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from ._model import (
     AspPythonConfig,
     AspPythonFinding,
     AspPythonReport,
-    PythonLangRulePack,
+    AspPythonRulePack,
 )
 
 if TYPE_CHECKING:
@@ -27,13 +27,13 @@ def run_asp_python(
     project_root: str | Path,
     *,
     config: AspPythonConfig | None = None,
-    rule_packs: Sequence[PythonLangRulePack] | None = None,
+    rule_packs: Sequence[AspPythonRulePack] | None = None,
     include_tests: bool | None = None,
     source_dir_names: Sequence[str] | None = None,
     test_dir_names: Sequence[str] | None = None,
     extra_path_names: Sequence[str] | None = None,
 ) -> AspPythonReport:
-    """Run the harness over conventional Python project paths."""
+    """Run ASP Python over conventional Python project paths."""
 
     root = Path(project_root)
     if not root.exists():
@@ -42,9 +42,9 @@ def run_asp_python(
         compact_project_findings,
         evaluate_project_rule_packs,
     )
-    from ._rule_packs import resolve_project_harness_config, selected_rule_packs
+    from ._rule_packs import resolve_asp_python_project_config, selected_rule_packs
 
-    selected_config = resolve_project_harness_config(
+    selected_config = resolve_asp_python_project_config(
         root,
         config,
         rule_packs=rule_packs,
@@ -73,7 +73,7 @@ def run_asp_python(
         ignored_dir_names=selected_config.ignored_dir_names,
         include_hidden_dir_names=selected_config.include_hidden_dir_names,
     )
-    report = run_python_lang_harness(
+    report = run_asp_python_paths(
         scope.monitored_paths,
         config=selected_config,
     )
@@ -96,7 +96,7 @@ def assert_asp_python_clean(
     project_root: str | Path,
     *,
     config: AspPythonConfig | None = None,
-    rule_packs: Sequence[PythonLangRulePack] | None = None,
+    rule_packs: Sequence[AspPythonRulePack] | None = None,
     severities: frozenset[PythonDiagnosticSeverity] | None = None,
     include_tests: bool | None = None,
     source_dir_names: Sequence[str] | None = None,
@@ -104,11 +104,11 @@ def assert_asp_python_clean(
     extra_path_names: Sequence[str] | None = None,
     include_advice: bool = True,
 ) -> AspPythonReport:
-    """Run the project harness and raise when configured-blocking findings exist."""
+    """Run the ASP Python and raise when configured-blocking findings exist."""
 
-    from ._rule_packs import resolve_project_harness_config
+    from ._rule_packs import resolve_asp_python_project_config
 
-    selected_config = resolve_project_harness_config(
+    selected_config = resolve_asp_python_project_config(
         Path(project_root),
         config,
         rule_packs=rule_packs,
@@ -132,13 +132,13 @@ def assert_asp_python_clean(
     return report
 
 
-def run_python_lang_harness(
+def run_asp_python_paths(
     paths: Sequence[str | Path],
     *,
     config: AspPythonConfig | None = None,
-    rule_packs: Sequence[PythonLangRulePack] | None = None,
+    rule_packs: Sequence[AspPythonRulePack] | None = None,
 ) -> AspPythonReport:
-    """Run the Python language harness over files or directories."""
+    """Run the ASP Python over files or directories."""
 
     if rule_packs == ():
         selected_config = (
@@ -148,14 +148,14 @@ def run_python_lang_harness(
         )
         selected_packs = ()
     else:
-        from ._rule_packs import resolve_harness_config, selected_rule_packs
+        from ._rule_packs import resolve_asp_python_config, selected_rule_packs
 
-        selected_config = resolve_harness_config(config, rule_packs=rule_packs)
+        selected_config = resolve_asp_python_config(config, rule_packs=rule_packs)
         selected_packs = selected_rule_packs(selected_config)
     root_paths = tuple(Path(path) for path in paths)
     for path in root_paths:
         if not path.exists():
-            raise ValueError(f"harness path does not exist: {path}")
+            raise ValueError(f"ASP Python path does not exist: {path}")
     modules = _parse_python_files(
         discover_python_files(
             root_paths,
@@ -188,20 +188,20 @@ def _parse_python_files(paths: Sequence[Path]) -> tuple[PythonModuleReport, ...]
         return tuple(executor.map(parse_python_file, paths))
 
 
-def assert_python_lang_harness_clean(
+def assert_asp_python_paths_clean(
     paths: Sequence[str | Path],
     *,
     config: AspPythonConfig | None = None,
-    rule_packs: Sequence[PythonLangRulePack] | None = None,
+    rule_packs: Sequence[AspPythonRulePack] | None = None,
     severities: frozenset[PythonDiagnosticSeverity] | None = None,
     include_advice: bool = True,
 ) -> AspPythonReport:
-    """Run the harness and raise when configured-blocking findings are present."""
+    """Run ASP Python and raise when configured-blocking findings are present."""
 
-    from ._rule_packs import resolve_harness_config
+    from ._rule_packs import resolve_asp_python_config
 
-    selected_config = resolve_harness_config(config, rule_packs=rule_packs)
-    report = run_python_lang_harness(paths, config=selected_config)
+    selected_config = resolve_asp_python_config(config, rule_packs=rule_packs)
+    report = run_asp_python_paths(paths, config=selected_config)
     report.assert_clean(
         severities=(
             severities

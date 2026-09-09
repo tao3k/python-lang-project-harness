@@ -1,4 +1,4 @@
-"""Pytest-facing helpers for embedding the Python project harness."""
+"""Pytest-facing helpers for embedding the ASP Python."""
 
 from __future__ import annotations
 
@@ -12,14 +12,14 @@ if TYPE_CHECKING:
 
     from python_lang_parser import PythonDiagnosticSeverity
 
-    from ._model import AspPythonConfig, PythonLangRulePack
+    from ._model import AspPythonConfig, AspPythonRulePack
 
 
 def asp_python_test(
     project_root: str | Path = ".",
     *,
     config: AspPythonConfig | None = None,
-    rule_packs: Sequence[PythonLangRulePack] | None = None,
+    rule_packs: Sequence[AspPythonRulePack] | None = None,
     severities: frozenset[PythonDiagnosticSeverity] | None = None,
     include_tests: bool | None = None,
     source_dir_names: Sequence[str] | None = None,
@@ -47,7 +47,5 @@ def asp_python_test(
 
     test_asp_python_policy.__name__ = test_name
     test_asp_python_policy.__qualname__ = test_name
-    test_asp_python_policy.__doc__ = (
-        "Run the Python project harness over configured project paths."
-    )
+    test_asp_python_policy.__doc__ = "Run the ASP Python over configured project paths."
     return test_asp_python_policy

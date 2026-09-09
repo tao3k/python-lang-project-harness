@@ -1,4 +1,4 @@
-"""Project-level namespace policy for agent-oriented Python harness runs."""
+"""Project-level namespace policy for agent-oriented ASP Python runs."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
     from python_lang_parser import PythonModuleReport
 
-    from ._model import PythonProjectHarnessScope
+    from ._model import AspPythonProjectScope
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,7 +61,7 @@ _NAMESPACE_CONFLICT_SPECS = (
 
 
 def agent_namespace_findings(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     modules: Sequence[PythonModuleReport],
     pack_id: str,
 ) -> tuple[AspPythonFinding, ...]:
@@ -116,7 +116,7 @@ def _duplicate_namespace_findings(
 
 
 def _repeated_namespace_segment_findings(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     modules: Sequence[PythonModuleReport],
     pack_id: str,
 ) -> tuple[AspPythonFinding, ...]:

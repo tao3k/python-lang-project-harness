@@ -1,4 +1,4 @@
-"""Agent-facing guide and doctor rendering for the Python harness CLI."""
+"""Agent-facing guide and doctor rendering for the ASP Python CLI."""
 
 from __future__ import annotations
 
@@ -35,8 +35,6 @@ def render_agent_guide(project_root: Path) -> str:
                 f"|cmd exact-source=asp python query --selector <exact-structural-selector> --projection source {workspace}",
                 f"|cmd callable-skeleton=asp python query --selector <exact-structural-selector> --projection callable-skeleton {workspace}",
                 "|cmd ast-patch=asp python ast-patch dry-run --packet <semantic-ast-patch.json|->",
-                f"|cmd evidence-graph=asp python evidence graph --json {workspace}",
-                f"|cmd evidence-analyze=asp python evidence analyze --json {workspace}",
                 "|policy authority=asp-python-api trigger=pytest-plugin",
                 "|rule agent hook install/runtime is owned by asp",
                 (

@@ -142,7 +142,7 @@ class _SnapshotTreeRenderer:
         self.add_metadata_scripts(lines, metadata)
         self.add_metadata_entry_points(lines, metadata)
         if metadata.pytest_options.enables_asp_python:
-            lines.append("- pytest=python-project-harness")
+            lines.append("- pytest=asp-python")
         return lines
 
     def add_metadata_identity(

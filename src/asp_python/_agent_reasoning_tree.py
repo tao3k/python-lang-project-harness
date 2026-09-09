@@ -21,7 +21,7 @@ if TYPE_CHECKING:
         PythonReasoningTreeNode,
     )
 
-    from ._model import PythonProjectHarnessScope
+    from ._model import AspPythonProjectScope
 
 _MAX_AGENT_BRANCH_CHILDREN = 6
 _MIN_AGENT_BRANCH_PUBLIC_CHILDREN = 4
@@ -29,7 +29,7 @@ _MIN_AGENT_BRANCH_EFFECTIVE_LINES = 220
 
 
 def agent_reasoning_tree_findings(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     modules: Sequence[PythonModuleReport],
     pack_id: str,
 ) -> tuple[AspPythonFinding, ...]:
@@ -193,7 +193,7 @@ def _module_documents_owner_map(module: PythonModuleReport | None) -> bool:
     return "owner map" in normalized
 
 
-def _reasoning_tree_import_roots(scope: PythonProjectHarnessScope) -> tuple[Path, ...]:
+def _reasoning_tree_import_roots(scope: AspPythonProjectScope) -> tuple[Path, ...]:
     if scope.source_paths:
         return scope.source_paths
     return scope.monitored_paths

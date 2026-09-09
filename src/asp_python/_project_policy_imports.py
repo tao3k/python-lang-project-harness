@@ -16,12 +16,12 @@ if TYPE_CHECKING:
 
     from python_lang_parser import PythonModuleReport
 
-    from ._model import PythonProjectHarnessScope
+    from ._model import AspPythonProjectScope
     from ._project_metadata import PythonProjectMetadata
 
 
 def project_import_name_findings(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     metadata: PythonProjectMetadata,
     modules: Sequence[PythonModuleReport],
     pack_id: str,
@@ -161,7 +161,7 @@ def _ambiguous_import_name_findings(
 
 
 def _reasoning_tree_import_roots(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     metadata: PythonProjectMetadata,
 ) -> tuple[Path, ...]:
     roots: list[Path] = []

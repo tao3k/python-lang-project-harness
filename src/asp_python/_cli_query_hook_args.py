@@ -1,4 +1,4 @@
-"""Hook query option helpers for the Python harness CLI."""
+"""Hook query option helpers for the ASP Python CLI."""
 
 from __future__ import annotations
 

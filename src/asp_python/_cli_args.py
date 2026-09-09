@@ -1,4 +1,4 @@
-"""Argument parsing helpers for the Python harness CLI."""
+"""Argument parsing helpers for the ASP Python CLI."""
 
 from __future__ import annotations
 
@@ -52,8 +52,6 @@ class ProtocolArgs:
             )
         if command == "query":
             return cls._parse_query(args[1:])
-        if command == "evidence":
-            return cls._parse_evidence(args[1:])
         if command == "agent":
             return cls._parse_agent(args[1:])
         if command == "ast-patch":
@@ -98,33 +96,6 @@ class ProtocolArgs:
             "ast-patch",
             packet_path=packet_path,
             project_root=positionals[0] if positionals else None,
-        )
-
-    @classmethod
-    def _parse_evidence(cls, args: list[str] | tuple[str, ...]) -> ProtocolArgs:
-        action = args[0] if args else None
-        if action in {"--help", "-h"}:
-            return cls("help")
-        if action not in {"graph", "analyze", "analysis"}:
-            return cls("error", error="expected evidence <graph|analyze>")
-        json_output = False
-        positionals: list[str] = []
-        for arg in args[1:]:
-            if arg == "--json":
-                json_output = True
-            elif arg in {"--help", "-h"}:
-                return cls("help")
-            elif arg.startswith("-"):
-                return cls("error", error=f"unknown evidence option: {arg}")
-            else:
-                positionals.append(arg)
-        if len(positionals) > 1:
-            return cls("error", error="expected at most one PROJECT_ROOT argument")
-        return cls(
-            "evidence",
-            action="analyze" if action == "analysis" else action,
-            project_root=None if not positionals else Path(positionals[0]),
-            json=json_output,
         )
 
     @classmethod
@@ -210,13 +181,11 @@ class ProtocolArgs:
 
 def help_text() -> str:
     return (
-        "asp-python — Python provider runtime and project harness\n\n"
+        "asp-python — Python provider runtime and ASP Python\n\n"
         "Usage:\n"
         "  asp python search playbook <query> [--workspace <workspace-root>]\n"
         "  asp python query --selector <exact-structural-selector> --projection <source|callable-skeleton> --workspace <workspace-root>\n"
         "  asp-python query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION' [--json] [--workspace <workspace-root>]\n"
-        "  asp-python evidence graph [--json] [PROJECT_ROOT]\n"
-        "  asp-python evidence analyze [--json] [PROJECT_ROOT]\n"
         "  asp-python ast-patch dry-run --packet <semantic-ast-patch.json|->\n"
         "  asp-python agent doctor [--json]\n"
         "  asp-python agent guide\n"
@@ -233,9 +202,6 @@ def help_text() -> str:
         "                             Typed callable skeleton materialization through ASP authority\n\n"
         "  query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION'\n"
         "                             Flow-lite ABI compatibility surface; Python executor is not enabled yet\n\n"
-        "EVIDENCE\n"
-        "  evidence graph --json     Portable semantic-evidence-graph packet\n"
-        "  evidence analyze --json   Graph-turbo request for evidence-quality ranking\n\n"
         "AST PATCH\n"
         "  ast-patch dry-run --packet <path|->\n"
         "                             Provider-native structural patch receipt; never mutates files\n\n"
@@ -248,8 +214,6 @@ def help_text() -> str:
         "  asp python search playbook PythonSemanticSearchOptions --workspace .\n"
         "  asp python query --selector 'python://src/asp_python/_cli.py#item/function/run_cli' --projection source --workspace .\n"
         "  asp-python query --catalog flow-lite --where 'source.call=payload sink.constructs=Action scope.fn=collect' .\n"
-        "  asp-python evidence graph --json .\n"
-        "  asp-python evidence analyze --json .\n"
         "  asp-python agent doctor --json .\n"
         "  asp-python agent guide\n"
     )

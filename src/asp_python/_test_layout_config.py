@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-TEST_LAYOUT_POLICY_CONFIG = "python-project-harness-rules.toml"
+TEST_LAYOUT_POLICY_CONFIG = "asp-python-rules.toml"
 
 
 @dataclass(frozen=True, slots=True)

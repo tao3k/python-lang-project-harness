@@ -1,4 +1,4 @@
-"""Project-local pyproject configuration for Python harness policy."""
+"""Project-local pyproject configuration for ASP Python policy."""
 
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ def read_asp_python_config(
     table = _read_project_config_table(Path(project_root) / "pyproject.toml")
     if not table:
         return None
-    return AspPythonConfig(**_harness_config_kwargs(table))
+    return AspPythonConfig(**_asp_python_config_kwargs(table))
 
 
 def read_pyproject_payload(pyproject_path: Path) -> dict[str, Any]:
@@ -55,7 +55,7 @@ def apply_asp_project_discovery_config(
     project_root: str | Path,
     config: AspPythonConfig,
 ) -> AspPythonConfig:
-    """Merge nearest `asp.toml` discovery settings into a harness config."""
+    """Merge nearest `asp.toml` discovery settings into a ASP Python config."""
 
     table = _read_asp_discovery_table(Path(project_root))
     if not table:
@@ -82,7 +82,7 @@ def _read_project_config_table(pyproject_path: Path) -> dict[str, Any] | None:
     return table
 
 
-def _harness_config_kwargs(table: dict[str, Any]) -> dict[str, object]:
+def _asp_python_config_kwargs(table: dict[str, Any]) -> dict[str, object]:
     kwargs: dict[str, object] = {}
     _put_bool(kwargs, table, "include_tests")
     _put_string_tuple(kwargs, table, "source_dir_names")

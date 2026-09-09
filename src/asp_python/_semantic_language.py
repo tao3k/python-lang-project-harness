@@ -16,7 +16,6 @@ _PYTHON_QUERY_METHODS = (
     "query/exact-selector-native-v1",
 )
 _PYTHON_AST_PATCH_METHODS = ("ast-patch/dry-run",)
-_PYTHON_EVIDENCE_METHODS = ("evidence/graph", "evidence/analyze")
 _PYTHON_AGENT_METHODS = ("agent/doctor", "agent/guide")
 
 
@@ -46,7 +45,6 @@ def python_semantic_language_registration() -> dict[str, Any]:
         "methods": [
             *_PYTHON_QUERY_METHODS,
             *_PYTHON_AST_PATCH_METHODS,
-            *_PYTHON_EVIDENCE_METHODS,
             *_PYTHON_AGENT_METHODS,
         ],
         "methodDescriptors": python_semantic_language_method_descriptors(),
@@ -72,28 +70,6 @@ def python_semantic_language_method_descriptors() -> list[dict[str, Any]]:
             "mutationAvailable": False,
         }
         for method in _PYTHON_AST_PATCH_METHODS
-    )
-    descriptors.extend(
-        [
-            {
-                "method": "evidence/graph",
-                "command": "evidence",
-                "input": "provider project root",
-                "outputSchemaIds": [ids.SEMANTIC_EVIDENCE_GRAPH_SCHEMA_ID],
-                "supportsJson": True,
-                "supportsCompact": True,
-            },
-            {
-                "method": "evidence/analyze",
-                "command": "evidence",
-                "input": "provider project root",
-                "outputSchemaIds": [ids.SEMANTIC_GRAPH_TURBO_REQUEST_SCHEMA_ID],
-                "packetSchemas": ["semantic-graph-turbo-request.v1"],
-                "clients": ["asp-python-graphs"],
-                "supportsJson": True,
-                "supportsCompact": True,
-            },
-        ]
     )
     descriptors.extend(
         [

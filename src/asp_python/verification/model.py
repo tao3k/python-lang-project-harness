@@ -1,4 +1,4 @@
-"""Library-first verification planning model for Python project harnesses."""
+"""Library-first verification planning model for ASP Pythones."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ class PythonOwnerResponsibility(StrEnum):
 
 
 class PythonVerificationTaskKind(StrEnum):
-    """External task classes planned by the harness but executed by skills."""
+    """External task classes planned by ASP Python but executed by skills."""
 
     PERFORMANCE = "performance"
     SECURITY = "security"
@@ -341,7 +341,7 @@ class PythonVerificationWaiver:
 
 @dataclass(frozen=True, slots=True)
 class PythonVerificationTask:
-    """One external verification obligation planned by the harness."""
+    """One external verification obligation planned by ASP Python."""
 
     owner_path: str
     owner_namespace: tuple[str, ...]
@@ -415,7 +415,7 @@ class PythonVerificationReportObligation:
 
 @dataclass(frozen=True, slots=True)
 class PythonVerificationPolicy:
-    """Configurable verification policy attached to a harness config."""
+    """Configurable verification policy attached to a ASP Python config."""
 
     profile_hints: tuple[PythonVerificationProfileHint, ...] = ()
     dependency_signals: tuple[PythonVerificationDependencySignal, ...] = ()

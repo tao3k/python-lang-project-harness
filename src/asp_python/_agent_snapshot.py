@@ -1,4 +1,4 @@
-"""Agent-facing project snapshot renderer for Python harness runs."""
+"""Agent-facing project snapshot renderer for ASP Python runs."""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING
 
 from ._agent_snapshot_tree import render_python_agent_snapshot_tree
 from ._render import (
-    render_python_lang_harness,
+    render_asp_python_report,
 )
-from ._rule_packs import resolve_project_harness_config
+from ._rule_packs import resolve_asp_python_project_config
 from ._runner import run_asp_python
 from .verification import (
     build_python_verification_profile_index_report,
@@ -35,10 +35,10 @@ def render_asp_python_agent_snapshot_with_config(
     project_root: str | Path,
     config: AspPythonConfig | None,
 ) -> str:
-    """Render an agent snapshot using an explicit harness config."""
+    """Render an agent snapshot using an explicit ASP Python config."""
 
     root = Path(project_root)
-    selected_config = resolve_project_harness_config(root, config, rule_packs=None)
+    selected_config = resolve_asp_python_project_config(root, config, rule_packs=None)
     report = run_asp_python(root, config=selected_config)
     return render_asp_python_agent_snapshot_report(
         report,
@@ -51,7 +51,7 @@ def render_asp_python_agent_snapshot_report(
     *,
     config: AspPythonConfig | None = None,
 ) -> str:
-    """Render an already-built project harness report as an agent snapshot."""
+    """Render an already-built ASP Python report as an agent snapshot."""
 
     project_root = (
         None
@@ -85,7 +85,7 @@ def render_asp_python_agent_snapshot_report(
 
 
 def _render_policy_section(report: AspPythonReport) -> str:
-    rendered = render_python_lang_harness(report)
+    rendered = render_asp_python_report(report)
     if rendered.startswith("[ok]"):
         return ""
     return "[policy]\n" + rendered

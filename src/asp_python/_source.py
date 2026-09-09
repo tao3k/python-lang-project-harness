@@ -1,4 +1,4 @@
-"""Shared file-location helpers for deterministic harness rules."""
+"""Shared file-location helpers for deterministic ASP Python rules."""
 
 from __future__ import annotations
 

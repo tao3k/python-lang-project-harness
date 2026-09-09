@@ -1,4 +1,4 @@
-"""Installed package identity for the Python project harness."""
+"""Installed package identity for the ASP Python."""
 
 from __future__ import annotations
 

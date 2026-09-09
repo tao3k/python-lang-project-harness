@@ -1,4 +1,4 @@
-"""Compact snapshot rendering for Python harness diagnostics."""
+"""Compact snapshot rendering for ASP Python diagnostics."""
 
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ def _line_protocol_field_value(value: object) -> str:
     return str(value)
 
 
-def render_python_lang_harness(
+def render_asp_python_report(
     report: AspPythonReport,
     *,
     severities: frozenset[PythonDiagnosticSeverity] | None = None,
@@ -87,13 +87,13 @@ def render_python_lang_harness(
     return _render_ok_header(report)
 
 
-def render_python_lang_harness_json(report: AspPythonReport) -> str:
+def render_asp_python_report_json(report: AspPythonReport) -> str:
     """Render a structured JSON diagnostic report for tool consumers."""
 
     return json.dumps(report.to_dict(), separators=(",", ":"), sort_keys=True)
 
 
-def render_python_lang_harness_advice(report: AspPythonReport) -> str:
+def render_asp_python_report_advice(report: AspPythonReport) -> str:
     """Render non-blocking advisory findings for agent-guided repair."""
 
     advice_findings = _deduplicate_advice_findings(

@@ -1,4 +1,4 @@
-"""Python project path discovery for embedded harness runs."""
+"""Python project path discovery for embedded ASP Python runs."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ._constants import IGNORED_DIR_NAMES, INCLUDE_HIDDEN_DIR_NAMES
-from ._model import PythonProjectHarnessScope
+from ._model import AspPythonProjectScope
 from ._project_metadata import read_python_project_metadata
 
 if TYPE_CHECKING:
@@ -105,7 +105,7 @@ def asp_python_paths(
     test_dir_names: Sequence[str] = ("tests",),
     extra_path_names: Sequence[str] = (),
 ) -> tuple[Path, ...]:
-    """Return project scan paths for embedded pytest harness checks."""
+    """Return project scan paths for embedded ASP Python pytest checks."""
 
     return asp_python_scope(
         project_root,
@@ -125,7 +125,7 @@ def asp_python_scope(
     extra_path_names: Sequence[str] = (),
     ignored_dir_names: Iterable[str] | None = None,
     include_hidden_dir_names: Iterable[str] | None = None,
-) -> PythonProjectHarnessScope:
+) -> AspPythonProjectScope:
     """Return the default project-wide monitoring scope."""
 
     root = Path(project_root)
@@ -154,7 +154,7 @@ def asp_python_scope(
         ignored_dir_names=ignored_names,
         include_hidden_dir_names=included_hidden_names,
     )
-    return PythonProjectHarnessScope(
+    return AspPythonProjectScope(
         project_root=root,
         project_metadata=metadata,
         project_paths=project_paths,
@@ -243,7 +243,7 @@ def is_scannable_python_file(
     ignored_dir_names: frozenset[str],
     include_hidden_dir_names: frozenset[str] = INCLUDE_HIDDEN_DIR_NAMES,
 ) -> bool:
-    """Return whether a Python file belongs to the harness-owned scan scope."""
+    """Return whether a Python file belongs to the ASP Python-owned scan scope."""
 
     relative_parts = _scan_relative_parts(path, scan_root)
     return not any(

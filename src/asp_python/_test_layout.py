@@ -1,4 +1,4 @@
-"""Pytest layout rule pack aligned with the project harness."""
+"""Pytest layout rule pack aligned with the ASP Python."""
 
 from __future__ import annotations
 
@@ -17,12 +17,12 @@ if TYPE_CHECKING:
 
     from python_lang_parser import PythonModuleReport
 
-    from ._model import PythonProjectHarnessScope
+    from ._model import AspPythonProjectScope
 
 
 @dataclass(frozen=True, slots=True)
 class PythonTestLayoutRulePack:
-    """Project-level pytest layout rules aligned with the Rust unit harness gate."""
+    """Project-level pytest layout rules aligned with the Rust unit ASP Python gate."""
 
     pack_id: str = TEST_LAYOUT_PACK_ID
 
@@ -48,7 +48,7 @@ class PythonTestLayoutRulePack:
 
     def evaluate_project_resolution(
         self,
-        scope: PythonProjectHarnessScope,
+        scope: AspPythonProjectScope,
     ) -> Iterable[AspPythonFinding]:
         """Evaluate project-level pytest layout rules for monitored test roots."""
 
@@ -56,7 +56,7 @@ class PythonTestLayoutRulePack:
 
     def evaluate_project_modules(
         self,
-        scope: PythonProjectHarnessScope,
+        scope: AspPythonProjectScope,
         modules: Sequence[PythonModuleReport],
     ) -> Iterable[AspPythonFinding]:
         """Evaluate pytest layout rules using parser-owned module facts."""
@@ -65,7 +65,7 @@ class PythonTestLayoutRulePack:
 
 
 def _test_layout_findings(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     modules: Sequence[PythonModuleReport],
     pack_id: str,
 ) -> tuple[AspPythonFinding, ...]:

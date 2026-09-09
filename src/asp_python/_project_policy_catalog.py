@@ -102,8 +102,8 @@ _RULES = (
         rule_id=PY_PROJ_R010,
         pack_id=PROJECT_POLICY_PACK_ID,
         severity=PythonDiagnosticSeverity.WARNING,
-        title="Harness dev dependency should mount a pytest gate",
-        requirement="Enable `--python-project-harness` in pytest addopts or expose `asp_python_test()` so the dev dependency actually gates project policy.",
+        title="ASP Python dev dependency should mount a pytest gate",
+        requirement="Enable `--asp-python` in pytest addopts or expose `asp_python_test()` so the dev dependency actually gates project policy.",
         labels=dict(_RULE_LABELS),
     ),
     AspPythonRule(

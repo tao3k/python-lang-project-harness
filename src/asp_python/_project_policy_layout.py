@@ -11,12 +11,12 @@ from ._source import path_location, source_line
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from ._model import PythonProjectHarnessScope
+    from ._model import AspPythonProjectScope
     from ._project_metadata import PythonProjectMetadata
 
 
 def project_layout_findings(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     metadata: PythonProjectMetadata,
     pack_id: str,
 ) -> tuple[AspPythonFinding, ...]:
@@ -40,7 +40,7 @@ def _is_packaged_project(metadata: PythonProjectMetadata) -> bool:
 
 
 def _src_layout_findings(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     metadata: PythonProjectMetadata,
     pack_id: str,
 ) -> tuple[AspPythonFinding, ...]:
@@ -65,7 +65,7 @@ def _src_layout_findings(
 
 
 def _uses_src_layout(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     metadata: PythonProjectMetadata,
 ) -> bool:
     src_roots = _src_layout_roots(scope, metadata)
@@ -80,7 +80,7 @@ def _uses_src_layout(
 
 
 def _src_layout_roots(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     metadata: PythonProjectMetadata,
 ) -> tuple[Path, ...]:
     src_roots: list[Path] = []

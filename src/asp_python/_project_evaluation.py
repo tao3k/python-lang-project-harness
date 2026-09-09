@@ -14,14 +14,14 @@ if TYPE_CHECKING:
 
     from ._model import (
         AspPythonFinding,
-        PythonLangRulePack,
-        PythonProjectHarnessScope,
+        AspPythonProjectScope,
+        AspPythonRulePack,
     )
 
 
 def evaluate_project_rule_packs(
-    scope: PythonProjectHarnessScope,
-    rule_packs: Sequence[PythonLangRulePack],
+    scope: AspPythonProjectScope,
+    rule_packs: Sequence[AspPythonRulePack],
     modules: Sequence[PythonModuleReport],
 ) -> tuple[AspPythonFinding, ...]:
     """Evaluate project-resolution hooks exposed by configured rule packs."""

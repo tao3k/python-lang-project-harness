@@ -21,11 +21,11 @@ if TYPE_CHECKING:
 
     from python_lang_parser import PythonModuleReport, PythonSymbol
 
-    from ._model import PythonProjectHarnessScope
+    from ._model import AspPythonProjectScope
 
 
 def bloated_unit_test_findings(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     modules: Sequence[PythonModuleReport],
     pack_id: str,
 ) -> tuple[AspPythonFinding, ...]:

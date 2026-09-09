@@ -9,7 +9,7 @@ from python_lang_parser import python_reasoning_tree_facts
 from ._model import AspPythonConfig, AspPythonFinding
 from ._project_config import read_asp_python_config
 from ._project_policy_catalog import PY_PROJ_R011, project_policy_rule
-from ._project_policy_pytest_gate import declares_python_harness_surface
+from ._project_policy_pytest_gate import declares_asp_python_surface
 from ._source import path_location, source_line
 from .verification.facts import (
     is_test_path,
@@ -21,18 +21,18 @@ if TYPE_CHECKING:
 
     from python_lang_parser import PythonModuleReport, PythonProjectMetadata
 
-    from ._model import PythonProjectHarnessScope
+    from ._model import AspPythonProjectScope
 
 
 def project_verification_profile_findings(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     metadata: PythonProjectMetadata,
     modules: Sequence[PythonModuleReport],
     pack_id: str,
 ) -> tuple[AspPythonFinding, ...]:
     """Return Agent advice when parser facts need a verification profile."""
 
-    if not declares_python_harness_surface(metadata):
+    if not declares_asp_python_surface(metadata):
         return ()
     config = read_asp_python_config(scope.project_root)
     selected_config = config if config is not None else AspPythonConfig()
@@ -64,7 +64,7 @@ def project_verification_profile_findings(
 
 
 def _verification_owner_count(
-    scope: PythonProjectHarnessScope,
+    scope: AspPythonProjectScope,
     metadata: PythonProjectMetadata,
     modules: Sequence[PythonModuleReport],
     config: AspPythonConfig,

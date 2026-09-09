@@ -60,20 +60,6 @@ def _non_search_invocation(method: str) -> dict[str, list[str]]:
             "--packet",
             "{packet}",
         ],
-        "evidence/graph": [
-            ids.PYTHON_BINARY,
-            "evidence",
-            "graph",
-            "--json",
-            "{workspace}",
-        ],
-        "evidence/analyze": [
-            ids.PYTHON_BINARY,
-            "evidence",
-            "analyze",
-            "--json",
-            "{workspace}",
-        ],
         "agent/doctor": [ids.PYTHON_BINARY, "agent", "doctor", "--json"],
         "agent/guide": [ids.PYTHON_BINARY, "agent", "guide"],
     }

@@ -1,4 +1,4 @@
-"""Project policy for parser-visible pytest harness gates."""
+"""Project policy for parser-visible ASP Python pytest gates."""
 
 from __future__ import annotations
 
@@ -21,13 +21,13 @@ def project_pytest_gate_findings(
     modules: Sequence[PythonModuleReport],
     pack_id: str,
 ) -> tuple[AspPythonFinding, ...]:
-    """Return findings when a harness dependency is not wired into pytest."""
+    """Return findings when a ASP Python dependency is not wired into pytest."""
 
-    if not declares_python_harness_surface(metadata):
+    if not declares_asp_python_surface(metadata):
         return ()
     if metadata.pytest_options.enables_asp_python:
         return ()
-    if _has_explicit_harness_helper(modules):
+    if _has_explicit_asp_python_helper(modules):
         return ()
 
     rule = project_policy_rule(PY_PROJ_R010)
@@ -38,20 +38,20 @@ def project_pytest_gate_findings(
             severity=rule.severity,
             title=rule.title,
             summary=(
-                f"{metadata.pyproject_path.name} declares the Python project harness "
+                f"{metadata.pyproject_path.name} declares the ASP Python "
                 "surface without a parser-visible pytest gate."
             ),
             location=path_location(metadata.pyproject_path),
             requirement=rule.requirement,
             source_line=source_line(str(metadata.pyproject_path), 1),
-            label="mount the parser-backed harness in pytest",
+            label="mount the parser-backed ASP Python in pytest",
             labels=dict(rule.labels),
         ),
     )
 
 
-def declares_python_harness_surface(metadata: PythonProjectMetadata) -> bool:
-    """Return whether project metadata declares this harness as a dev surface."""
+def declares_asp_python_surface(metadata: PythonProjectMetadata) -> bool:
+    """Return whether project metadata declares ASP Python as a dev surface."""
 
     distribution_name = _canonical_distribution_name(_DISTRIBUTION_NAME)
     if _canonical_distribution_name(metadata.project_name or "") == distribution_name:
@@ -68,7 +68,7 @@ def declares_python_harness_surface(metadata: PythonProjectMetadata) -> bool:
     )
 
 
-def _has_explicit_harness_helper(
+def _has_explicit_asp_python_helper(
     modules: Sequence[PythonModuleReport],
 ) -> bool:
     for module in modules:

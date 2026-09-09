@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 def verification_reasoning_tree_facts(
     report: AspPythonReport,
 ) -> PythonReasoningTreeFacts:
-    """Return parser-owned reasoning-tree facts for one harness report."""
+    """Return parser-owned reasoning-tree facts for one ASP Python report."""
 
     scope = report.project_resolution
     return python_reasoning_tree_facts(
@@ -44,7 +44,7 @@ def verification_reasoning_tree_facts(
 
 
 def verification_project_root(report: AspPythonReport) -> Path:
-    """Return the project root represented by a harness report."""
+    """Return the project root represented by a ASP Python report."""
 
     if report.project_resolution is not None:
         return report.project_resolution.project_root
