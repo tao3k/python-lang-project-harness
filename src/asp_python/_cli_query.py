@@ -40,7 +40,7 @@ def run_query_command(
         return 0
 
     raise ValueError(
-        "exact source projection is ASP-owned; use `asp python query "
+        "exact source projection is ASP-owned; use `asp query playbook --language python "
         "--selector <exact-structural-selector> --projection "
         "source|callable-skeleton --workspace <workspace-root>`"
     )

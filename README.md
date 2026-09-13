@@ -81,17 +81,13 @@ verification tasks into one low-noise library response. The snapshot uses
 capped module summaries, branches, public owners, import edges, and
 branch-first profile candidates.
 
-The semantic-language console script exposes search and registry surfaces.
-Policy remains a dependency API consumed by pytest/build ownership:
+The provider console script exposes Query and registry surfaces. Public source
+discovery is owned by the Runtime Search Playbook. Policy remains a dependency
+API consumed by pytest/build ownership:
 
 ```shell
-asp-python search workspace .
-asp-python search prime .
-asp-python search lexical AspPythonReport owner tests .
-asp-python search lexical --query-set AspPythonReport --query-set PythonSemanticSearchOptions owner tests .
-asp-python search public-external-types pytest .
-asp-python search callsite AspPythonReport .
-asp-python search deps pytest .
+asp search playbook --language python --rg -n -e AspPythonReport . --tantivy 'title:AspPythonReport^2 OR body:AspPythonReport'
+asp query playbook --language python --selector '<python-selector>' --projection source --workspace .
 asp-python agent doctor --json .
 asp-python agent guide .
 python -c 'from asp_python import assert_asp_python_clean; assert_asp_python_clean(".")'

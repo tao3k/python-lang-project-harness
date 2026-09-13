@@ -41,6 +41,7 @@ def test_callable_skeleton_child_selector_round_trips_to_source(tmp_path) -> Non
     skeleton = invoke(root_selector, "callable-skeleton")
     payload = skeleton["projectionPayload"]
     assert isinstance(payload, dict)
+    assert payload["rootSelector"] == root_selector
     assert "schemaId" not in payload
     assert "schemaVersion" not in payload
     assert "projectionKind" not in payload

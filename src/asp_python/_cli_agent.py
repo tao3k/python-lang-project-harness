@@ -17,23 +17,22 @@ def render_agent_guide(project_root: Path) -> str:
                 f"[asp-python-guide] project={project}",
                 "|catalog provider=native-facts routes=syntax-locate,exact-source,callable-skeleton",
                 (
-                    f"|route syntax-locate selectors=S:tree-sitter-query,Scope:owner-or-structural "
-                    f"returns=locator,capture,frontier code=false cmd=asp python "
-                    f"query --treesitter-query "
-                    f"'(function_definition name: (identifier) @function.name)' "
-                    f"--selector <owner-path-or-structural-scope> {workspace}"
+                    "|route syntax-locate selectors=S:tree-sitter-query,Scope:owner-or-structural "
+                    "returns=locator,capture,frontier cmd=asp search playbook "
+                    "--language python --rg -n -e '<symbol>' . "
+                    "--tantivy 'title:<symbol>^2 OR body:<symbol>' --syntax python "
+                    "'(function_definition name: (identifier) @function.name)'"
                 ),
-                f"|route exact-source selectors=R:exact-selector returns=source cmd=asp python query --selector <exact-structural-selector> --projection source {workspace}",
-                f"|route callable-skeleton selectors=R:exact-callable-selector returns=callable-skeleton cmd=asp python query --selector <exact-structural-selector> --projection callable-skeleton {workspace}",
-                f"|cmd playbook=asp python search playbook <query> {workspace}",
-                f"|cmd catalog-json=asp python query --catalog declarations --json {workspace}",
+                f"|route exact-source selectors=R:exact-selector returns=source cmd=asp query playbook --language python --selector <exact-structural-selector> --projection source {workspace}",
+                f"|route callable-skeleton selectors=R:exact-callable-selector returns=callable-skeleton cmd=asp query playbook --language python --selector <exact-structural-selector> --projection callable-skeleton {workspace}",
+                "|cmd playbook=asp search playbook --language python --rg -n -e <query> . --tantivy 'title:<query>^2 OR body:<query>'",
                 (
-                    f"|cmd syntax-locate=asp python query --treesitter-query "
-                    f"'(function_definition name: (identifier) @function.name)' "
-                    f"--selector <owner-path-or-structural-scope> {workspace}"
+                    "|cmd syntax-locate=asp search playbook --language python "
+                    "--rg -n -e '<symbol>' . --tantivy 'title:<symbol>^2 OR body:<symbol>' "
+                    "--syntax python '(function_definition name: (identifier) @function.name)'"
                 ),
-                f"|cmd exact-source=asp python query --selector <exact-structural-selector> --projection source {workspace}",
-                f"|cmd callable-skeleton=asp python query --selector <exact-structural-selector> --projection callable-skeleton {workspace}",
+                f"|cmd exact-source=asp query playbook --language python --selector <exact-structural-selector> --projection source {workspace}",
+                f"|cmd callable-skeleton=asp query playbook --language python --selector <exact-structural-selector> --projection callable-skeleton {workspace}",
                 "|cmd ast-patch=asp python ast-patch dry-run --packet <semantic-ast-patch.json|->",
                 "|policy authority=asp-python-api trigger=pytest-plugin",
                 "|rule agent hook install/runtime is owned by asp",
@@ -86,7 +85,7 @@ def render_agent_doctor(project_root: Path) -> str:
                 ),
                 f"|namespace {ids.PYTHON_PROVIDER_NAMESPACE}",
                 f"|method {','.join(registration['methods'])}",
-                "|schema semantic-search-packet.v1",
+                "|schema semantic-query-packet.v1",
             )
         )
         + "\n"

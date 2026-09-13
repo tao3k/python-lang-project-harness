@@ -31,7 +31,7 @@ def test_cli_agent_guide_uses_asp_owned_exact_projection(tmp_path: Path) -> None
 def test_search_descriptors_publish_benchmark_invocations() -> None:
     descriptors = python_semantic_language_registration()["methodDescriptors"]
     assert all(
-        descriptor["method"] != "search/owner-native" for descriptor in descriptors
+        descriptor["method"] != "search/playbook-native" for descriptor in descriptors
     )
     exact = next(
         descriptor

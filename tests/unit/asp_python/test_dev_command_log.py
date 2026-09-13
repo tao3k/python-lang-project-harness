@@ -46,7 +46,7 @@ def test_dev_command_log_records_ordered_active_context_events(
     monkeypatch.delenv("AGENT_HOOK_RUN_ID", raising=False)
 
     log = start_dev_command_log(
-        ["search", "lexical", "metadata", str(project)], project
+        ["query", "--selector", "python://src/demo.py#item/function/run"], project
     )
     log.finish(0)
 

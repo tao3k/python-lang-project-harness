@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shlex
 from typing import Any
 
 from ._semantic_projection import semantic_query_projection
@@ -126,9 +127,11 @@ def _routes_for_term(import_routes: list[Any], term: str) -> list[dict[str, str]
 
 
 def semantic_import_route_next(route: dict[str, str]) -> str:
+    owner = shlex.quote(route["ownerPath"])
+    query = shlex.quote(route["query"])
     return (
-        "asp python search owner "
-        f"{route['ownerPath']} items --query {route['query']} --workspace . --view seeds"
+        "asp search playbook --language python "
+        f"--rg -n -e {query} {owner} --tantivy term {query}"
     )
 
 

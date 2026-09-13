@@ -22,21 +22,6 @@ VALUE_OPTIONS = {
     "--view",
 }
 
-SEARCH_PIPES = {
-    "dependency",
-    "deps",
-    "docs",
-    "features",
-    "lexical",
-    "items",
-    "owner",
-    "owners",
-    "prime",
-    "symbol",
-    "tests",
-    "workspace",
-}
-
 
 @dataclass(frozen=True, slots=True)
 class NormalizedCommand:
@@ -81,20 +66,10 @@ def normalize_command(argv: list[str]) -> NormalizedCommand:
     query_set_count = sum(
         1 for arg in args if arg == "--query" or arg.startswith("--query=")
     )
-    pipes = tuple(sorted({normalize_token(arg) for arg in args} & SEARCH_PIPES))
-    view = (
-        normalize_token(first_positional_after(args, namespace_index) or "")
-        if namespace == "search"
-        else None
-    )
-    if view == "unknown":
-        view = None
-    method = command_method(namespace, view, args, namespace_index)
-    query = option_value(args, "--query") or first_query_positional(
-        args,
-        namespace_index,
-        view,
-    )
+    pipes: tuple[str, ...] = ()
+    view = None
+    method = command_method(namespace, args, namespace_index)
+    query = option_value(args, "--query")
     return NormalizedCommand(
         namespace=namespace,
         method=method,
@@ -124,12 +99,9 @@ def command_payload(command: NormalizedCommand) -> dict[str, Any]:
 
 def command_method(
     namespace: str,
-    view: str | None,
     args: list[str],
     namespace_index: int,
 ) -> str:
-    if namespace == "search" and view is not None:
-        return f"search/{view}"
     if namespace == "agent":
         subcommand = first_positional_after(args, namespace_index) or ""
         return f"agent/{normalize_token(subcommand)}"
@@ -147,32 +119,6 @@ def first_positional_after(args: list[str], start: int) -> str | None:
             continue
         if not arg.startswith("-"):
             return arg
-    return None
-
-
-def first_query_positional(
-    args: list[str],
-    namespace_index: int,
-    view: str | None,
-) -> str | None:
-    skip_next = False
-    skipped_view = view is None
-    for arg in args[max(0, namespace_index + 1) :]:
-        if skip_next:
-            skip_next = False
-            continue
-        if option_takes_value(arg):
-            skip_next = "=" not in arg
-            continue
-        if arg.startswith("-"):
-            continue
-        token = normalize_token(arg)
-        if not skipped_view and token == view:
-            skipped_view = True
-            continue
-        if token in SEARCH_PIPES:
-            continue
-        return arg
     return None
 
 

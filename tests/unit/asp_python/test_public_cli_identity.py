@@ -7,5 +7,5 @@ def test_public_cli_identity_is_asp_python() -> None:
     rendered = help_text()
 
     assert rendered.startswith("asp-python ")
-    assert "asp python search playbook" in rendered
+    assert "asp search playbook --language python" in rendered
     assert "asp-python search <view>" not in rendered

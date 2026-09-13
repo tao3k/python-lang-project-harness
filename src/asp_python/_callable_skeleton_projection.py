@@ -140,6 +140,7 @@ def callable_skeleton_payload(
     )
     projected_bytes = min(source_bytes, structural_bytes)
     return {
+        "rootSelector": root_exact["selector"],
         "rootNodeId": "callable:root",
         "callable": {
             "kind": selector.kind,

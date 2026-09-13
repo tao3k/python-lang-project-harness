@@ -52,7 +52,6 @@ def test_agent_guide_lists_tree_sitter_query_entrypoint(tmp_path: Path) -> None:
 
     assert exit_code == 0
     assert (
-        "|cmd catalog-json=asp python query --catalog declarations --json --workspace <workspace-root>"
-        in stdout.getvalue()
+        "|cmd syntax-locate=asp search playbook --language python" in stdout.getvalue()
     )
     assert "syntax predicates supported=#eq?,#any-eq?,#any-of?" in stdout.getvalue()

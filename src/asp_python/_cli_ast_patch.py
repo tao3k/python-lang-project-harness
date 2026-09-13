@@ -118,7 +118,7 @@ def _receipt(
         "failureKind": failure_kind,
         "failures": failures,
         "next": (
-            "asp python query --selector <exact-structural-selector> "
+            "asp query playbook --language python --selector <exact-structural-selector> "
             f"--projection source --workspace {project_root}"
         ),
     }

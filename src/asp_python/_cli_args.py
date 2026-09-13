@@ -42,14 +42,6 @@ class ProtocolArgs:
     @classmethod
     def parse(cls, args: list[str] | tuple[str, ...]) -> ProtocolArgs | None:
         command = args[0] if args else None
-        if command == "search":
-            return cls(
-                "error",
-                error=(
-                    "provider-local search was removed; use "
-                    "asp python search playbook <query>"
-                ),
-            )
         if command == "query":
             return cls._parse_query(args[1:])
         if command == "agent":
@@ -183,8 +175,8 @@ def help_text() -> str:
     return (
         "asp-python — Python provider runtime and ASP Python\n\n"
         "Usage:\n"
-        "  asp python search playbook <query> [--workspace <workspace-root>]\n"
-        "  asp python query --selector <exact-structural-selector> --projection <source|callable-skeleton> --workspace <workspace-root>\n"
+        "  asp search playbook --language python --rg -n -e <query> . --tantivy 'title:<query>^2 OR body:<query>'\n"
+        "  asp query playbook --language python --selector <exact-structural-selector> --projection <source|callable-skeleton> --workspace <workspace-root>\n"
         "  asp-python query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION' [--json] [--workspace <workspace-root>]\n"
         "  asp-python ast-patch dry-run --packet <semantic-ast-patch.json|->\n"
         "  asp-python agent doctor [--json]\n"
@@ -192,13 +184,13 @@ def help_text() -> str:
         "\n"
         "SEARCH\n"
         "  Search is owned by the root ASP Client. The single public surface is\n"
-        "  `asp python search playbook`, which composes raw candidates, provider\n"
+        "  `asp search playbook --language python`, which composes raw candidates, provider\n"
         "  native syntax, lexical ranking, and graph expansion. Provider-local\n"
         "  search views are intentionally unavailable.\n\n"
         "QUERY\n"
-        "  asp python query --selector <python-structural-selector> --projection source --workspace <workspace-root>\n"
+        "  asp query playbook --language python --selector <python-structural-selector> --projection source --workspace <workspace-root>\n"
         "                             Exact source materialization through ASP authority\n"
-        "  asp python query --selector <python-structural-selector> --projection callable-skeleton --workspace <workspace-root>\n"
+        "  asp query playbook --language python --selector <python-structural-selector> --projection callable-skeleton --workspace <workspace-root>\n"
         "                             Typed callable skeleton materialization through ASP authority\n\n"
         "  query --catalog flow-lite --where 'source.call=NAME sink.constructs=TYPE scope.fn=FUNCTION'\n"
         "                             Flow-lite ABI compatibility surface; Python executor is not enabled yet\n\n"
@@ -211,8 +203,8 @@ def help_text() -> str:
         "  agent guide               Print provider role and playbook guidance\n\n"
         "  Hook install/runtime is owned by asp in the root toolchain.\n\n"
         "\nEXAMPLES\n"
-        "  asp python search playbook PythonSemanticSearchOptions --workspace .\n"
-        "  asp python query --selector 'python://src/asp_python/_cli.py#item/function/run_cli' --projection source --workspace .\n"
+        "  asp search playbook --language python --rg -n -e PythonSemanticSearchOptions . --tantivy 'title:PythonSemanticSearchOptions^2 OR body:PythonSemanticSearchOptions'\n"
+        "  asp query playbook --language python --selector 'python://src/asp_python/_cli.py#item/function/run_cli' --projection source --workspace .\n"
         "  asp-python query --catalog flow-lite --where 'source.call=payload sink.constructs=Action scope.fn=collect' .\n"
         "  asp-python agent doctor --json .\n"
         "  asp-python agent guide\n"

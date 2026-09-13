@@ -188,8 +188,8 @@ def resolved_tree_sitter_query(args: Any) -> dict[str, Any]:
     source = args.tree_sitter_query.strip()
     if not args.asp_syntax_query_node_types:
         raise ValueError(
-            "tree-sitter query projection requires ASP-compiled query plan; use "
-            "`asp python query --treesitter-query ...` so ASP owns query ABI compilation"
+            "tree-sitter query projection requires an ASP-compiled query plan; use the "
+            "`--syntax python ...` block of `asp search playbook` so ASP owns query ABI compilation"
         )
     return {
         "input": source,

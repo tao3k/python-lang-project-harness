@@ -55,7 +55,7 @@ def _query_args_result(
     return args_type(
         "error",
         error=(
-            "exact source projection is ASP-owned; use `asp python query "
+            "exact source projection is ASP-owned; use `asp query playbook --language python "
             "--selector <exact-structural-selector> --projection "
             "source|callable-skeleton --workspace <workspace-root>`"
         ),
